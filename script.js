@@ -3,14 +3,14 @@
 // 注意：實際應用中，瀏覽器不一定能直接渲染 .icon，通常會是 .png 或 .gif。這裡先按照要求設定路徑字串。
 // 修改：id 設定維持原本，但在 loadPage 中動態組合目錄路徑 (e.g., id 'D-C' -> /d/d_c.html)
 const menuData = [
-    { id: 'A', title: 'A. 基本資料', icon: '/icon/a.png' },
-    { id: 'B', title: 'B. 訂單管理', icon: '/icon/b.icon' },
-    { id: 'C', title: 'C. 商品管理', icon: '/icon/c.icon' },
+    { id: 'A', title: 'A. 基本資料', icon: 'icon/a.png' },
+    { id: 'B', title: 'B. 訂單管理', icon: 'icon/b.icon' },
+    { id: 'C', title: 'C. 商品管理', icon: 'icon/c.icon' },
        { 
         id: 'D', 
         title: 'D. 團銷管理', 
-        icon: '/icon/d.icon',
-        isExpanded: true,
+        icon: 'icon/d.icon',
+        isExpanded: false,
         children: [
             { id: 'D-A', title: 'A. 團體銷售控管' },
             { id: 'D-B', title: 'B. 團體安排' },
@@ -20,12 +20,12 @@ const menuData = [
             { id: 'D-F', title: 'F. 團體訂單異動紀錄' }
         ]
     },
-    { id: 'E', title: 'E. 票務管理', icon: '/icon/e.icon' },
+    { id: 'E', title: 'E. 票務管理', icon: 'icon/e.icon' },
     { 
         id: 'F', 
         title: 'F. 證照管理', 
-        icon: '/icon/f.icon',
-        isExpanded: true,
+        icon: 'icon/f.icon',
+        isExpanded: false,
         children: [
             { id: 'F-A', title: 'A. 旅客辦證紀錄' },
             { id: 'F-B', title: 'B. 旅客交辦處理明細紀...' }, 
@@ -34,14 +34,14 @@ const menuData = [
             { id: 'F-Z', title: 'Z. 證照報表列印' }
         ]
     },
-    { id: 'G', title: 'G. 網站管理', icon: '/icon/g.icon' },
-    { id: 'H', title: 'H. 系統設定', icon: '/icon/h.icon' },
-    { id: 'I', title: 'I. 電子報管理', icon: '/icon/i.icon' },
-    { id: 'K', title: 'K. 帳務管理', icon: '/icon/k.icon' },
-    { id: 'M', title: 'M. 操作手冊', icon: '/icon/m.icon' },
-    { id: 'N', title: 'N. 訊息管理', icon: '/icon/n.icon' },
-    { id: 'P', title: 'P. 商品發布管理', icon: '/icon/p.icon' },
-    { id: 'S', title: 'S. 銷售管理', icon: '/icon/s.icon' } 
+    { id: 'G', title: 'G. 網站管理', icon: 'icon/g.icon' },
+    { id: 'H', title: 'H. 系統設定', icon: 'icon/h.icon' },
+    { id: 'I', title: 'I. 電子報管理', icon: 'icon/i.icon' },
+    { id: 'K', title: 'K. 帳務管理', icon: 'icon/k.icon' },
+    { id: 'M', title: 'M. 操作手冊', icon: 'icon/m.icon' },
+    { id: 'N', title: 'N. 訊息管理', icon: 'icon/n.icon' },
+    { id: 'P', title: 'P. 商品發布管理', icon: 'icon/p.icon' },
+    { id: 'S', title: 'S. 銷售管理', icon: 'icon/s.icon' } 
 ];
 
 // 初始化載入
@@ -82,7 +82,9 @@ function renderMenu() {
         iconSpan.className = 'menu-icon';
         if (menu.icon) {
             iconSpan.style.backgroundImage = `url(${menu.icon})`;
-            iconSpan.style.backgroundSize = 'cover';
+            iconSpan.style.backgroundSize = 'contain';
+            iconSpan.style.backgroundRepeat = 'no-repeat';
+            iconSpan.style.backgroundPosition = 'center';
         } else {
             iconSpan.classList.add('default-icon');
         }
@@ -147,7 +149,7 @@ function loadPage(pageId) {
     
     // 組合最終路徑：/folder/filename.html
     // 如果是單一字母 (如 'A')，則路徑為 /a/a.html
-    const filePath = `/${folderName}/${fileNameBase}.html`; 
+    const filePath = `${folderName}/${fileNameBase}.html`; 
 
     fetch(filePath)
         .then(response => {
