@@ -4,8 +4,8 @@
 // 修改：id 設定維持原本，但在 loadPage 中動態組合目錄路徑 (e.g., id 'D-C' -> /d/d_c.html)
 const menuData = [
     { id: 'A', title: 'A. 基本資料', icon: 'icon/a.png' },
-    { id: 'B', title: 'B. 訂單管理', icon: 'icon/b.icon' },
-    { id: 'C', title: 'C. 商品管理', icon: 'icon/c.icon' },
+    { id: 'B', title: 'B. 訂單管理', icon: 'icon/b.png' },
+    { id: 'C', title: 'C. 商品管理', icon: 'icon/c.png' },
        { 
         id: 'D', 
         title: 'D. 團銷管理', 
@@ -24,7 +24,7 @@ const menuData = [
     { 
         id: 'F', 
         title: 'F. 證照管理', 
-        icon: 'icon/f.icon',
+        icon: 'icon/f.png',
         isExpanded: false,
         children: [
             { id: 'F-A', title: 'A. 旅客辦證紀錄' },
@@ -34,14 +34,14 @@ const menuData = [
             { id: 'F-Z', title: 'Z. 證照報表列印' }
         ]
     },
-    { id: 'G', title: 'G. 網站管理', icon: 'icon/g.icon' },
-    { id: 'H', title: 'H. 系統設定', icon: 'icon/h.icon' },
-    { id: 'I', title: 'I. 電子報管理', icon: 'icon/i.icon' },
-    { id: 'K', title: 'K. 帳務管理', icon: 'icon/k.icon' },
-    { id: 'M', title: 'M. 操作手冊', icon: 'icon/m.icon' },
-    { id: 'N', title: 'N. 訊息管理', icon: 'icon/n.icon' },
-    { id: 'P', title: 'P. 商品發布管理', icon: 'icon/p.icon' },
-    { id: 'S', title: 'S. 銷售管理', icon: 'icon/s.icon' } 
+    { id: 'G', title: 'G. 網站管理', icon: 'icon/g.png' },
+    { id: 'H', title: 'H. 系統設定', icon: 'icon/h.png' },
+    { id: 'I', title: 'I. 電子報管理', icon: 'icon/i.png' },
+    { id: 'K', title: 'K. 帳務管理', icon: 'icon/k.png' },
+    { id: 'M', title: 'M. 操作手冊', icon: 'icon/m.png' },
+    { id: 'N', title: 'N. 訊息管理', icon: 'icon/n.pngn' },
+    { id: 'P', title: 'P. 商品發布管理', icon: 'icon/p.png' },
+    { id: 'S', title: 'S. 銷售管理', icon: 'icon/s.png' } 
 ];
 
 // 初始化載入
