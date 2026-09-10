@@ -1,0 +1,338 @@
+body {
+    margin: 0;
+    padding: 0;
+    font-family: "MS Sans Serif", "Microsoft JhengHei", Arial, sans-serif;
+    background-color: #ece9d8;
+    font-size: 12px;
+    user-select: none;
+}
+
+.main-container {
+    display: flex;
+    height: 100vh;
+    width: 100vw;
+    box-sizing: border-box;
+}
+
+/* =========================================
+   左側選單樣式 (Sidebar)
+   ========================================= */
+.sidebar {
+    width: 220px;
+    background-color: #ffcc33;
+    display: flex;
+    flex-direction: column;
+    border-right: 1px solid #999; /* 確保與右側內容有界線 */
+}
+
+/* 登入資訊區塊容器 (移除共用邊框，改由內部獨立方格控制) */
+.login-info {
+    line-height: 1.4;
+    font-size: 12px;
+}
+
+/* 獨立方格：登入時間 */
+.login-time-bar {
+    background-color: #f7d667; 
+    border: 1px solid #000; 
+    padding: 2px 5px;
+    margin-bottom: -1px; /* 負邊距讓邊框重疊 */
+}
+
+/* 獨立方格：使用者資訊 */
+.user-info-bar {
+    background-color: #e0e0e0; 
+    border: 1px solid #000; 
+    text-align: center;
+    padding: 2px 0;
+    margin-bottom: -1px; /* 負邊距讓邊框重疊 */
+}
+
+/* 使用者字體顏色改為橘色 */
+.login-info .user-name {
+    color: #ff8c00; 
+}
+
+/* 權限範本字體顏色改為橘色 */
+.login-info .auth-template {
+    color: #ff8c00; 
+}
+
+/* 登出按鈕區塊 (帶有網點背景) */
+.logout-area {
+    background-image: radial-gradient(#ccc 1px, transparent 1px);
+    background-size: 4px 4px;
+    background-color: #f4f4f4;
+    border: 1px solid #000; 
+    padding: 5px;
+    text-align: center;
+    margin: 0; /* 移除間隙，直接相連 */
+}
+
+.logout-btn {
+    padding: 2px 10px;
+    cursor: pointer;
+    background-color: #fff; 
+    border: 1px solid #000; 
+    display: inline-block;
+}
+
+/* 選單列表容器 */
+.menu-list {
+    overflow-y: auto; 
+    flex-grow: 1;
+    background-color: #fddb56; 
+    border: none; /* 功能列表無格線 */
+    margin: 0; /* 無空隙直接相連 */
+}
+
+/* =========================================
+   自訂捲軸 (Windows Classic 風格)
+   ========================================= */
+.menu-list::-webkit-scrollbar {
+    width: 16px; 
+}
+
+.menu-list::-webkit-scrollbar-track {
+    background-color: #e3e3e3; 
+    border-left: 1px solid #d4d4d4;
+}
+
+.menu-list::-webkit-scrollbar-thumb {
+    background-color: #c0c0c0; 
+    border: 2px solid;
+    border-color: #dfdfdf #404040 #404040 #dfdfdf; 
+}
+
+.menu-list::-webkit-scrollbar-button:single-button {
+    background-color: #c0c0c0;
+    display: block;
+    height: 16px;
+    border: 2px solid;
+    border-color: #dfdfdf #404040 #404040 #dfdfdf;
+}
+
+/* =========================================
+   主選單項目 (Menu Item)
+   ========================================= */
+.menu-item {
+    padding: 6px 10px;
+    cursor: pointer;
+    color: #000; 
+    background-color: #fddb56; 
+    display: flex;
+    align-items: center;
+}
+
+/* 預留 Icon 的位置 */
+.menu-icon {
+    width: 16px; 
+    height: 16px; 
+    margin-right: 5px; 
+    display: inline-block;
+}
+
+.menu-icon.default-icon {
+    content: "📁";
+    font-size: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.menu-item .menu-icon.default-icon::before {
+    content: "📁";
+}
+
+.menu-item:hover {
+    background-color: #e5b82e;
+}
+
+/* =========================================
+   子選單 (Submenu)
+   ========================================= */
+.submenu {
+    background-color: #ffffff; 
+    display: flex;
+    flex-direction: column;
+    border-bottom: 1px solid #000; 
+    border-top: 1px solid #000; 
+}
+
+.sub-item {
+    padding: 5px 10px 5px 25px;
+    text-decoration: none;
+    color: #0000ff; 
+    font-size: 12px;
+    display: block;
+}
+
+.sub-item:hover {
+    background-color: #316ac5;
+    color: #fff;
+}
+
+.sub-item.active {
+    border: 2px solid red; 
+    color: #0000ff; 
+    background-color: #ffffe1; 
+    box-sizing: border-box; 
+    padding: 3px 8px 3px 23px; 
+}
+
+/* =========================================
+   右側內容區
+   ========================================= */
+.content-area {
+    flex-grow: 1;
+    background-color: #fff;
+    display: flex;
+    flex-direction: column;
+    position: relative;
+    overflow: hidden;
+}
+
+.content-header {
+    background: linear-gradient(to bottom, #d6d3ce, #c5c2bc);
+    padding: 6px 10px;
+    border-bottom: 1px solid #999;
+    display: flex;
+    align-items: center;
+    font-weight: bold;
+}
+
+.top-right-actions {
+    margin-left: auto;
+}
+
+.form-panel {
+    padding: 10px;
+    background-color: #f5f4ef;
+    border-bottom: 1px solid #ccc;
+}
+
+.form-row {
+    margin-bottom: 5px;
+    display: flex;
+    gap: 15px;
+}
+
+.highlight-red {
+    color: red;
+}
+
+/* 表格樣式 */
+.data-table {
+    width: 100%;
+    border-collapse: collapse;
+    background-color: #fff;
+    margin-top: 5px;
+}
+
+.data-table th, .data-table td {
+    border: 1px solid #a0a0a0;
+    padding: 4px 8px;
+    text-align: left;
+}
+
+.data-table th {
+    background-color: #e3e0d8;
+}
+
+/* 經典彈出視窗 (Modal) */
+.modal-window {
+    position: absolute;
+    top: 50px;
+    left: 250px;
+    width: 380px;
+    background-color: #ece9d8;
+    border: 2px outset #fff;
+    box-shadow: 3px 3px 10px rgba(0,0,0,0.3);
+    z-index: 100;
+}
+
+.modal-title-bar {
+    background: linear-gradient(to right, #0055ea, #7097ff);
+    color: white;
+    padding: 4px 6px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-weight: bold;
+    font-size: 11px;
+}
+
+.modal-controls {
+    display: flex;
+    gap: 2px;
+}
+
+.modal-btn {
+    width: 16px;
+    height: 16px;
+    background-color: #ece9d8;
+    border: 1px outset #fff;
+    font-size: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    padding: 0;
+}
+
+.modal-body {
+    padding: 10px;
+    background-color: #ece9d8;
+}
+
+.modal-fieldset-title {
+    background-color: #ffffe1;
+    border: 1px solid #999;
+    padding: 4px;
+    text-align: center;
+    font-weight: bold;
+    margin-bottom: 10px;
+}
+
+.print-options {
+    list-style: none;
+    padding: 0 10px;
+    margin: 0 0 15px 0;
+    background: #fff;
+    border: 1px inset #999;
+    padding: 5px;
+}
+
+.print-options li {
+    padding: 3px 0;
+}
+
+.red-text {
+    color: red;
+}
+
+.modal-buttons {
+    text-align: center;
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+}
+
+.modal-buttons button {
+    padding: 3px 15px;
+    background-color: #ece9d8;
+    border: 2px outset #fff;
+    cursor: pointer;
+}
+
+.modal-buttons button:active {
+    border-style: inset;
+}
+
+.modal-status-bar {
+    background-color: #ece9d8;
+    border-top: 1px solid #999;
+    padding: 2px 5px;
+    font-size: 10px;
+    display: flex;
+    justify-content: space-between;
+}
