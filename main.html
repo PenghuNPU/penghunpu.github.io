@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <title>團體分房作業系統</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="main-container">
+        <!-- 左側導覽列外殼 -->
+        <div class="sidebar">
+            <!-- 登入資訊區塊 -->
+            <div class="login-info">
+                <div class="login-time-bar">
+                    登入時間：<span id="current-time"></span>
+                </div>
+                <!-- 修改：加入 user-info-bar 讓背景變為淺灰色 -->
+                <div class="user-info-bar">
+                    使用者：<span class="user-name">講師</span><br>
+                    <span class="auth-template">管理員權限範本</span>
+                </div>
+            </div>
+            <!-- 登出按鈕區塊 (網點背景) -->
+            <div class="logout-area">
+                <button class="logout-btn">登 出</button>
+            </div>
+            <!-- JS 將在這裡生成選單 -->
+            <div class="menu-list" id="menu-list"></div>
+        </div>
+
+        <!-- 右側內容區外殼 -->
+        <div class="content-area" id="content-area"></div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
