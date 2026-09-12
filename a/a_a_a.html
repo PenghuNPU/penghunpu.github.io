@@ -1,18 +1,105 @@
-<!-- 上方的 HTML 與 CSS 保持不變，只替換 <script> 區段 -->
+<style>
+    /* =========================================
+       標籤頁外觀樣式 (Windows Classic 風格)
+       ========================================= */
+    .tab-container {
+        padding: 10px;
+        background-color: #ece9d8;
+        height: 100%;
+        box-sizing: border-box;
+    }
+    .tabs-header {
+        display: flex;
+        border-bottom: 2px solid #fff;
+        position: relative;
+    }
+    .tabs-header::after {
+        content: "";
+        position: absolute;
+        bottom: -2px;
+        left: 0;
+        right: 0;
+        border-bottom: 1px solid #999;
+        z-index: 1;
+    }
+    .tab-btn {
+        padding: 6px 12px; /* 稍微放大點擊範圍 */
+        border: 1px solid #999;
+        border-bottom: none;
+        background-color: #d6d3ce;
+        margin-right: 2px;
+        border-radius: 4px 4px 0 0;
+        cursor: pointer;
+        font-size: 13px;
+        position: relative;
+        z-index: 0;
+    }
+    .tab-btn.active {
+        background-color: #ece9d8;
+        border-top: 3px solid #ff9800; /* 活躍標籤加上橘色頂線凸顯 */
+        border-left: 1px solid #fff;
+        font-weight: bold;
+        z-index: 2;
+        padding-bottom: 7px;
+        margin-bottom: -1px;
+    }
+    .tab-btn:hover:not(.active) {
+        background-color: #e6e6e6;
+    }
+    
+    /* =========================================
+       子網頁內容顯示區
+       ========================================= */
+    .tab-content-box {
+        border: 1px solid #999;
+        border-top: none;
+        border-right: 2px solid #fff;
+        border-bottom: 2px solid #fff;
+        background-color: #ece9d8;
+        padding: 15px;
+        min-height: 450px;
+    }
+</style>
+
+<!-- 右側主畫面的頂部標題列 -->
+<div class="content-header">旅客資料管理</div>
+
+<div class="tab-container">
+    <!-- 8 個分頁標籤按鈕 -->
+    <div class="tabs-header">
+        <div class="tab-btn" onclick="switchTab(1, this)">1.旅客資料</div>
+        <div class="tab-btn" onclick="switchTab(2, this)">2.其他基本資料</div>
+        <div class="tab-btn" onclick="switchTab(3, this)">3.英文資料</div>
+        <div class="tab-btn" onclick="switchTab(4, this)">4.旅遊偏好</div>
+        <div class="tab-btn" onclick="switchTab(5, this)">5.簽證紀錄</div>
+        <div class="tab-btn" onclick="switchTab(6, this)">6.信用額度</div>
+        <div class="tab-btn" onclick="switchTab(7, this)">7.會員資料</div>
+        <div class="tab-btn" onclick="switchTab(8, this)">8.往來紀錄</div>
+    </div>
+
+    <!-- 這裡將動態載入 a_a_a_1.html ~ a_a_a_8.html 的內容 -->
+    <div id="sub-tab-content" class="tab-content-box">
+        載入中...
+    </div>
+</div>
+
 <script>
+    // 獨立的分頁切換函數
     function switchTab(tabIndex, element) {
-        // 1. 限定只抓取目前這個標籤列裡的按鈕，避免干擾
+        // 1. 限定只抓取目前這個標籤列裡的按鈕，並清除所有的 active 狀態
         const tabs = document.querySelectorAll('.tabs-header .tab-btn');
         tabs.forEach(tab => tab.classList.remove('active'));
+        
+        // 將被點擊的按鈕設為 active (反白凸起)
         if (element) {
             element.classList.add('active');
         }
 
-        // 2. 設定要載入的路徑 (相對於 main.html 的位置)
+        // 2. 組合要載入的子檔案路徑 (請確保檔案建立在 a 資料夾下，如 a/a_a_a_5.html)
         const subFilePath = `a/a_a_a_${tabIndex}.html`;
         const contentBox = document.getElementById('sub-tab-content');
 
-        // 3. 抓取內容並載入
+        // 3. 透過 fetch 抓取對應子頁面的 HTML 並塞入容器
         fetch(subFilePath)
             .then(response => {
                 if (!response.ok) throw new Error('檔案讀取失敗');
@@ -21,7 +108,7 @@
             .then(html => {
                 contentBox.innerHTML = html;
                 
-                // 重新執行子網頁內的 Script
+                // 重新執行子網頁內的 Script (SPA 必備處理)
                 const scripts = contentBox.querySelectorAll('script');
                 scripts.forEach(oldScript => {
                     const newScript = document.createElement('script');
@@ -31,19 +118,21 @@
                 });
             })
             .catch(error => {
+                // 防呆紅色錯誤提示畫面
                 contentBox.innerHTML = `
-                    <div style="color:red; font-weight:bold; padding:20px; text-align:center;">
+                    <div style="color:red; font-weight:bold; padding:20px; text-align:center; background-color:#ffffe1; border:1px solid red; border-radius:5px; margin: 20px;">
                         ⚠️ 無法載入檔案：${subFilePath}<br><br>
                         可能原因：<br>
-                        1. 您未建立此檔案。<br>
-                        2. 您直接用雙擊的方式打開網頁 (網址是 file:///)，被瀏覽器安全機制阻擋。<br>
-                        請使用 Live Server 啟動測試！
+                        1. 系統找不到此檔案，請確認您已在 a 資料夾下建立了「a_a_a_${tabIndex}.html」。<br>
+                        2. 您直接使用了檔案雙擊開啟 (網址列為 file:///)，觸發了瀏覽器安全攔截。<br>
+                        👉 <span style="color:blue;">請使用 VS Code 的 Live Server 啟動測試！</span>
                     </div>`;
             });
     }
 
-    // 延遲 50 毫秒執行，確保 HTML 完全嵌進右側畫面後，精準點擊第 5 頁的按鈕
+    // 初始化載入：延遲 50 毫秒執行，確保當前 HTML 嵌進 main.html 右側後，再精準觸發載入第 5 頁
     setTimeout(() => {
+        // 抓取第 5 個 tab 按鈕 (5.簽證紀錄)
         const targetTab = document.querySelector('.tabs-header .tab-btn:nth-child(5)');
         if (targetTab) {
             switchTab(5, targetTab);
