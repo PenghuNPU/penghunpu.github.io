@@ -5,7 +5,7 @@
         font-family: "MS Sans Serif", "細明體", sans-serif;
         font-size: 13px;
         padding-bottom: 10px;
-        position: relative; /* 供隱藏的日期選擇器定位使用 */
+        position: relative; 
     }
     
     .visa-row {
@@ -66,7 +66,6 @@
     
     .action-buttons button:active { border-style: inset; }
 
-    /* 🟢 隱藏原生的 HTML5 日期選擇器，只透過 JavaScript 喚起它 */
     .hidden-date-picker {
         position: absolute;
         opacity: 0;
@@ -78,6 +77,15 @@
 </style>
 
 <div class="visa-record-wrapper">
+    <!-- 🟢 新增：旅客代碼欄位 (用來對應 Customers 主檔的 7 碼流水號) -->
+    <div class="visa-row">
+        <div class="visa-label">旅客代碼 (7碼)：</div>
+        <div class="visa-input-group">
+            <input type="text" id="customer_id" class="visa-input" maxlength="7" style="width: 80px;" placeholder="0000001">
+            <span style="color: red; font-size: 12px; margin-left: 10px;">* 必填，對應客戶主檔流水號</span>
+        </div>
+    </div>
+
     <div class="visa-row">
         <div class="visa-label">建檔日期：</div>
         <div class="visa-input-group"><span id="creation_date"></span></div>
@@ -105,7 +113,6 @@
         </div>
     </div>
     
-    <!-- 🟢 起迄效期 -->
     <div class="visa-row">
         <div class="visa-label">起迄效期：</div>
         <div class="visa-input-group">
@@ -113,7 +120,6 @@
             <input type="text" id="v_from_m" class="visa-input date-box"> /
             <input type="text" id="v_from_d" class="visa-input date-box">
             
-            <!-- 綁定喚起日期選擇器的按鈕 -->
             <button class="icon-btn" onclick="openDatePicker('v_from')">📅</button>
             <input type="date" id="picker_v_from" class="hidden-date-picker" onchange="fillDate('v_from')">
 
@@ -135,7 +141,6 @@
         </div>
     </div>
     
-    <!-- 🟢 該國 PP 起迄效期 -->
     <div class="visa-row">
         <div class="visa-label">起迄效期：</div>
         <div class="visa-input-group">
@@ -169,16 +174,14 @@
         document.getElementById('creation_date').innerText = `${today.getFullYear()}/${today.getMonth() + 1}/${today.getDate()}`;
     })();
 
-    // 🟢 喚起隱藏的 HTML5 日期選擇器 (觸發 click 事件)
     window.openDatePicker = function(prefix) {
         document.getElementById(`picker_${prefix}`).showPicker(); 
     };
 
-    // 🟢 當使用者選好日期後，將 YYYY-MM-DD 拆解並填入三個格子中
     window.fillDate = function(prefix) {
         const dateValue = document.getElementById(`picker_${prefix}`).value;
         if (dateValue) {
-            const parts = dateValue.split('-'); // 格式: "2024-05-15" -> ["2024", "05", "15"]
+            const parts = dateValue.split('-'); 
             document.getElementById(`${prefix}_y`).value = parts[0];
             document.getElementById(`${prefix}_m`).value = parts[1];
             document.getElementById(`${prefix}_d`).value = parts[2];
@@ -186,6 +189,13 @@
     };
 
     window.saveVisaRecord = async function() {
+        // 🟢 抓取旅客代碼並進行 7 碼長度防呆驗證
+        const customer_id = document.getElementById('customer_id').value.trim();
+        if (customer_id.length !== 7) {
+            alert("❌ 儲存失敗！\n「旅客代碼」必須剛好是 7 碼 (例如：0000001)");
+            return;
+        }
+
         const creation_date = document.getElementById('creation_date').innerText;
         const visa_code_name = document.getElementById('visa_code_name').value;
         const visa_number = document.getElementById('visa_number').value;
@@ -204,13 +214,15 @@
         const p_to_m = document.getElementById('p_to_m').value;
         const p_to_d = document.getElementById('p_to_d').value;
 
+        // 🟢 將 INSERT INTO 替換為 REPLACE INTO
+        // 若該 customer_id 不存在則新增；若已存在則覆蓋更新，完美避開 UNIQUE 衝突錯誤
         const sql = `
-            INSERT INTO CustomerVisas (
+            REPLACE INTO CustomerVisas (
                 customer_id, creation_date, visa_code_name, visa_number, issue_place,
                 valid_from_y, valid_from_m, valid_from_d, valid_to_y, valid_to_m, valid_to_d,
                 pp_number, pp_valid_from_y, pp_valid_from_m, pp_valid_from_d, pp_valid_to_y, pp_valid_to_m, pp_valid_to_d
             ) VALUES (
-                'CUST_001', '${creation_date}', '${visa_code_name}', '${visa_number}', '${issue_place}',
+                '${customer_id}', '${creation_date}', '${visa_code_name}', '${visa_number}', '${issue_place}',
                 '${v_from_y}', '${v_from_m}', '${v_from_d}', '${v_to_y}', '${v_to_m}', '${v_to_d}',
                 '${pp_number}', '${p_from_y}', '${p_from_m}', '${p_from_d}', '${p_to_y}', '${p_to_m}', '${p_to_d}'
             );
@@ -218,13 +230,12 @@
 
         const isSuccess = await window.executeAndSave(sql);
         if (isSuccess) {
-            alert("✅ 簽證紀錄已成功更新至資料庫！");
+            alert(`✅ 旅客 [${customer_id}] 的簽證紀錄已成功更新！`);
         }
     };
 
     window.clearVisaForm = function() {
         document.querySelectorAll('.visa-input').forEach(input => input.value = '');
-        // 同時清空隱藏的日期選擇器，避免下次選同一天不觸發 onchange
         document.querySelectorAll('.hidden-date-picker').forEach(picker => picker.value = ''); 
     };
 </script>

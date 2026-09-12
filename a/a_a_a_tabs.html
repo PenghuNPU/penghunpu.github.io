@@ -1,0 +1,132 @@
+<style>
+    /* =========================================
+       標籤頁外觀樣式 (Windows Classic 風格)
+       ========================================= */
+    .tab-container {
+        padding: 10px;
+        background-color: #ece9d8;
+        height: 100%;
+        box-sizing: border-box;
+    }
+    .tabs-header {
+        display: flex;
+        border-bottom: 2px solid #fff;
+        position: relative;
+    }
+    .tabs-header::after {
+        content: "";
+        position: absolute;
+        bottom: -2px;
+        left: 0;
+        right: 0;
+        border-bottom: 1px solid #999;
+        z-index: 1;
+    }
+    .tab-btn {
+        padding: 6px 12px; 
+        border: 1px solid #999;
+        border-bottom: none;
+        background-color: #d6d3ce;
+        margin-right: 2px;
+        border-radius: 4px 4px 0 0;
+        cursor: pointer;
+        font-size: 13px;
+        position: relative;
+        z-index: 0;
+    }
+    .tab-btn.active {
+        background-color: #ece9d8;
+        border-top: 3px solid #ff9800; 
+        border-left: 1px solid #fff;
+        font-weight: bold;
+        z-index: 2;
+        padding-bottom: 7px;
+        margin-bottom: -1px;
+    }
+    .tab-btn:hover:not(.active) {
+        background-color: #e6e6e6;
+    }
+    
+    /* 子網頁內容顯示區 */
+    .tab-content-box {
+        border: 1px solid #999;
+        border-top: none;
+        border-right: 2px solid #fff;
+        border-bottom: 2px solid #fff;
+        background-color: #ece9d8;
+        padding: 15px;
+        min-height: 450px;
+    }
+</style>
+
+<div class="content-header">旅客資料管理</div>
+
+<div class="tab-container">
+    <!-- 8 個分頁標籤按鈕 -->
+    <div class="tabs-header">
+        <div class="tab-btn" onclick="switchTab(1, this)">1.旅客資料</div>
+        <div class="tab-btn" onclick="switchTab(2, this)">2.其他基本資料</div>
+        <div class="tab-btn" onclick="switchTab(3, this)">3.英文資料</div>
+        <div class="tab-btn" onclick="switchTab(4, this)">4.旅遊偏好</div>
+        <div class="tab-btn" onclick="switchTab(5, this)">5.簽證紀錄</div>
+        <div class="tab-btn" onclick="switchTab(6, this)">6.信用額度</div>
+        <div class="tab-btn" onclick="switchTab(7, this)">7.會員資料</div>
+        <div class="tab-btn" onclick="switchTab(8, this)">8.往來紀錄</div>
+    </div>
+
+    <!-- 動態載入子分頁的內容 -->
+    <div id="sub-tab-content" class="tab-content-box">
+        正在載入分頁內容...
+    </div>
+</div>
+
+<script>
+    // 🟢 核心修正：掛載到 window，確保 HTML 的 onclick 絕對找得到它！
+    window.switchTab = function(tabIndex, element) {
+        
+        // 1. 切換標籤視覺
+        const tabs = document.querySelectorAll('.tabs-header .tab-btn');
+        tabs.forEach(tab => tab.classList.remove('active'));
+        if (element) {
+            element.classList.add('active');
+        }
+
+        // 2. 組合路徑 (一律相對於主母體 main.html 的位置)
+        const subFilePath = `a/a_a_a_${tabIndex}.html`;
+        const contentBox = document.getElementById('sub-tab-content');
+
+        // 3. 抓取對應子頁面
+        fetch(subFilePath)
+            .then(response => {
+                if (!response.ok) throw new Error('檔案讀取失敗');
+                return response.text();
+            })
+            .then(html => {
+                contentBox.innerHTML = html;
+                
+                // 重新執行子網頁內的 Script
+                const scripts = contentBox.querySelectorAll('script');
+                scripts.forEach(oldScript => {
+                    const newScript = document.createElement('script');
+                    Array.from(oldScript.attributes).forEach(attr => newScript.setAttribute(attr.name, attr.value));
+                    newScript.appendChild(document.createTextNode(oldScript.innerHTML));
+                    oldScript.parentNode.replaceChild(newScript, oldScript);
+                });
+            })
+            .catch(error => {
+                contentBox.innerHTML = `
+                    <div style="color:red; font-weight:bold; padding:20px; text-align:center; background-color:#ffffe1; border:1px solid red;">
+                        ⚠️ 無法載入檔案：${subFilePath}<br><br>
+                        請確認您已在 a 資料夾下建立了「a_a_a_${tabIndex}.html」。
+                    </div>`;
+            });
+    };
+
+    // 🟢 稍微加長延遲至 100ms，確保 DOM 完全渲染後才模擬點擊第 5 頁
+    setTimeout(() => {
+        const targetTab = document.querySelector('.tabs-header .tab-btn:nth-child(5)');
+        if (targetTab) {
+            window.switchTab(5, targetTab);
+        }
+    }, 100);
+</script>

@@ -1,0 +1,220 @@
+<style>
+    .base-container {
+        padding: 10px;
+        background-color: #ece9d8;
+        font-family: "MS Sans Serif", "細明體", sans-serif;
+        font-size: 13px;
+        height: 100%;
+    }
+    .base-header {
+        background: linear-gradient(to bottom, #d4d0c8, #b5b5b5);
+        border: 1px outset #fff;
+        text-align: center;
+        font-weight: bold;
+        padding: 4px;
+        margin-bottom: 5px;
+    }
+    .base-table {
+        width: 100%;
+        border-collapse: collapse;
+        background-color: #ece9d8;
+        border: 2px solid #808080;
+    }
+    .base-table td {
+        border: 1px solid #808080;
+        padding: 5px;
+        vertical-align: middle;
+    }
+    .input-box {
+        border: 1px inset #fff;
+        padding: 2px 4px;
+        background-color: #fff;
+    }
+    .date-box { width: 35px; text-align: center; }
+    .date-box.year { width: 45px; }
+    .btn {
+        background-color: #ece9d8;
+        border: 2px outset #fff;
+        padding: 2px 8px;
+        cursor: pointer;
+        font-size: 12px;
+    }
+    .btn:active { border-style: inset; }
+    
+    .action-row {
+        background-color: #808080;
+        text-align: center;
+        padding: 10px;
+        margin-top: 10px;
+    }
+    .action-row button {
+        background-color: #d4d0c8;
+        border: 2px outset #fff;
+        padding: 4px 20px;
+        font-weight: bold;
+        letter-spacing: 5px;
+        margin: 0 10px;
+        cursor: pointer;
+    }
+    .action-row button:active { border-style: inset; }
+</style>
+
+<div class="content-header">
+    旅客資料管理 ▹ 新增客戶
+</div>
+
+<div class="base-container">
+    <div class="base-header">
+        【旅客編號：<span id="display_customer_id" style="color: blue;">載入中...</span>】
+    </div>
+
+    <table class="base-table">
+        <tr>
+            <td style="width: 30%;">
+                身分證字號：<input type="text" id="national_id" class="input-box" style="width: 100px;">
+            </td>
+            <td style="width: 40%;">
+                生日:西元 
+                <input type="text" id="birth_y" class="input-box date-box year"> 年 
+                <input type="text" id="birth_m" class="input-box date-box"> 月 
+                <input type="text" id="birth_d" class="input-box date-box"> 日 
+                <button class="btn">📅</button>
+            </td>
+            <td style="width: 30%;">
+                性別：
+                <input type="radio" name="gender" value="女"> 女 
+                <input type="radio" name="gender" value="男" checked> 男
+            </td>
+        </tr>
+        <tr>
+            <td>
+                中文姓：<input type="text" id="c_last_name" class="input-box" style="width: 50px;"> 
+                名：<input type="text" id="c_first_name" class="input-box" style="width: 60px;">
+                <button class="btn">🔤中翻英</button>
+            </td>
+            <td>
+                稱謂：
+                <select id="title" class="input-box"><option>MR</option><option>MS</option></select>
+            </td>
+            <td>
+                英文姓：<input type="text" id="e_last_name" class="input-box" style="width: 70px;"> 
+                名：<input type="text" id="e_first_name" class="input-box" style="width: 80px;">
+            </td>
+        </tr>
+        <tr>
+            <td>
+                其他身分號碼：<input type="text" id="other_id" class="input-box" style="width: 100px;">
+            </td>
+            <td>
+                行業別：
+                <select id="industry" class="input-box"><option>貿易</option><option>科技</option></select>
+            </td>
+            <td>
+                職稱：<input type="text" id="job_title" class="input-box" style="width: 80px;"> <button class="btn">❓</button>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                往來狀態：
+                <select id="status" class="input-box"><option>正常</option><option>拒絕</option></select><br><br>
+                警示訊息：<input type="text" id="warning_msg" class="input-box" style="width: 150px;">
+            </td>
+            <td>
+                通路來源：<br>
+                <select id="channel" class="input-box" style="width: 120px;"><option>報紙廣告</option></select>
+            </td>
+            <td>
+                業務員：<input type="text" id="salesperson" class="input-box" style="width: 60px;">
+                <button class="btn">❓</button> OP講師
+            </td>
+        </tr>
+        <tr style="background-color: #d4d0c8;">
+            <td colspan="2">
+                等級：<select id="cust_level" class="input-box"><option></option></select> &nbsp;&nbsp;&nbsp;
+                對應價格：<select id="price_level" class="input-box"><option></option></select>
+            </td>
+            <td>
+                <input type="checkbox" id="wants_periodical"> 願意收到期刊<br>
+                <input type="checkbox" id="wants_survey"> 願意接受意見調查
+            </td>
+        </tr>
+    </table>
+
+    <div class="action-row">
+        <button onclick="saveNewCustomer()">新 增</button>
+        <button onclick="loadPage('A-A-A')">放 棄</button>
+    </div>
+</div>
+
+<script>
+    // 🟢 頁面載入時：自動從資料庫抓取最大的 customer_id，並產生下一個 7 碼流水號
+    window.generatedCustomerId = "0000001"; // 預設值
+
+    (function generateNextId() {
+        if (!window.db) return;
+        try {
+            // 尋找目前最大的客戶編號並轉為數字
+            const query = "SELECT MAX(CAST(customer_id AS INTEGER)) FROM Customers";
+            const result = window.db.exec(query);
+            
+            let nextIdNum = 1;
+            if (result.length > 0 && result[0].values[0][0] !== null) {
+                nextIdNum = result[0].values[0][0] + 1;
+            }
+            
+            // 將數字補零成為 7 碼字串
+            window.generatedCustomerId = String(nextIdNum).padStart(7, '0');
+            document.getElementById('display_customer_id').innerText = window.generatedCustomerId;
+        } catch (e) {
+            console.error("產生流水號失敗，可能尚未建立 Customers 資料表", e);
+            document.getElementById('display_customer_id').innerText = window.generatedCustomerId;
+        }
+    })();
+
+    // 🟢 儲存新增的客戶資料
+    window.saveNewCustomer = async function() {
+        const c_id = window.generatedCustomerId;
+        const n_id = document.getElementById('national_id').value;
+        const b_y = document.getElementById('birth_y').value;
+        const b_m = document.getElementById('birth_m').value;
+        const b_d = document.getElementById('birth_d').value;
+        const gender = document.querySelector('input[name="gender"]:checked').value;
+        const c_l_name = document.getElementById('c_last_name').value;
+        const c_f_name = document.getElementById('c_first_name').value;
+        const title = document.getElementById('title').value;
+        const e_l_name = document.getElementById('e_last_name').value;
+        const e_f_name = document.getElementById('e_first_name').value;
+        const o_id = document.getElementById('other_id').value;
+        const industry = document.getElementById('industry').value;
+        const job = document.getElementById('job_title').value;
+        const status = document.getElementById('status').value;
+        const channel = document.getElementById('channel').value;
+        const sales = document.getElementById('salesperson').value;
+        const warn = document.getElementById('warning_msg').value;
+        const c_level = document.getElementById('cust_level').value;
+        const p_level = document.getElementById('price_level').value;
+        const wp = document.getElementById('wants_periodical').checked ? 1 : 0;
+        const ws = document.getElementById('wants_survey').checked ? 1 : 0;
+
+        const sql = `
+            INSERT INTO Customers (
+                customer_id, national_id, birth_y, birth_m, birth_d, gender, 
+                c_last_name, c_first_name, title, e_last_name, e_first_name, 
+                other_id, industry, job_title, status, channel, salesperson, 
+                warning_msg, cust_level, price_level, wants_periodical, wants_survey
+            ) VALUES (
+                '${c_id}', '${n_id}', '${b_y}', '${b_m}', '${b_d}', '${gender}', 
+                '${c_l_name}', '${c_f_name}', '${title}', '${e_l_name}', '${e_f_name}', 
+                '${o_id}', '${industry}', '${job}', '${status}', '${channel}', '${sales}', 
+                '${warn}', '${c_level}', '${p_level}', ${wp}, ${ws}
+            );
+        `;
+
+        const isSuccess = await window.executeAndSave(sql);
+        if (isSuccess) {
+            alert(`✅ 成功新增客戶資料！\n配發之旅客編號為：${c_id}`);
+            // 新增成功後自動返回查詢首頁
+            loadPage('A-A-A');
+        }
+    };
+</script>

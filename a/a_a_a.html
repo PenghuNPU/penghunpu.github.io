@@ -1,141 +1,137 @@
 <style>
-    /* =========================================
-       標籤頁外觀樣式 (Windows Classic 風格)
-       ========================================= */
-    .tab-container {
+    .search-container {
         padding: 10px;
         background-color: #ece9d8;
         height: 100%;
         box-sizing: border-box;
-    }
-    .tabs-header {
-        display: flex;
-        border-bottom: 2px solid #fff;
-        position: relative;
-    }
-    .tabs-header::after {
-        content: "";
-        position: absolute;
-        bottom: -2px;
-        left: 0;
-        right: 0;
-        border-bottom: 1px solid #999;
-        z-index: 1;
-    }
-    .tab-btn {
-        padding: 6px 12px; /* 稍微放大點擊範圍 */
-        border: 1px solid #999;
-        border-bottom: none;
-        background-color: #d6d3ce;
-        margin-right: 2px;
-        border-radius: 4px 4px 0 0;
-        cursor: pointer;
         font-size: 13px;
-        position: relative;
-        z-index: 0;
     }
-    .tab-btn.active {
-        background-color: #ece9d8;
-        border-top: 3px solid #ff9800; /* 活躍標籤加上橘色頂線凸顯 */
-        border-left: 1px solid #fff;
+    .search-block {
+        border: 1px solid #a0a0a0;
+        background-color: #d4d0c8;
+        margin-bottom: 15px;
+    }
+    .search-header {
+        background: linear-gradient(to right, #808080, #c0c0c0);
+        color: white;
+        padding: 4px 8px;
         font-weight: bold;
-        z-index: 2;
-        padding-bottom: 7px;
-        margin-bottom: -1px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
     }
-    .tab-btn:hover:not(.active) {
-        background-color: #e6e6e6;
+    .search-row {
+        display: flex;
+        align-items: center;
+        padding: 6px 10px;
+        border-bottom: 1px solid #fff;
     }
-    
-    /* =========================================
-       子網頁內容顯示區
-       ========================================= */
-    .tab-content-box {
-        border: 1px solid #999;
-        border-top: none;
-        border-right: 2px solid #fff;
-        border-bottom: 2px solid #fff;
+    .search-row:last-child { border-bottom: none; }
+    .search-label {
+        width: 110px;
+        text-align: right;
+        margin-right: 10px;
+        font-weight: bold;
+    }
+    .input-box {
+        border: 1px inset #fff;
+        padding: 2px 4px;
+        margin-right: 15px;
+    }
+    .btn {
         background-color: #ece9d8;
-        padding: 15px;
-        min-height: 450px;
+        border: 2px outset #fff;
+        padding: 2px 10px;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        gap: 5px;
+    }
+    .btn:active { border-style: inset; }
+    .top-right-btn {
+        background-color: #ece9d8;
+        color: black;
+        border: 2px outset #fff;
+        padding: 1px 8px;
+        cursor: pointer;
     }
 </style>
 
-<!-- 右側主畫面的頂部標題列 -->
-<div class="content-header">旅客資料管理</div>
+<div class="content-header">
+    旅客資料管理首頁
+    <button class="top-right-actions top-right-btn" onclick="window.openAddCustomer()">➕ 新增</button>
+</div>
 
-<div class="tab-container">
-    <!-- 8 個分頁標籤按鈕 -->
-    <div class="tabs-header">
-        <div class="tab-btn" onclick="switchTab(1, this)">1.旅客資料</div>
-        <div class="tab-btn" onclick="switchTab(2, this)">2.其他基本資料</div>
-        <div class="tab-btn" onclick="switchTab(3, this)">3.英文資料</div>
-        <div class="tab-btn" onclick="switchTab(4, this)">4.旅遊偏好</div>
-        <div class="tab-btn" onclick="switchTab(5, this)">5.簽證紀錄</div>
-        <div class="tab-btn" onclick="switchTab(6, this)">6.信用額度</div>
-        <div class="tab-btn" onclick="switchTab(7, this)">7.會員資料</div>
-        <div class="tab-btn" onclick="switchTab(8, this)">8.往來紀錄</div>
+<div class="search-container">
+    <!-- 快速搜尋區 -->
+    <div class="search-block">
+        <div class="search-header">➲ 快速搜尋：</div>
+        <div class="search-row">
+            <span class="search-label">旅客身分證字號：</span>
+            <input type="text" class="input-box" style="width: 120px;">
+            <span class="search-label" style="width: auto;">旅客中文姓名：</span>
+            <input type="text" class="input-box" style="width: 120px;">
+            <button class="btn">🔍 搜尋</button>
+        </div>
     </div>
 
-    <!-- 這裡將動態載入 a_a_a_1.html ~ a_a_a_8.html 的內容 -->
-    <div id="sub-tab-content" class="tab-content-box">
-        載入中...
+    <!-- 進階搜尋區 -->
+    <div class="search-block">
+        <div class="search-header">➲ 進階搜尋：</div>
+        
+        <div style="display: flex; padding: 10px;">
+            <!-- 左半部 -->
+            <div style="flex: 1;">
+                <div class="search-row">
+                    <span class="search-label">旅客編號：</span>
+                    <input type="text" class="input-box" style="width: 120px;">
+                </div>
+                <div class="search-row">
+                    <span class="search-label">旅客姓名關鍵字：</span>
+                    <span>中文</span> <input type="text" class="input-box" style="width: 120px;">
+                </div>
+                <div class="search-row">
+                    <span class="search-label"></span>
+                    <span>英文姓</span> <input type="text" class="input-box" style="width: 60px;">
+                    <span>名</span> <input type="text" class="input-box" style="width: 80px;">
+                </div>
+                <div class="search-row">
+                    <span class="search-label">業務員：</span>
+                    <input type="text" class="input-box" style="width: 60px;">
+                    <button class="btn" style="padding: 1px 5px; margin-right: 5px;">❓</button>
+                    <input type="text" class="input-box" style="width: 80px; background-color: #e0e0e0;" readonly>
+                </div>
+            </div>
+            
+            <!-- 右半部 -->
+            <div style="flex: 1;">
+                <div class="search-row">
+                    <span class="search-label">性別：</span>
+                    <select class="input-box" style="width: 60px;"><option></option><option>男</option><option>女</option></select>
+                </div>
+                <div class="search-row">
+                    <span class="search-label">通路來源：</span>
+                    <select class="input-box" style="width: 150px;"><option>請選擇</option></select>
+                </div>
+                <div class="search-row" style="justify-content: space-between;">
+                    <div style="display: flex; align-items: center;">
+                        <span class="search-label">往來狀態：</span>
+                        <select class="input-box" style="width: 60px;"><option></option></select>
+                    </div>
+                    <div style="display: flex; gap: 5px;">
+                        <button class="btn">🔍 搜尋</button>
+                        <button class="btn">❌ 清除</button>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 </div>
 
 <script>
-    // 獨立的分頁切換函數
-    function switchTab(tabIndex, element) {
-        // 1. 限定只抓取目前這個標籤列裡的按鈕，並清除所有的 active 狀態
-        const tabs = document.querySelectorAll('.tabs-header .tab-btn');
-        tabs.forEach(tab => tab.classList.remove('active'));
-        
-        // 將被點擊的按鈕設為 active (反白凸起)
-        if (element) {
-            element.classList.add('active');
-        }
-
-        // 2. 組合要載入的子檔案路徑 (請確保檔案建立在 a 資料夾下，如 a/a_a_a_5.html)
-        const subFilePath = `a/a_a_a_${tabIndex}.html`;
-        const contentBox = document.getElementById('sub-tab-content');
-
-        // 3. 透過 fetch 抓取對應子頁面的 HTML 並塞入容器
-        fetch(subFilePath)
-            .then(response => {
-                if (!response.ok) throw new Error('檔案讀取失敗');
-                return response.text();
-            })
-            .then(html => {
-                contentBox.innerHTML = html;
-                
-                // 重新執行子網頁內的 Script (SPA 必備處理)
-                const scripts = contentBox.querySelectorAll('script');
-                scripts.forEach(oldScript => {
-                    const newScript = document.createElement('script');
-                    Array.from(oldScript.attributes).forEach(attr => newScript.setAttribute(attr.name, attr.value));
-                    newScript.appendChild(document.createTextNode(oldScript.innerHTML));
-                    oldScript.parentNode.replaceChild(newScript, oldScript);
-                });
-            })
-            .catch(error => {
-                // 防呆紅色錯誤提示畫面
-                contentBox.innerHTML = `
-                    <div style="color:red; font-weight:bold; padding:20px; text-align:center; background-color:#ffffe1; border:1px solid red; border-radius:5px; margin: 20px;">
-                        ⚠️ 無法載入檔案：${subFilePath}<br><br>
-                        可能原因：<br>
-                        1. 系統找不到此檔案，請確認您已在 a 資料夾下建立了「a_a_a_${tabIndex}.html」。<br>
-                        2. 您直接使用了檔案雙擊開啟 (網址列為 file:///)，觸發了瀏覽器安全攔截。<br>
-                        👉 <span style="color:blue;">請使用 VS Code 的 Live Server 啟動測試！</span>
-                    </div>`;
-            });
-    }
-
-    // 初始化載入：延遲 50 毫秒執行，確保當前 HTML 嵌進 main.html 右側後，再精準觸發載入第 5 頁
-    setTimeout(() => {
-        // 抓取第 5 個 tab 按鈕 (5.簽證紀錄)
-        const targetTab = document.querySelector('.tabs-header .tab-btn:nth-child(5)');
-        if (targetTab) {
-            switchTab(5, targetTab);
-        }
-    }, 50);
+    // 🟢 強制掛載到 window，確保點擊「新增」時一定找得到函數
+    window.openAddCustomer = function() {
+        // 這會觸發 main.html 中的 loadPage，並去尋找 a/a_a_a_base.html
+        loadPage('A-A-A-BASE'); 
+    };
 </script>
