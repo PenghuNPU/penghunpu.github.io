@@ -80,48 +80,57 @@
 </div>
 
 <script>
-    // 🟢 當 a_a_a_5.html 載入時，自動撈取資料
     (function loadVisaData() {
-        const c_id = window.currentCustomerId; // 從外層抓取代碼
+        const c_id = window.currentCustomerId; 
         document.getElementById('display_customer_id').innerText = c_id;
         
         const today = new Date();
         document.getElementById('creation_date').innerText = `${today.getFullYear()}/${today.getMonth() + 1}/${today.getDate()}`;
 
-        // 防呆建表 (確保系統穩定)
-        window.db.exec(`
-            CREATE TABLE IF NOT EXISTS CustomerVisas (
-                customer_id TEXT UNIQUE CHECK(length(customer_id) = 7), 
-                creation_date TEXT, visa_code_name TEXT, visa_number TEXT, issue_place TEXT,
-                valid_from_y TEXT, valid_from_m TEXT, valid_from_d TEXT, valid_to_y TEXT, valid_to_m TEXT, valid_to_d TEXT,
-                pp_number TEXT, pp_valid_from_y TEXT, pp_valid_from_m TEXT, pp_valid_from_d TEXT, pp_valid_to_y TEXT, pp_valid_to_m TEXT, pp_valid_to_d TEXT
-            );
-        `);
+        // 🟢 核心修正：明確列出 SELECT 的欄位順序，避免被 sqlite 中的其他欄位(如 id)干擾
+        const query = `
+            SELECT 
+                customer_id, creation_date, visa_code_name, visa_number, issue_place,
+                valid_from_y, valid_from_m, valid_from_d, valid_to_y, valid_to_m, valid_to_d,
+                pp_number, pp_valid_from_y, pp_valid_from_m, pp_valid_from_d, pp_valid_to_y, pp_valid_to_m, pp_valid_to_d
+            FROM CustomerVisas 
+            WHERE customer_id = '${c_id}'
+        `;
 
-        // 讀取資料庫
-        const query = `SELECT * FROM CustomerVisas WHERE customer_id = '${c_id}'`;
-        const res = window.db.exec(query);
-        
-        if (res.length > 0) {
-            // 如果這名旅客已經有簽證資料，就自動填入格子中
-            const data = res[0].values[0];
-            document.getElementById('creation_date').innerText = data[1] || document.getElementById('creation_date').innerText;
-            document.getElementById('visa_code_name').value = data[2] || '';
-            document.getElementById('visa_number').value = data[3] || '';
-            document.getElementById('issue_place').value = data[4] || '';
-            document.getElementById('v_from_y').value = data[5] || '';
-            document.getElementById('v_from_m').value = data[6] || '';
-            document.getElementById('v_from_d').value = data[7] || '';
-            document.getElementById('v_to_y').value = data[8] || '';
-            document.getElementById('v_to_m').value = data[9] || '';
-            document.getElementById('v_to_d').value = data[10] || '';
-            document.getElementById('pp_number').value = data[11] || '';
-            document.getElementById('p_from_y').value = data[12] || '';
-            document.getElementById('p_from_m').value = data[13] || '';
-            document.getElementById('p_from_d').value = data[14] || '';
-            document.getElementById('p_to_y').value = data[15] || '';
-            document.getElementById('p_to_m').value = data[16] || '';
-            document.getElementById('p_to_d').value = data[17] || '';
+        try {
+            const res = window.db.exec(query);
+            
+            if (res.length > 0) {
+                // 資料正確對應 0~17 陣列索引
+                const data = res[0].values[0];
+                
+                const cleanStr = (val) => (val === null || val === 'null' || val === undefined) ? '' : val;
+
+                document.getElementById('creation_date').innerText = cleanStr(data[1]) || document.getElementById('creation_date').innerText;
+                document.getElementById('visa_code_name').value = cleanStr(data[2]);
+                document.getElementById('visa_number').value = cleanStr(data[3]);
+                document.getElementById('issue_place').value = cleanStr(data[4]);
+                
+                document.getElementById('v_from_y').value = cleanStr(data[5]);
+                document.getElementById('v_from_m').value = cleanStr(data[6]);
+                document.getElementById('v_from_d').value = cleanStr(data[7]);
+                
+                document.getElementById('v_to_y').value = cleanStr(data[8]);
+                document.getElementById('v_to_m').value = cleanStr(data[9]);
+                document.getElementById('v_to_d').value = cleanStr(data[10]);
+                
+                document.getElementById('pp_number').value = cleanStr(data[11]);
+                
+                document.getElementById('p_from_y').value = cleanStr(data[12]);
+                document.getElementById('p_from_m').value = cleanStr(data[13]);
+                document.getElementById('p_from_d').value = cleanStr(data[14]);
+                
+                document.getElementById('p_to_y').value = cleanStr(data[15]);
+                document.getElementById('p_to_m').value = cleanStr(data[16]);
+                document.getElementById('p_to_d').value = cleanStr(data[17]);
+            }
+        } catch (e) {
+            console.error("讀取簽證資料發生錯誤：", e);
         }
     })();
 
@@ -137,7 +146,7 @@
     };
 
     window.saveVisaRecord = async function() {
-        const c_id = window.currentCustomerId; // 直接用全域變數儲存
+        const c_id = window.currentCustomerId; 
         const creation_date = document.getElementById('creation_date').innerText;
         const visa_code_name = document.getElementById('visa_code_name').value;
         const visa_number = document.getElementById('visa_number').value;
@@ -156,7 +165,6 @@
         const p_to_m = document.getElementById('p_to_m').value;
         const p_to_d = document.getElementById('p_to_d').value;
 
-        // 🟢 使用 REPLACE INTO，沒有就新增，有就覆蓋
         const sql = `
             REPLACE INTO CustomerVisas (
                 customer_id, creation_date, visa_code_name, visa_number, issue_place,

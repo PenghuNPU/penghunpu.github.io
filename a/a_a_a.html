@@ -39,7 +39,6 @@
         background-color: #ece9d8; color: black; border: 2px outset #fff; padding: 1px 8px; cursor: pointer;
     }
 
-    /* 🟢 查詢結果表格樣式 (對應 a_a_a_query 圖片) */
     .result-table {
         width: 100%;
         border-collapse: collapse;
@@ -48,10 +47,10 @@
         border: 1px solid #a0a0a0;
     }
     .result-table th {
-        background-color: #eeddbb; /* 復古黃色表頭 */
+        background-color: #eeddbb; 
         border: 1px solid #a0a0a0;
         padding: 4px 8px;
-        color: #900; /* 深紅字體 */
+        color: #900; 
         font-weight: bold;
         text-align: center;
     }
@@ -88,7 +87,57 @@
         </div>
     </div>
 
-    <!-- 查詢結果放置區 -->
+    <!-- 🟢 補回進階搜尋區塊 -->
+    <div class="search-block">
+        <div class="search-header">➲ 進階搜尋：</div>
+        
+        <div style="display: flex; padding: 10px;">
+            <div style="flex: 1;">
+                <div class="search-row">
+                    <span class="search-label">旅客編號：</span>
+                    <input type="text" class="input-box" style="width: 120px;">
+                </div>
+                <div class="search-row">
+                    <span class="search-label">旅客姓名關鍵字：</span>
+                    <span>中文</span> <input type="text" class="input-box" style="width: 120px;">
+                </div>
+                <div class="search-row">
+                    <span class="search-label"></span>
+                    <span>英文姓</span> <input type="text" class="input-box" style="width: 60px;">
+                    <span>名</span> <input type="text" class="input-box" style="width: 80px;">
+                </div>
+                <div class="search-row">
+                    <span class="search-label">業務員：</span>
+                    <input type="text" class="input-box" style="width: 60px;">
+                    <button class="btn" style="padding: 1px 5px; margin-right: 5px;">❓</button>
+                    <input type="text" class="input-box" style="width: 80px; background-color: #e0e0e0;" readonly>
+                </div>
+            </div>
+            
+            <div style="flex: 1;">
+                <div class="search-row">
+                    <span class="search-label">性別：</span>
+                    <select class="input-box" style="width: 60px;"><option></option><option>男</option><option>女</option></select>
+                </div>
+                <div class="search-row">
+                    <span class="search-label">通路來源：</span>
+                    <select class="input-box" style="width: 150px;"><option>請選擇</option></select>
+                </div>
+                <div class="search-row" style="justify-content: space-between;">
+                    <div style="display: flex; align-items: center;">
+                        <span class="search-label">往來狀態：</span>
+                        <select class="input-box" style="width: 60px;"><option></option></select>
+                    </div>
+                    <div style="display: flex; gap: 5px;">
+                        <!-- 目前只有快速搜尋有寫好資料庫邏輯，進階搜尋按鈕保留原本的樣式 -->
+                        <button class="btn">🔍 搜尋</button>
+                        <button class="btn">❌ 清除</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <div id="search_results_container"></div>
 </div>
 
@@ -97,7 +146,6 @@
         loadPage('A-A-A-BASE'); 
     };
 
-    // 🟢 執行模糊搜尋
     window.performSearch = function() {
         if (!window.db) {
             alert("資料庫尚未綁定！");
@@ -107,7 +155,6 @@
         const nid = document.getElementById('search_nid').value.trim();
         const cname = document.getElementById('search_cname').value.trim();
 
-        // 模糊查詢 SQL：如果欄位空白，'%${nid}%' 就會變成 '%%'，代表撈取全部
         const query = `
             SELECT customer_id, national_id, c_last_name, c_first_name, gender, birth_y, birth_m, birth_d, other_id, channel, salesperson, status 
             FROM Customers 
@@ -148,7 +195,6 @@
 
                 html += `
                     <tr>
-                        <!-- 🟢 點擊編號，觸發進入分頁並傳遞 ID -->
                         <td><span class="link-id" onclick="window.goToCustomerTabs('${c_id}')">${c_id}</span></td>
                         <td>${n_id}</td>
                         <td>${name}</td>
@@ -172,9 +218,8 @@
         }
     };
 
-    // 🟢 點選編號後，將 customer_id 記錄在全域變數，並切換到標籤分頁框
     window.goToCustomerTabs = function(customerId) {
-        window.currentCustomerId = customerId; // ⭐ 最關鍵的一步：儲存全域變數
-        loadPage('A-A-A-TABS'); // 載入 a_a_a_tabs.html
+        window.currentCustomerId = customerId; 
+        loadPage('A-A-A-TABS'); 
     };
 </script>
