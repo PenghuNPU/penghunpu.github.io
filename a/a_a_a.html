@@ -5,6 +5,7 @@
         height: 100%;
         box-sizing: border-box;
         font-size: 13px;
+        overflow-y: auto;
     }
     .search-block {
         border: 1px solid #a0a0a0;
@@ -21,39 +22,52 @@
         justify-content: space-between;
     }
     .search-row {
-        display: flex;
-        align-items: center;
-        padding: 6px 10px;
-        border-bottom: 1px solid #fff;
+        display: flex; align-items: center; padding: 6px 10px; border-bottom: 1px solid #fff;
     }
     .search-row:last-child { border-bottom: none; }
     .search-label {
-        width: 110px;
-        text-align: right;
-        margin-right: 10px;
-        font-weight: bold;
+        width: 110px; text-align: right; margin-right: 10px; font-weight: bold;
     }
     .input-box {
-        border: 1px inset #fff;
-        padding: 2px 4px;
-        margin-right: 15px;
+        border: 1px inset #fff; padding: 2px 4px; margin-right: 15px;
     }
     .btn {
-        background-color: #ece9d8;
-        border: 2px outset #fff;
-        padding: 2px 10px;
-        cursor: pointer;
-        display: flex;
-        align-items: center;
-        gap: 5px;
+        background-color: #ece9d8; border: 2px outset #fff; padding: 2px 10px; cursor: pointer; display: flex; align-items: center; gap: 5px;
     }
     .btn:active { border-style: inset; }
     .top-right-btn {
-        background-color: #ece9d8;
-        color: black;
-        border: 2px outset #fff;
-        padding: 1px 8px;
+        background-color: #ece9d8; color: black; border: 2px outset #fff; padding: 1px 8px; cursor: pointer;
+    }
+
+    /* 🟢 查詢結果表格樣式 (對應 a_a_a_query 圖片) */
+    .result-table {
+        width: 100%;
+        border-collapse: collapse;
+        background-color: #fff;
+        margin-top: 10px;
+        border: 1px solid #a0a0a0;
+    }
+    .result-table th {
+        background-color: #eeddbb; /* 復古黃色表頭 */
+        border: 1px solid #a0a0a0;
+        padding: 4px 8px;
+        color: #900; /* 深紅字體 */
+        font-weight: bold;
+        text-align: center;
+    }
+    .result-table td {
+        border: 1px solid #a0a0a0;
+        padding: 4px 8px;
+        text-align: center;
+    }
+    .result-table tr:nth-child(even) {
+        background-color: #f5f5f5;
+    }
+    .link-id {
+        color: #0000ff;
+        text-decoration: underline;
         cursor: pointer;
+        font-weight: bold;
     }
 </style>
 
@@ -63,75 +77,104 @@
 </div>
 
 <div class="search-container">
-    <!-- 快速搜尋區 -->
     <div class="search-block">
         <div class="search-header">➲ 快速搜尋：</div>
         <div class="search-row">
             <span class="search-label">旅客身分證字號：</span>
-            <input type="text" class="input-box" style="width: 120px;">
+            <input type="text" id="search_nid" class="input-box" style="width: 120px;">
             <span class="search-label" style="width: auto;">旅客中文姓名：</span>
-            <input type="text" class="input-box" style="width: 120px;">
-            <button class="btn">🔍 搜尋</button>
+            <input type="text" id="search_cname" class="input-box" style="width: 120px;">
+            <button class="btn" onclick="window.performSearch()">🔍 搜尋</button>
         </div>
     </div>
 
-    <!-- 進階搜尋區 -->
-    <div class="search-block">
-        <div class="search-header">➲ 進階搜尋：</div>
-        
-        <div style="display: flex; padding: 10px;">
-            <!-- 左半部 -->
-            <div style="flex: 1;">
-                <div class="search-row">
-                    <span class="search-label">旅客編號：</span>
-                    <input type="text" class="input-box" style="width: 120px;">
-                </div>
-                <div class="search-row">
-                    <span class="search-label">旅客姓名關鍵字：</span>
-                    <span>中文</span> <input type="text" class="input-box" style="width: 120px;">
-                </div>
-                <div class="search-row">
-                    <span class="search-label"></span>
-                    <span>英文姓</span> <input type="text" class="input-box" style="width: 60px;">
-                    <span>名</span> <input type="text" class="input-box" style="width: 80px;">
-                </div>
-                <div class="search-row">
-                    <span class="search-label">業務員：</span>
-                    <input type="text" class="input-box" style="width: 60px;">
-                    <button class="btn" style="padding: 1px 5px; margin-right: 5px;">❓</button>
-                    <input type="text" class="input-box" style="width: 80px; background-color: #e0e0e0;" readonly>
-                </div>
-            </div>
-            
-            <!-- 右半部 -->
-            <div style="flex: 1;">
-                <div class="search-row">
-                    <span class="search-label">性別：</span>
-                    <select class="input-box" style="width: 60px;"><option></option><option>男</option><option>女</option></select>
-                </div>
-                <div class="search-row">
-                    <span class="search-label">通路來源：</span>
-                    <select class="input-box" style="width: 150px;"><option>請選擇</option></select>
-                </div>
-                <div class="search-row" style="justify-content: space-between;">
-                    <div style="display: flex; align-items: center;">
-                        <span class="search-label">往來狀態：</span>
-                        <select class="input-box" style="width: 60px;"><option></option></select>
-                    </div>
-                    <div style="display: flex; gap: 5px;">
-                        <button class="btn">🔍 搜尋</button>
-                        <button class="btn">❌ 清除</button>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
+    <!-- 查詢結果放置區 -->
+    <div id="search_results_container"></div>
 </div>
 
 <script>
-    // 🟢 強制掛載到 window，確保點擊「新增」時一定找得到函數
     window.openAddCustomer = function() {
-        // 這會觸發 main.html 中的 loadPage，並去尋找 a/a_a_a_base.html
         loadPage('A-A-A-BASE'); 
+    };
+
+    // 🟢 執行模糊搜尋
+    window.performSearch = function() {
+        if (!window.db) {
+            alert("資料庫尚未綁定！");
+            return;
+        }
+
+        const nid = document.getElementById('search_nid').value.trim();
+        const cname = document.getElementById('search_cname').value.trim();
+
+        // 模糊查詢 SQL：如果欄位空白，'%${nid}%' 就會變成 '%%'，代表撈取全部
+        const query = `
+            SELECT customer_id, national_id, c_last_name, c_first_name, gender, birth_y, birth_m, birth_d, other_id, channel, salesperson, status 
+            FROM Customers 
+            WHERE national_id LIKE '%${nid}%' 
+            AND (c_last_name || c_first_name) LIKE '%${cname}%'
+            ORDER BY customer_id ASC
+        `;
+
+        try {
+            const res = window.db.exec(query);
+            const container = document.getElementById('search_results_container');
+            
+            if (res.length === 0) {
+                container.innerHTML = `<div style="padding:15px; color:red; font-weight:bold;">查無符合條件的旅客資料。</div>`;
+                return;
+            }
+
+            const rows = res[0].values;
+            let html = `
+                <table class="result-table">
+                    <tr>
+                        <th>編 號</th><th>身份證字號</th><th>中文姓名</th><th>性別</th>
+                        <th>生日</th><th>其他證號</th><th>來源</th><th>業務員</th>
+                        <th>往來狀態</th><th>管理</th>
+                    </tr>
+            `;
+
+            rows.forEach(row => {
+                const c_id = row[0] || '';
+                const n_id = row[1] || '';
+                const name = (row[2] || '') + (row[3] || '');
+                const gender = row[4] || '';
+                const birth = (row[5] && row[6] && row[7]) ? `${row[5]}/${row[6]}/${row[7]}` : '';
+                const other = row[8] || '';
+                const channel = row[9] || '';
+                const sales = row[10] || '';
+                const status = row[11] || '';
+
+                html += `
+                    <tr>
+                        <!-- 🟢 點擊編號，觸發進入分頁並傳遞 ID -->
+                        <td><span class="link-id" onclick="window.goToCustomerTabs('${c_id}')">${c_id}</span></td>
+                        <td>${n_id}</td>
+                        <td>${name}</td>
+                        <td>${gender}</td>
+                        <td>${birth}</td>
+                        <td>${other}</td>
+                        <td>${channel}</td>
+                        <td>${sales}</td>
+                        <td>${status}</td>
+                        <td>📝 📁 🗑️</td>
+                    </tr>
+                `;
+            });
+
+            html += `</table>`;
+            container.innerHTML = html;
+
+        } catch (e) {
+            console.error(e);
+            alert("查詢失敗：" + e.message);
+        }
+    };
+
+    // 🟢 點選編號後，將 customer_id 記錄在全域變數，並切換到標籤分頁框
+    window.goToCustomerTabs = function(customerId) {
+        window.currentCustomerId = customerId; // ⭐ 最關鍵的一步：儲存全域變數
+        loadPage('A-A-A-TABS'); // 載入 a_a_a_tabs.html
     };
 </script>

@@ -1,183 +1,131 @@
 <style>
-    .visa-record-wrapper {
-        border: 1px solid #777;
-        background-color: #ece9d8;
-        font-family: "MS Sans Serif", "細明體", sans-serif;
-        font-size: 13px;
-        padding-bottom: 10px;
-        position: relative; 
-    }
-    
-    .visa-row {
-        display: flex;
-        align-items: center;
-        padding: 5px 10px;
-        min-height: 28px;
-    }
-    
+    .visa-record-wrapper { border: 1px solid #777; background-color: #ece9d8; font-family: "MS Sans Serif", "細明體", sans-serif; font-size: 13px; padding-bottom: 10px; position: relative; }
+    .visa-row { display: flex; align-items: center; padding: 5px 10px; min-height: 28px; }
     .visa-row:nth-child(even) { background-color: #b5b5b5; }
-    
-    .visa-label {
-        width: 180px;
-        font-weight: bold;
-        flex-shrink: 0;
-    }
-    
-    .visa-input-group {
-        display: flex;
-        align-items: center;
-        gap: 5px;
-        position: relative;
-    }
-    
-    .visa-input {
-        border: 1px inset #fff;
-        padding: 2px 4px;
-        background-color: #fff;
-    }
-    
+    .visa-label { width: 180px; font-weight: bold; flex-shrink: 0; }
+    .visa-input-group { display: flex; align-items: center; gap: 5px; position: relative; }
+    .visa-input { border: 1px inset #fff; padding: 2px 4px; background-color: #fff; }
     .date-box { width: 35px; text-align: center; }
     .date-box.year { width: 45px; }
-    
-    .icon-btn {
-        background: none;
-        border: none;
-        cursor: pointer;
-        font-size: 16px;
-        padding: 0 2px;
-    }
-
-    .action-buttons {
-        text-align: center;
-        margin-top: 15px;
-        display: flex;
-        justify-content: center;
-        gap: 20px;
-    }
-    
-    .action-buttons button {
-        background-color: #ece9d8;
-        border: 2px outset #fff;
-        padding: 2px 20px;
-        font-weight: bold;
-        letter-spacing: 5px;
-        cursor: pointer;
-    }
-    
+    .icon-btn { background: none; border: none; cursor: pointer; font-size: 16px; padding: 0 2px; }
+    .action-buttons { text-align: center; margin-top: 15px; display: flex; justify-content: center; gap: 20px; }
+    .action-buttons button { background-color: #ece9d8; border: 2px outset #fff; padding: 2px 20px; font-weight: bold; letter-spacing: 5px; cursor: pointer; }
     .action-buttons button:active { border-style: inset; }
-
-    .hidden-date-picker {
-        position: absolute;
-        opacity: 0;
-        width: 0;
-        height: 0;
-        pointer-events: none;
-        border: none;
-    }
+    .hidden-date-picker { position: absolute; opacity: 0; width: 0; height: 0; pointer-events: none; border: none; }
 </style>
 
 <div class="visa-record-wrapper">
-    <!-- 🟢 新增：旅客代碼欄位 (用來對應 Customers 主檔的 7 碼流水號) -->
     <div class="visa-row">
-        <div class="visa-label">旅客代碼 (7碼)：</div>
+        <div class="visa-label">旅客代碼：</div>
         <div class="visa-input-group">
-            <input type="text" id="customer_id" class="visa-input" maxlength="7" style="width: 80px;" placeholder="0000001">
-            <span style="color: red; font-size: 12px; margin-left: 10px;">* 必填，對應客戶主檔流水號</span>
+            <span id="display_customer_id" style="font-weight:bold; color:blue;"></span>
         </div>
     </div>
-
     <div class="visa-row">
         <div class="visa-label">建檔日期：</div>
         <div class="visa-input-group"><span id="creation_date"></span></div>
     </div>
-    
     <div class="visa-row">
         <div class="visa-label">簽證代碼及名稱：</div>
-        <div class="visa-input-group">
-            <input type="text" id="visa_code_name" class="visa-input" style="width: 150px;">
-            <button class="icon-btn" title="搜尋">📄❓</button>
-        </div>
+        <div class="visa-input-group"><input type="text" id="visa_code_name" class="visa-input" style="width: 150px;"><button class="icon-btn" title="搜尋">📄❓</button></div>
     </div>
-    
     <div class="visa-row">
         <div class="visa-label">號碼：</div>
-        <div class="visa-input-group">
-            <input type="text" id="visa_number" class="visa-input" style="width: 120px;">
-        </div>
+        <div class="visa-input-group"><input type="text" id="visa_number" class="visa-input" style="width: 120px;"></div>
     </div>
-    
     <div class="visa-row">
         <div class="visa-label">簽證地：</div>
-        <div class="visa-input-group">
-            <input type="text" id="issue_place" class="visa-input" style="width: 80px;">
-        </div>
+        <div class="visa-input-group"><input type="text" id="issue_place" class="visa-input" style="width: 80px;"></div>
     </div>
-    
     <div class="visa-row">
         <div class="visa-label">起迄效期：</div>
         <div class="visa-input-group">
             <input type="text" id="v_from_y" class="visa-input date-box year"> /
             <input type="text" id="v_from_m" class="visa-input date-box"> /
             <input type="text" id="v_from_d" class="visa-input date-box">
-            
-            <button class="icon-btn" onclick="openDatePicker('v_from')">📅</button>
-            <input type="date" id="picker_v_from" class="hidden-date-picker" onchange="fillDate('v_from')">
-
+            <button class="icon-btn" onclick="window.openDatePicker('v_from')">📅</button>
+            <input type="date" id="picker_v_from" class="hidden-date-picker" onchange="window.fillDate('v_from')">
             <span style="margin: 0 5px;">至</span>
-            
             <input type="text" id="v_to_y" class="visa-input date-box year"> /
             <input type="text" id="v_to_m" class="visa-input date-box"> /
             <input type="text" id="v_to_d" class="visa-input date-box">
-            
-            <button class="icon-btn" onclick="openDatePicker('v_to')">📅</button>
-            <input type="date" id="picker_v_to" class="hidden-date-picker" onchange="fillDate('v_to')">
+            <button class="icon-btn" onclick="window.openDatePicker('v_to')">📅</button>
+            <input type="date" id="picker_v_to" class="hidden-date-picker" onchange="window.fillDate('v_to')">
         </div>
     </div>
-    
     <div class="visa-row">
         <div class="visa-label">該國PP NO(台胞證<br>號)：</div>
-        <div class="visa-input-group">
-            <input type="text" id="pp_number" class="visa-input" style="width: 150px;">
-        </div>
+        <div class="visa-input-group"><input type="text" id="pp_number" class="visa-input" style="width: 150px;"></div>
     </div>
-    
     <div class="visa-row">
         <div class="visa-label">起迄效期：</div>
         <div class="visa-input-group">
             <input type="text" id="p_from_y" class="visa-input date-box year"> /
             <input type="text" id="p_from_m" class="visa-input date-box"> /
             <input type="text" id="p_from_d" class="visa-input date-box">
-            
-            <button class="icon-btn" onclick="openDatePicker('p_from')">📅</button>
-            <input type="date" id="picker_p_from" class="hidden-date-picker" onchange="fillDate('p_from')">
-
+            <button class="icon-btn" onclick="window.openDatePicker('p_from')">📅</button>
+            <input type="date" id="picker_p_from" class="hidden-date-picker" onchange="window.fillDate('p_from')">
             <span style="margin: 0 5px;">至</span>
-            
             <input type="text" id="p_to_y" class="visa-input date-box year"> /
             <input type="text" id="p_to_m" class="visa-input date-box"> /
             <input type="text" id="p_to_d" class="visa-input date-box">
-            
-            <button class="icon-btn" onclick="openDatePicker('p_to')">📅</button>
-            <input type="date" id="picker_p_to" class="hidden-date-picker" onchange="fillDate('p_to')">
+            <button class="icon-btn" onclick="window.openDatePicker('p_to')">📅</button>
+            <input type="date" id="picker_p_to" class="hidden-date-picker" onchange="window.fillDate('p_to')">
         </div>
     </div>
-    
     <div class="action-buttons">
-        <button onclick="saveVisaRecord()">更 新</button>
-        <button onclick="clearVisaForm()">放 棄</button>
+        <button onclick="window.saveVisaRecord()">更 新</button>
+        <button onclick="window.clearVisaForm()">放 棄</button>
     </div>
 </div>
 
 <script>
-    (function() {
+    // 🟢 當 a_a_a_5.html 載入時，自動撈取資料
+    (function loadVisaData() {
+        const c_id = window.currentCustomerId; // 從外層抓取代碼
+        document.getElementById('display_customer_id').innerText = c_id;
+        
         const today = new Date();
         document.getElementById('creation_date').innerText = `${today.getFullYear()}/${today.getMonth() + 1}/${today.getDate()}`;
+
+        // 防呆建表 (確保系統穩定)
+        window.db.exec(`
+            CREATE TABLE IF NOT EXISTS CustomerVisas (
+                customer_id TEXT UNIQUE CHECK(length(customer_id) = 7), 
+                creation_date TEXT, visa_code_name TEXT, visa_number TEXT, issue_place TEXT,
+                valid_from_y TEXT, valid_from_m TEXT, valid_from_d TEXT, valid_to_y TEXT, valid_to_m TEXT, valid_to_d TEXT,
+                pp_number TEXT, pp_valid_from_y TEXT, pp_valid_from_m TEXT, pp_valid_from_d TEXT, pp_valid_to_y TEXT, pp_valid_to_m TEXT, pp_valid_to_d TEXT
+            );
+        `);
+
+        // 讀取資料庫
+        const query = `SELECT * FROM CustomerVisas WHERE customer_id = '${c_id}'`;
+        const res = window.db.exec(query);
+        
+        if (res.length > 0) {
+            // 如果這名旅客已經有簽證資料，就自動填入格子中
+            const data = res[0].values[0];
+            document.getElementById('creation_date').innerText = data[1] || document.getElementById('creation_date').innerText;
+            document.getElementById('visa_code_name').value = data[2] || '';
+            document.getElementById('visa_number').value = data[3] || '';
+            document.getElementById('issue_place').value = data[4] || '';
+            document.getElementById('v_from_y').value = data[5] || '';
+            document.getElementById('v_from_m').value = data[6] || '';
+            document.getElementById('v_from_d').value = data[7] || '';
+            document.getElementById('v_to_y').value = data[8] || '';
+            document.getElementById('v_to_m').value = data[9] || '';
+            document.getElementById('v_to_d').value = data[10] || '';
+            document.getElementById('pp_number').value = data[11] || '';
+            document.getElementById('p_from_y').value = data[12] || '';
+            document.getElementById('p_from_m').value = data[13] || '';
+            document.getElementById('p_from_d').value = data[14] || '';
+            document.getElementById('p_to_y').value = data[15] || '';
+            document.getElementById('p_to_m').value = data[16] || '';
+            document.getElementById('p_to_d').value = data[17] || '';
+        }
     })();
 
-    window.openDatePicker = function(prefix) {
-        document.getElementById(`picker_${prefix}`).showPicker(); 
-    };
-
+    window.openDatePicker = function(prefix) { document.getElementById(`picker_${prefix}`).showPicker(); };
     window.fillDate = function(prefix) {
         const dateValue = document.getElementById(`picker_${prefix}`).value;
         if (dateValue) {
@@ -189,13 +137,7 @@
     };
 
     window.saveVisaRecord = async function() {
-        // 🟢 抓取旅客代碼並進行 7 碼長度防呆驗證
-        const customer_id = document.getElementById('customer_id').value.trim();
-        if (customer_id.length !== 7) {
-            alert("❌ 儲存失敗！\n「旅客代碼」必須剛好是 7 碼 (例如：0000001)");
-            return;
-        }
-
+        const c_id = window.currentCustomerId; // 直接用全域變數儲存
         const creation_date = document.getElementById('creation_date').innerText;
         const visa_code_name = document.getElementById('visa_code_name').value;
         const visa_number = document.getElementById('visa_number').value;
@@ -214,28 +156,24 @@
         const p_to_m = document.getElementById('p_to_m').value;
         const p_to_d = document.getElementById('p_to_d').value;
 
-        // 🟢 將 INSERT INTO 替換為 REPLACE INTO
-        // 若該 customer_id 不存在則新增；若已存在則覆蓋更新，完美避開 UNIQUE 衝突錯誤
+        // 🟢 使用 REPLACE INTO，沒有就新增，有就覆蓋
         const sql = `
             REPLACE INTO CustomerVisas (
                 customer_id, creation_date, visa_code_name, visa_number, issue_place,
                 valid_from_y, valid_from_m, valid_from_d, valid_to_y, valid_to_m, valid_to_d,
                 pp_number, pp_valid_from_y, pp_valid_from_m, pp_valid_from_d, pp_valid_to_y, pp_valid_to_m, pp_valid_to_d
             ) VALUES (
-                '${customer_id}', '${creation_date}', '${visa_code_name}', '${visa_number}', '${issue_place}',
+                '${c_id}', '${creation_date}', '${visa_code_name}', '${visa_number}', '${issue_place}',
                 '${v_from_y}', '${v_from_m}', '${v_from_d}', '${v_to_y}', '${v_to_m}', '${v_to_d}',
                 '${pp_number}', '${p_from_y}', '${p_from_m}', '${p_from_d}', '${p_to_y}', '${p_to_m}', '${p_to_d}'
             );
         `;
 
         const isSuccess = await window.executeAndSave(sql);
-        if (isSuccess) {
-            alert(`✅ 旅客 [${customer_id}] 的簽證紀錄已成功更新！`);
-        }
+        if (isSuccess) alert(`✅ 旅客 [${c_id}] 的簽證紀錄已成功更新！`);
     };
 
     window.clearVisaForm = function() {
         document.querySelectorAll('.visa-input').forEach(input => input.value = '');
-        document.querySelectorAll('.hidden-date-picker').forEach(picker => picker.value = ''); 
     };
 </script>
