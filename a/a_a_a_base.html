@@ -81,7 +81,6 @@
     <table class="base-table">
         <tr>
             <td style="width: 30%;">
-                <!-- 🟢 加入 maxlength 與自動轉大寫的 UX 優化 -->
                 身分證字號：<input type="text" id="national_id" class="input-box" style="width: 100px;" maxlength="10" oninput="this.value = this.value.toUpperCase();">
             </td>
             <td style="width: 40%; position: relative;">
@@ -210,6 +209,19 @@
     (function generateNextId() {
         if (!window.db) return;
         try {
+            // 🟢 終極防呆黑科技：確保主檔資料表存在，省去手動建立的麻煩！
+            window.db.exec(`
+                CREATE TABLE IF NOT EXISTS Customers (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    customer_id TEXT UNIQUE CHECK(length(customer_id) = 7),
+                    national_id TEXT, birth_y TEXT, birth_m TEXT, birth_d TEXT, gender TEXT, 
+                    c_last_name TEXT, c_first_name TEXT, title TEXT, e_last_name TEXT, e_first_name TEXT, 
+                    other_id TEXT, industry TEXT, job_title TEXT, status TEXT, channel TEXT, salesperson TEXT, 
+                    warning_msg TEXT, cust_level TEXT, price_level TEXT, wants_periodical INTEGER, wants_survey INTEGER
+                );
+            `);
+
+            // 尋找目前最大的客戶編號並轉為數字
             const query = "SELECT MAX(CAST(customer_id AS INTEGER)) FROM Customers";
             const result = window.db.exec(query);
             
@@ -240,37 +252,29 @@
         }
     };
 
-    // 🟢 台灣身分證字號驗證邏輯
     window.isValidTwID = function(id) {
         id = id.toUpperCase();
-        // 檢查基本長度與格式 (第一碼英文，第二碼 1、2、8、9，後接 8 碼數字)
         if (!/^[A-Z][1289]\d{8}$/.test(id)) return false;
         
-        // 字母對應數值表 (A=10, B=11 ... I=34, O=35 ... W=32, Z=33)
         const letterMapping = {
             A: 10, B: 11, C: 12, D: 13, E: 14, F: 15, G: 16, H: 17, I: 34,
             J: 18, K: 19, L: 20, M: 21, N: 22, O: 35, P: 23, Q: 24, R: 25,
             S: 26, T: 27, U: 28, V: 29, W: 32, X: 30, Y: 31, Z: 33
         };
         
-        // 將字首字母轉換為對應的兩碼數字，與後 9 碼數字串接
         const numStr = letterMapping[id[0]] + id.substring(1);
-        
-        // 權重計算
         const weights = [1, 9, 8, 7, 6, 5, 4, 3, 2, 1, 1];
         let sum = 0;
         for (let i = 0; i < 11; i++) {
             sum += parseInt(numStr[i], 10) * weights[i];
         }
         
-        // 能被 10 整除即為有效身分證
         return sum % 10 === 0;
     };
 
     window.saveNewCustomer = async function() {
         const n_id = document.getElementById('national_id').value.trim();
 
-        // 🟢 新增：執行身分證字號防呆檢核
         if (!n_id) {
             alert("❌ 錯誤！請輸入身分證字號。");
             document.getElementById('national_id').focus();
@@ -318,7 +322,8 @@
             );
         `;
 
-        const isSuccess = await window.executeAndSave(sql);[cite: 29]
+        // 🟢 修復：移除了導致語法錯誤的字串
+        const isSuccess = await window.executeAndSave(sql);
         if (isSuccess) {
             alert(`✅ 成功新增客戶資料！\n配發之旅客編號為：${c_id}`);
             loadPage('A-A-A');
