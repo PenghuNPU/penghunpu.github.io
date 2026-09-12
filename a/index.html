@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <title>Web-M@nager 旅行業資訊管理</title>
+    <style>
+        /* 替換原本的橘黃色系，改為澎湖海洋風漸層風格 */
+        body {
+            font-family: "細明體", MingLiU, sans-serif;
+            margin: 0;
+            padding: 0;
+            /* 澎湖淺灘藍到深海藍漸層 */
+            background: linear-gradient(135deg, #b2ebf2 0%, #0277bd 100%); 
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+        .login-container {
+            width: 800px;
+            height: 600px;
+            background-color: #f4fafe; /* 微藍的珍珠白背景 */
+            border: 2px solid #0288d1; /* 海洋藍邊框 */
+            position: relative;
+            background-image: linear-gradient(rgba(255, 255, 255, 0.85), rgba(255, 255, 255, 0.85)), url('https://via.placeholder.com/800x600?text=Keyboard+Background');
+            background-size: cover;
+            box-shadow: 5px 5px 15px rgba(2, 119, 189, 0.4); /* 帶有海洋藍色調的陰影 */
+        }
+        .header-logo { padding: 20px; }
+        .header-logo h1 {
+            margin: 0; font-size: 24px; color: #01579b; font-style: italic; /* 深海藍標題 */
+        }
+        .header-logo p { margin: 0; font-size: 12px; color: #37474f; } /* 深灰藍文字 */
+        
+        .center-title { text-align: right; padding-right: 50px; margin-top: 100px; }
+        .center-title h2 {
+            font-size: 56px; font-style: italic; color: #0288d1; margin: 0; /* 亮海藍標題 */
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.15);
+        }
+        .center-title p { color: #37474f; margin: 0; }
+        
+        .login-box {
+            position: absolute;
+            bottom: 150px;
+            left: 50px;
+            border: 2px solid #0288d1;
+            padding: 15px;
+            background-color: #e1f5fe; /* 淺浪花藍背景 */
+            border-radius: 20px;
+            box-shadow: 2px 2px 8px rgba(0,0,0,0.15);
+        }
+        .login-box table { border-collapse: collapse; }
+        .login-box td { padding: 8px; font-size: 14px; font-weight: bold; color: #01579b; } /* 深海藍文字 */
+        .login-box input { border: 1px solid #4fc3f7; width: 120px; padding: 2px; }
+        .login-box button {
+            background-color: #0288d1; color: white; border: 1px solid #01579b;
+            padding: 4px 20px; cursor: pointer; border-radius: 3px; font-weight: bold;
+        }
+        .login-box button:hover {
+            background-color: #0277bd; /* 游標懸停變深海藍 */
+        }
+
+        .footer {
+            position: absolute; bottom: 0; width: 100%;
+            background-color: #e1f5fe; border-top: 1px solid #81d4fa; /* 淺波浪藍 */
+            font-size: 12px; text-align: center; padding: 15px 0 5px 0; color: #01579b;
+        }
+        .footer-grid {
+            display: grid; grid-template-columns: 1fr 1fr; gap: 5px; margin-bottom: 10px;
+        }
+        .footer p { margin: 2px 0; }
+    </style>
+</head>
+<body>
+    <div class="login-container">
+        <div class="header-logo">
+            <h1>XXXX 資訊股份有限公司</h1>
+            <p>www.XXXX.com.tw<br>服務專線: (06)1688-XXXX</p>
+        </div>
+
+        <div class="center-title">
+            <h2>Web-M@nager</h2>
+            <p>www.XXXX.com.tw</p>
+        </div>
+
+        <div class="login-box">
+            <table>
+                <tr>
+                    <td>▶ 使用者帳號</td>
+                    <td><input type="text" id="account" maxlength="4"></td>
+                </tr>
+                <tr>
+                    <td>▶ 使用者密碼</td>
+                    <td><input type="password" id="password"></td>
+                </tr>
+                <tr>
+                    <td colspan="2" style="text-align: center;">
+                        <button onclick="doLogin()">送出</button>
+                    </td>
+                </tr>
+            </table>
+        </div>
+
+        <div class="footer">
+            <div class="footer-grid">
+                <div>
+                    <p><strong>台北總公司</strong></p>
+                    <p>TEL:(06)16888-XXXX FAX:(06)1688-XXXX</p>
+                </div>
+                <div>
+                    <p><strong>高雄服務中心</strong></p>
+                    <p>TEL:(07)555-XXXX FAX:(07)555-XXXX</p>
+                </div>
+                <div>
+                    <p><strong>台中服務中心</strong></p>
+                    <p>TEL:(04)8888-XXXX FAX:(04)8888-XXXX</p>
+                </div>
+                <div>
+                    <p><strong>香港信息技術有限公司</strong></p>
+                    <p>TEL:86-10-XXXXXXXX FAX:86-10-XXXXXXXX</p>
+                </div>
+            </div>
+            <p style="font-size: 10px;">Best viewed in Internet Explorer 5.0, Netscape 6.0 and above at 800 x 600 resolution</p>
+        </div>
+    </div>
+
+    <script>
+        function doLogin() {
+            const acc = document.getElementById("account").value;
+            const pwd = document.getElementById("password").value;
+
+            const accNum = parseInt(acc, 10);
+            if (acc.length !== 4 || isNaN(accNum) || accNum < 1 || accNum > 100) {
+                alert("帳號格式錯誤！請輸入 0001 ~ 0100");
+                return;
+            }
+            if (pwd !== "1234") {
+                alert("密碼錯誤！");
+                return;
+            }
+
+            // 記錄帳號
+            localStorage.setItem("userAccount", acc);
+
+            // 觸發下載空白的 tourdata.sqlite
+            fetch('tourdata.sqlite')
+                .then(response => {
+                    if(!response.ok) throw new Error("找不到原始資料庫檔案");
+                    return response.blob();
+                })
+                .then(blob => {
+                    const url = window.URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = acc + "tourdata.sqlite"; 
+                    document.body.appendChild(a);
+                    a.click();
+                    a.remove();
+                    window.URL.revokeObjectURL(url);
+                    
+                    // 等待 1 秒後跳轉至主頁
+                    setTimeout(() => {
+                        window.location.href = "main.html"; 
+                    }, 1000);
+                })
+                .catch(err => {
+                    console.error(err);
+                    alert("登入成功，但下載預設資料庫失敗 (請確認 Github 空間或本機環境)。");
+                    window.location.href = "main.html"; 
+                });
+        }
+    </script>
+</body>
+</html>
