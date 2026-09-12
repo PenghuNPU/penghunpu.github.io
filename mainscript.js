@@ -4,9 +4,42 @@
 window.db = null; 
 window.fileHandle = null; 
 
-// 1. 左側選單結構設定[cite: 20]
+// 1. 左側選單結構設定 (🟢 擴充 A 區塊支援第三層)
 const menuData = [
-    { id: 'A', title: 'A. 基本資料', icon: 'icon/a.png' },
+    { 
+        id: 'A', 
+        title: 'A. 基本資料', 
+        icon: 'icon/a.png',
+        isExpanded: false,
+        children: [
+            { 
+                id: 'A-A', 
+                title: 'A. 客戶及供應商管理',
+                // 第三層選單
+                children: [
+                    { id: 'A-A-A', title: 'A. 旅客資料管理' },
+                    { id: 'A-A-B', title: 'B. 同業資料管理' },
+                    { id: 'A-A-C', title: 'C. 機關行號客戶管理' },
+                    { id: 'A-A-D', title: 'D. 航空公司資料管理' },
+                    { id: 'A-A-E', title: 'E. 國外local資料管理' },
+                    { id: 'A-A-F', title: 'F. 辦證管理' },
+                    { id: 'A-A-G', title: 'G. 餐廳管理' },
+                    { id: 'A-A-H', title: 'H. 廠商管理' },
+                    { id: 'A-A-I', title: 'I. 輪船公司管理' },
+                    { id: 'A-A-J', title: 'J. 租車公司管理' },
+                    { id: 'A-A-K', title: 'K. 旅遊景點管理' },
+                    { id: 'A-A-L', title: 'L. 網路會員管理' },
+                    { id: 'A-A-M', title: 'M. 網路類別檔' }
+                ]
+            },
+            { id: 'A-B', title: 'B. 公司部門員工管理' },
+            { id: 'A-C', title: 'C. 旅遊資訊管理' },
+            { id: 'A-D', title: 'D. 個人密碼修改' },
+            { id: 'A-E', title: 'E. 員工差假狀況表' },
+            { id: 'A-F', title: 'F. 員工刷卡狀況表' },
+            { id: 'A-Y', title: 'Y. 業務員替換處理' }
+        ]
+    },
     { id: 'B', title: 'B. 訂單管理', icon: 'icon/b.icon' },
     { id: 'C', title: 'C. 商品管理', icon: 'icon/c.icon' },
     { 
@@ -47,17 +80,15 @@ const menuData = [
     { id: 'S', title: 'S. 銷售管理', icon: 'icon/s.icon' } 
 ];
 
-// 2. 初始化載入[cite: 20]
+// 2. 初始化載入
 document.addEventListener("DOMContentLoaded", () => {
-    // 驗證是否已登入
     const userAccount = localStorage.getItem('userAccount');
     if (!userAccount) {
         alert("請先登入系統！");
-        window.location.href = "index.html"; // 若您的登入頁檔名不同(例如 index_5.html)，請在此修改
+        window.location.href = "index.html"; 
         return;
     }
 
-    // 設定左側使用者身分顯示
     const userNameSpan = document.querySelector('.user-name');
     const authTemplateSpan = document.querySelector('.auth-template');
     
@@ -72,15 +103,12 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     }
 
-    // 🟢 動態設定遮罩上的提示檔名
     const targetFilenameSpan = document.getElementById('target-filename');
     if (targetFilenameSpan) {
         if (userAccount === "0100") {
-            // 老師登入時，提示文字改為批改模式
             targetFilenameSpan.textContent = "任何學生的 .sqlite 檔案 (批改模式)";
             targetFilenameSpan.style.fontSize = "20px";
         } else {
-            // 學生登入時，嚴格顯示專屬檔名
             targetFilenameSpan.textContent = userAccount + "tourdata.sqlite";
         }
     }
@@ -90,7 +118,7 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 // ==========================================
-// 3. 核心：選取檔案並進行「權限驗證」與「綁定」[cite: 20]
+// 3. 核心：選取檔案並進行「權限驗證」與「綁定」
 // ==========================================
 async function openAndBindDatabase() {
     try {
@@ -98,7 +126,6 @@ async function openAndBindDatabase() {
             throw new Error("sql.js 套件未載入，請確認 HTML 標籤！");
         }
 
-        // 喚起作業系統的檔案選取視窗
         [window.fileHandle] = await window.showOpenFilePicker({
             types: [{
                 description: 'SQLite Database',
@@ -107,12 +134,11 @@ async function openAndBindDatabase() {
             multiple: false
         });
 
-        // 取得檔案資訊
         const file = await window.fileHandle.getFile();
         const fileName = file.name;
         const userAccount = localStorage.getItem('userAccount');
 
-        // 🟢 檔名安全防護邏輯：非老師帳號 (0100) 時，強制檢查檔名
+        // 檔名安全防護邏輯
         if (userAccount !== "0100") {
             const expectedFileName = userAccount + "tourdata.sqlite";
             if (fileName !== expectedFileName) {
@@ -122,10 +148,8 @@ async function openAndBindDatabase() {
             }
         }
 
-        // 讀取檔案內容進記憶體
         const buffer = await file.arrayBuffer();
 
-        // 初始化 sql.js 引擎
         const SQL = await initSqlJs({
             locateFile: file => `https://cdnjs.cloudflare.com/ajax/libs/sql.js/1.8.0/${file}`
         });
@@ -133,14 +157,12 @@ async function openAndBindDatabase() {
         window.db = new SQL.Database(new Uint8Array(buffer));
         console.log("✅ 成功綁定並載入資料庫！");
 
-        // 🟢 將綁定的實體檔名更新至左側資訊列
         const currentFileSpan = document.getElementById('current-file');
         if (currentFileSpan) {
             currentFileSpan.textContent = `[本機] ${fileName}`;
-            currentFileSpan.style.color = '#1a237e'; // 深藍色表示已綁定
+            currentFileSpan.style.color = '#1a237e'; 
         }
 
-        // 隱藏遮罩，啟用系統，並載入預設頁面
         document.getElementById('file-overlay').style.display = 'none';
         renderMenu();
         loadPage('F-Y'); 
@@ -154,7 +176,7 @@ async function openAndBindDatabase() {
 }
 
 // ==========================================
-// 4. 全域函數：執行 SQL 並自動覆蓋存檔[cite: 20]
+// 4. 全域函數：執行 SQL 並自動覆蓋存檔
 // ==========================================
 window.executeAndSave = async function(sqlString) {
     if (!window.db || !window.fileHandle) {
@@ -163,27 +185,22 @@ window.executeAndSave = async function(sqlString) {
     }
     
     try {
-        // 在記憶體中執行 SQL
         window.db.exec(sqlString);
         
-        // 將修改後的資料匯出
         const data = window.db.export();
         
-        // 寫回原本的檔案 (自動存檔)
         const writable = await window.fileHandle.createWritable();
         await writable.write(data);
         await writable.close();
         
         console.log("💾 檔案已自動儲存更新！");
 
-        // 🟢 存檔成功後，在左側檔名後方閃爍綠字提示
         const currentFileSpan = document.getElementById('current-file');
         if (currentFileSpan) {
             const originalText = currentFileSpan.textContent.replace(' (已存檔✓)', '');
             currentFileSpan.textContent = originalText + ' (已存檔✓)';
-            currentFileSpan.style.color = '#2e7d32'; // 變綠色
+            currentFileSpan.style.color = '#2e7d32'; 
             
-            // 3秒後恢復原狀
             setTimeout(() => {
                 currentFileSpan.textContent = originalText;
                 currentFileSpan.style.color = '#1a237e'; 
@@ -200,7 +217,7 @@ window.executeAndSave = async function(sqlString) {
 }
 
 // ==========================================
-// 5. 其他系統 UI 輔助功能[cite: 20]
+// 5. 系統 UI 輔助功能
 // ==========================================
 function updateTime() {
     const timeElement = document.getElementById('current-time');
@@ -214,12 +231,14 @@ function updateTime() {
     timeElement.textContent = `${year}/${month}/${day} ${hours}:${minutes}`;
 }
 
+// 🟢 升級版 renderMenu (支援第三層選單生成)
 function renderMenu() {
     const menuContainer = document.getElementById('menu-list');
     if (!menuContainer) return;
     menuContainer.innerHTML = ''; 
 
     menuData.forEach(menu => {
+        // 第一層選單
         const menuItem = document.createElement('div');
         menuItem.className = 'menu-item';
         
@@ -246,6 +265,7 @@ function renderMenu() {
         };
         menuContainer.appendChild(menuItem);
 
+        // 第二層子選單
         if (menu.children) {
             const submenu = document.createElement('div');
             submenu.className = 'submenu';
@@ -256,17 +276,49 @@ function renderMenu() {
                 const subItem = document.createElement('a');
                 subItem.href = "#";
                 subItem.className = 'sub-item';
-                if (sub.id === 'F-Y') {
-                    subItem.classList.add('active');
-                }
-                subItem.innerText = sub.title;
+                // 如果有第三層，標題後方加上箭頭提示
+                subItem.innerText = sub.children ? sub.title + " ▸" : sub.title;
+                
                 subItem.onclick = (e) => {
                     e.preventDefault(); 
-                    document.querySelectorAll('.sub-item').forEach(el => el.classList.remove('active'));
-                    subItem.classList.add('active');
-                    loadPage(sub.id); 
+                    if (sub.children) {
+                        // 點擊有第三層的節點，展開/收合第三層
+                        toggleSubMenu(`submenu-${sub.id}`);
+                    } else {
+                        // 沒有第三層，直接切換頁面
+                        document.querySelectorAll('.sub-item').forEach(el => el.classList.remove('active'));
+                        subItem.classList.add('active');
+                        loadPage(sub.id); 
+                    }
                 };
                 submenu.appendChild(subItem);
+
+                // 第三層子選單
+                if (sub.children) {
+                    const subSubmenu = document.createElement('div');
+                    subSubmenu.className = 'submenu';
+                    subSubmenu.id = `submenu-${sub.id}`;
+                    subSubmenu.style.display = 'none'; // 預設隱藏
+                    subSubmenu.style.backgroundColor = '#fdf8e4'; // 給予微微的底色區別
+                    subSubmenu.style.borderTop = 'none';
+
+                    sub.children.forEach(sub3 => {
+                        const sub3Item = document.createElement('a');
+                        sub3Item.href = "#";
+                        sub3Item.className = 'sub-item';
+                        sub3Item.innerText = sub3.title;
+                        sub3Item.style.paddingLeft = '45px'; // 讓第三層自動向右縮排
+
+                        sub3Item.onclick = (e) => {
+                            e.preventDefault(); 
+                            document.querySelectorAll('.sub-item').forEach(el => el.classList.remove('active'));
+                            sub3Item.classList.add('active');
+                            loadPage(sub3.id); 
+                        };
+                        subSubmenu.appendChild(sub3Item);
+                    });
+                    submenu.appendChild(subSubmenu);
+                }
             });
             menuContainer.appendChild(submenu);
         }
@@ -282,7 +334,9 @@ function loadPage(pageId) {
     const contentArea = document.getElementById('content-area');
     const parts = pageId.split('-');
     const folderName = parts[0].toLowerCase(); 
-    const fileNameBase = pageId.replace('-', '_').toLowerCase(); 
+    
+    // 🟢 修正：使用正規表達式取代所有的 '-' 為 '_'，才能正確載入如 a_a_a.html 的路徑
+    const fileNameBase = pageId.replace(/-/g, '_').toLowerCase(); 
     const filePath = `${folderName}/${fileNameBase}.html`; 
 
     fetch(filePath)
@@ -317,7 +371,7 @@ function loadPage(pageId) {
 function logout() {
     if(confirm("確定要登出系統嗎？")) {
         localStorage.removeItem('userAccount');
-        window.location.href = "index.html"; // 若您的登入頁檔名不同，請在此修改
+        window.location.href = "index.html"; 
     }
 }
 

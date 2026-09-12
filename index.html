@@ -4,12 +4,13 @@
     <meta charset="UTF-8">
     <title>Web-M@nager 旅行業資訊管理</title>
     <style>
-        /* 替換原本的藍色系，改為淺橘淡黃漸層風格 */
+        /* 替換原本的橘黃色系，改為澎湖海洋風漸層風格 */
         body {
             font-family: "細明體", MingLiU, sans-serif;
             margin: 0;
             padding: 0;
-            background: linear-gradient(135deg, #fff9c4 0%, #ffcc80 100%);
+            /* 澎湖淺灘藍到深海藍漸層 */
+            background: linear-gradient(135deg, #b2ebf2 0%, #0277bd 100%); 
             display: flex;
             justify-content: center;
             align-items: center;
@@ -18,51 +19,51 @@
         .login-container {
             width: 800px;
             height: 600px;
-            background-color: #fcf8f2;
-            border: 2px solid #fb8c00; 
+            background-color: #f4fafe; /* 微藍的珍珠白背景 */
+            border: 2px solid #0288d1; /* 海洋藍邊框 */
             position: relative;
             background-image: linear-gradient(rgba(255, 255, 255, 0.85), rgba(255, 255, 255, 0.85)), url('https://via.placeholder.com/800x600?text=Keyboard+Background');
             background-size: cover;
-            box-shadow: 5px 5px 15px rgba(230, 81, 0, 0.3); 
+            box-shadow: 5px 5px 15px rgba(2, 119, 189, 0.4); /* 帶有海洋藍色調的陰影 */
         }
         .header-logo { padding: 20px; }
         .header-logo h1 {
-            margin: 0; font-size: 24px; color: #e65100; font-style: italic; 
+            margin: 0; font-size: 24px; color: #01579b; font-style: italic; /* 深海藍標題 */
         }
-        .header-logo p { margin: 0; font-size: 12px; color: #5d4037; } 
+        .header-logo p { margin: 0; font-size: 12px; color: #37474f; } /* 深灰藍文字 */
         
         .center-title { text-align: right; padding-right: 50px; margin-top: 100px; }
         .center-title h2 {
-            font-size: 56px; font-style: italic; color: #e65100; margin: 0;
+            font-size: 56px; font-style: italic; color: #0288d1; margin: 0; /* 亮海藍標題 */
             text-shadow: 2px 2px 4px rgba(0,0,0,0.15);
         }
-        .center-title p { color: #5d4037; margin: 0; }
+        .center-title p { color: #37474f; margin: 0; }
         
         .login-box {
             position: absolute;
             bottom: 150px;
             left: 50px;
-            border: 2px solid #fb8c00;
+            border: 2px solid #0288d1;
             padding: 15px;
-            background-color: #fffde7; 
+            background-color: #e1f5fe; /* 淺浪花藍背景 */
             border-radius: 20px;
             box-shadow: 2px 2px 8px rgba(0,0,0,0.15);
         }
         .login-box table { border-collapse: collapse; }
-        .login-box td { padding: 8px; font-size: 14px; font-weight: bold; color: #bf360c; } 
-        .login-box input { border: 1px solid #ffb74d; width: 120px; padding: 2px; }
+        .login-box td { padding: 8px; font-size: 14px; font-weight: bold; color: #01579b; } /* 深海藍文字 */
+        .login-box input { border: 1px solid #4fc3f7; width: 120px; padding: 2px; }
         .login-box button {
-            background-color: #ff9800; color: white; border: 1px solid #e65100;
+            background-color: #0288d1; color: white; border: 1px solid #01579b;
             padding: 4px 20px; cursor: pointer; border-radius: 3px; font-weight: bold;
         }
         .login-box button:hover {
-            background-color: #f57c00;
+            background-color: #0277bd; /* 游標懸停變深海藍 */
         }
 
         .footer {
             position: absolute; bottom: 0; width: 100%;
-            background-color: #fff3e0; border-top: 1px solid #ffcc80;
-            font-size: 12px; text-align: center; padding: 15px 0 5px 0; color: #5d4037;
+            background-color: #e1f5fe; border-top: 1px solid #81d4fa; /* 淺波浪藍 */
+            font-size: 12px; text-align: center; padding: 15px 0 5px 0; color: #01579b;
         }
         .footer-grid {
             display: grid; grid-template-columns: 1fr 1fr; gap: 5px; margin-bottom: 10px;

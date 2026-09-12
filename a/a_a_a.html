@@ -1,0 +1,52 @@
+<!-- 上方的 HTML 與 CSS 保持不變，只替換 <script> 區段 -->
+<script>
+    function switchTab(tabIndex, element) {
+        // 1. 限定只抓取目前這個標籤列裡的按鈕，避免干擾
+        const tabs = document.querySelectorAll('.tabs-header .tab-btn');
+        tabs.forEach(tab => tab.classList.remove('active'));
+        if (element) {
+            element.classList.add('active');
+        }
+
+        // 2. 設定要載入的路徑 (相對於 main.html 的位置)
+        const subFilePath = `a/a_a_a_${tabIndex}.html`;
+        const contentBox = document.getElementById('sub-tab-content');
+
+        // 3. 抓取內容並載入
+        fetch(subFilePath)
+            .then(response => {
+                if (!response.ok) throw new Error('檔案讀取失敗');
+                return response.text();
+            })
+            .then(html => {
+                contentBox.innerHTML = html;
+                
+                // 重新執行子網頁內的 Script
+                const scripts = contentBox.querySelectorAll('script');
+                scripts.forEach(oldScript => {
+                    const newScript = document.createElement('script');
+                    Array.from(oldScript.attributes).forEach(attr => newScript.setAttribute(attr.name, attr.value));
+                    newScript.appendChild(document.createTextNode(oldScript.innerHTML));
+                    oldScript.parentNode.replaceChild(newScript, oldScript);
+                });
+            })
+            .catch(error => {
+                contentBox.innerHTML = `
+                    <div style="color:red; font-weight:bold; padding:20px; text-align:center;">
+                        ⚠️ 無法載入檔案：${subFilePath}<br><br>
+                        可能原因：<br>
+                        1. 您未建立此檔案。<br>
+                        2. 您直接用雙擊的方式打開網頁 (網址是 file:///)，被瀏覽器安全機制阻擋。<br>
+                        請使用 Live Server 啟動測試！
+                    </div>`;
+            });
+    }
+
+    // 延遲 50 毫秒執行，確保 HTML 完全嵌進右側畫面後，精準點擊第 5 頁的按鈕
+    setTimeout(() => {
+        const targetTab = document.querySelector('.tabs-header .tab-btn:nth-child(5)');
+        if (targetTab) {
+            switchTab(5, targetTab);
+        }
+    }, 50);
+</script>
