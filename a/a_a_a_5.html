@@ -5,6 +5,7 @@
         font-family: "MS Sans Serif", "細明體", sans-serif;
         font-size: 13px;
         padding-bottom: 10px;
+        position: relative; /* 供隱藏的日期選擇器定位使用 */
     }
     
     .visa-row {
@@ -14,10 +15,7 @@
         min-height: 28px;
     }
     
-    /* 完美復刻圖片的深灰色相間背景 */
-    .visa-row:nth-child(even) {
-        background-color: #b5b5b5; 
-    }
+    .visa-row:nth-child(even) { background-color: #b5b5b5; }
     
     .visa-label {
         width: 180px;
@@ -29,6 +27,7 @@
         display: flex;
         align-items: center;
         gap: 5px;
+        position: relative;
     }
     
     .visa-input {
@@ -65,21 +64,25 @@
         cursor: pointer;
     }
     
-    .action-buttons button:active {
-        border-style: inset;
+    .action-buttons button:active { border-style: inset; }
+
+    /* 🟢 隱藏原生的 HTML5 日期選擇器，只透過 JavaScript 喚起它 */
+    .hidden-date-picker {
+        position: absolute;
+        opacity: 0;
+        width: 0;
+        height: 0;
+        pointer-events: none;
+        border: none;
     }
 </style>
 
 <div class="visa-record-wrapper">
-    <!-- Row 1: 建檔日期 -->
     <div class="visa-row">
         <div class="visa-label">建檔日期：</div>
-        <div class="visa-input-group">
-            <span id="creation_date">2005/5/24</span>
-        </div>
+        <div class="visa-input-group"><span id="creation_date"></span></div>
     </div>
     
-    <!-- Row 2: 簽證代碼及名稱 -->
     <div class="visa-row">
         <div class="visa-label">簽證代碼及名稱：</div>
         <div class="visa-input-group">
@@ -88,7 +91,6 @@
         </div>
     </div>
     
-    <!-- Row 3: 號碼 -->
     <div class="visa-row">
         <div class="visa-label">號碼：</div>
         <div class="visa-input-group">
@@ -96,7 +98,6 @@
         </div>
     </div>
     
-    <!-- Row 4: 簽證地 -->
     <div class="visa-row">
         <div class="visa-label">簽證地：</div>
         <div class="visa-input-group">
@@ -104,23 +105,29 @@
         </div>
     </div>
     
-    <!-- Row 5: 起迄效期 -->
+    <!-- 🟢 起迄效期 -->
     <div class="visa-row">
         <div class="visa-label">起迄效期：</div>
         <div class="visa-input-group">
             <input type="text" id="v_from_y" class="visa-input date-box year"> /
             <input type="text" id="v_from_m" class="visa-input date-box"> /
             <input type="text" id="v_from_d" class="visa-input date-box">
-            <button class="icon-btn">📅</button>
+            
+            <!-- 綁定喚起日期選擇器的按鈕 -->
+            <button class="icon-btn" onclick="openDatePicker('v_from')">📅</button>
+            <input type="date" id="picker_v_from" class="hidden-date-picker" onchange="fillDate('v_from')">
+
             <span style="margin: 0 5px;">至</span>
+            
             <input type="text" id="v_to_y" class="visa-input date-box year"> /
             <input type="text" id="v_to_m" class="visa-input date-box"> /
             <input type="text" id="v_to_d" class="visa-input date-box">
-            <button class="icon-btn">📅</button>
+            
+            <button class="icon-btn" onclick="openDatePicker('v_to')">📅</button>
+            <input type="date" id="picker_v_to" class="hidden-date-picker" onchange="fillDate('v_to')">
         </div>
     </div>
     
-    <!-- Row 6: 該國PP NO(台胞證號) -->
     <div class="visa-row">
         <div class="visa-label">該國PP NO(台胞證<br>號)：</div>
         <div class="visa-input-group">
@@ -128,23 +135,28 @@
         </div>
     </div>
     
-    <!-- Row 7: PP 起迄效期 -->
+    <!-- 🟢 該國 PP 起迄效期 -->
     <div class="visa-row">
         <div class="visa-label">起迄效期：</div>
         <div class="visa-input-group">
             <input type="text" id="p_from_y" class="visa-input date-box year"> /
             <input type="text" id="p_from_m" class="visa-input date-box"> /
             <input type="text" id="p_from_d" class="visa-input date-box">
-            <button class="icon-btn">📅</button>
+            
+            <button class="icon-btn" onclick="openDatePicker('p_from')">📅</button>
+            <input type="date" id="picker_p_from" class="hidden-date-picker" onchange="fillDate('p_from')">
+
             <span style="margin: 0 5px;">至</span>
+            
             <input type="text" id="p_to_y" class="visa-input date-box year"> /
             <input type="text" id="p_to_m" class="visa-input date-box"> /
             <input type="text" id="p_to_d" class="visa-input date-box">
-            <button class="icon-btn">📅</button>
+            
+            <button class="icon-btn" onclick="openDatePicker('p_to')">📅</button>
+            <input type="date" id="picker_p_to" class="hidden-date-picker" onchange="fillDate('p_to')">
         </div>
     </div>
     
-    <!-- 底部按鈕 -->
     <div class="action-buttons">
         <button onclick="saveVisaRecord()">更 新</button>
         <button onclick="clearVisaForm()">放 棄</button>
@@ -152,13 +164,28 @@
 </div>
 
 <script>
-    // 初始化設定當日為建檔日期
-    const today = new Date();
-    document.getElementById('creation_date').innerText = `${today.getFullYear()}/${today.getMonth() + 1}/${today.getDate()}`;
+    (function() {
+        const today = new Date();
+        document.getElementById('creation_date').innerText = `${today.getFullYear()}/${today.getMonth() + 1}/${today.getDate()}`;
+    })();
 
-    // 更新(寫入)資料庫功能
-    async function saveVisaRecord() {
-        // 抓取畫面欄位值
+    // 🟢 喚起隱藏的 HTML5 日期選擇器 (觸發 click 事件)
+    window.openDatePicker = function(prefix) {
+        document.getElementById(`picker_${prefix}`).showPicker(); 
+    };
+
+    // 🟢 當使用者選好日期後，將 YYYY-MM-DD 拆解並填入三個格子中
+    window.fillDate = function(prefix) {
+        const dateValue = document.getElementById(`picker_${prefix}`).value;
+        if (dateValue) {
+            const parts = dateValue.split('-'); // 格式: "2024-05-15" -> ["2024", "05", "15"]
+            document.getElementById(`${prefix}_y`).value = parts[0];
+            document.getElementById(`${prefix}_m`).value = parts[1];
+            document.getElementById(`${prefix}_d`).value = parts[2];
+        }
+    };
+
+    window.saveVisaRecord = async function() {
         const creation_date = document.getElementById('creation_date').innerText;
         const visa_code_name = document.getElementById('visa_code_name').value;
         const visa_number = document.getElementById('visa_number').value;
@@ -177,7 +204,6 @@
         const p_to_m = document.getElementById('p_to_m').value;
         const p_to_d = document.getElementById('p_to_d').value;
 
-        // 組裝 SQL 語法
         const sql = `
             INSERT INTO CustomerVisas (
                 customer_id, creation_date, visa_code_name, visa_number, issue_place,
@@ -190,15 +216,15 @@
             );
         `;
 
-        // 呼叫主程式的自動存檔功能
         const isSuccess = await window.executeAndSave(sql);
         if (isSuccess) {
             alert("✅ 簽證紀錄已成功更新至資料庫！");
         }
-    }
+    };
 
-    // 放棄(清空)表單功能
-    function clearVisaForm() {
+    window.clearVisaForm = function() {
         document.querySelectorAll('.visa-input').forEach(input => input.value = '');
-    }
+        // 同時清空隱藏的日期選擇器，避免下次選同一天不觸發 onchange
+        document.querySelectorAll('.hidden-date-picker').forEach(picker => picker.value = ''); 
+    };
 </script>
