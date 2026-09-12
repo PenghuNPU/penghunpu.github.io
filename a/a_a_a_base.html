@@ -5,6 +5,7 @@
         font-family: "MS Sans Serif", "細明體", sans-serif;
         font-size: 13px;
         height: 100%;
+        position: relative; 
     }
     .base-header {
         background: linear-gradient(to bottom, #d4d0c8, #b5b5b5);
@@ -57,6 +58,15 @@
         cursor: pointer;
     }
     .action-row button:active { border-style: inset; }
+
+    .hidden-date-picker {
+        position: absolute;
+        opacity: 0;
+        width: 0;
+        height: 0;
+        pointer-events: none;
+        border: none;
+    }
 </style>
 
 <div class="content-header">
@@ -71,14 +81,17 @@
     <table class="base-table">
         <tr>
             <td style="width: 30%;">
-                身分證字號：<input type="text" id="national_id" class="input-box" style="width: 100px;">
+                <!-- 🟢 加入 maxlength 與自動轉大寫的 UX 優化 -->
+                身分證字號：<input type="text" id="national_id" class="input-box" style="width: 100px;" maxlength="10" oninput="this.value = this.value.toUpperCase();">
             </td>
-            <td style="width: 40%;">
+            <td style="width: 40%; position: relative;">
                 生日:西元 
                 <input type="text" id="birth_y" class="input-box date-box year"> 年 
                 <input type="text" id="birth_m" class="input-box date-box"> 月 
                 <input type="text" id="birth_d" class="input-box date-box"> 日 
-                <button class="btn">📅</button>
+                
+                <button class="btn" onclick="window.openBirthPicker()">📅</button>
+                <input type="date" id="picker_birth" class="hidden-date-picker" onchange="window.fillBirthDate()">
             </td>
             <td style="width: 30%;">
                 性別：
@@ -94,7 +107,10 @@
             </td>
             <td>
                 稱謂：
-                <select id="title" class="input-box"><option>MR</option><option>MS</option></select>
+                <select id="title" class="input-box">
+                    <option>MR</option>
+                    <option>MS</option>
+                </select>
             </td>
             <td>
                 英文姓：<input type="text" id="e_last_name" class="input-box" style="width: 70px;"> 
@@ -107,7 +123,23 @@
             </td>
             <td>
                 行業別：
-                <select id="industry" class="input-box"><option>貿易</option><option>科技</option></select>
+                <select id="industry" class="input-box">
+                    <option value="">請選擇</option>
+                    <option>政府機關</option>
+                    <option>學校</option>
+                    <option>企業</option>
+                    <option>旅行業</option>
+                    <option>觀光旅遊業</option>
+                    <option>餐飲業</option>
+                    <option>金融業</option>
+                    <option>科技業</option>
+                    <option>製造業</option>
+                    <option>服務業</option>
+                    <option>自由業</option>
+                    <option>學生</option>
+                    <option>退休</option>
+                    <option>其他</option>
+                </select>
             </td>
             <td>
                 職稱：<input type="text" id="job_title" class="input-box" style="width: 80px;"> <button class="btn">❓</button>
@@ -116,12 +148,22 @@
         <tr>
             <td>
                 往來狀態：
-                <select id="status" class="input-box"><option>正常</option><option>拒絕</option></select><br><br>
+                <select id="status" class="input-box">
+                    <option>正常</option>
+                    <option>拒絕</option>
+                </select><br><br>
                 警示訊息：<input type="text" id="warning_msg" class="input-box" style="width: 150px;">
             </td>
             <td>
                 通路來源：<br>
-                <select id="channel" class="input-box" style="width: 120px;"><option>報紙廣告</option></select>
+                <select id="channel" class="input-box" style="width: 120px;">
+                    <option value="">請選擇</option>
+                    <option>報紙廣告</option>
+                    <option>旅行平台</option>
+                    <option>通路徑銷</option>
+                    <option>企業客戶</option>
+                    <option>線上訂購</option>
+                </select>
             </td>
             <td>
                 業務員：<input type="text" id="salesperson" class="input-box" style="width: 60px;">
@@ -130,8 +172,24 @@
         </tr>
         <tr style="background-color: #d4d0c8;">
             <td colspan="2">
-                等級：<select id="cust_level" class="input-box"><option></option></select> &nbsp;&nbsp;&nbsp;
-                對應價格：<select id="price_level" class="input-box"><option></option></select>
+                等級：
+                <select id="cust_level" class="input-box">
+                    <option value="">請選擇</option>
+                    <option>A</option>
+                    <option>B</option>
+                    <option>C</option>
+                </select> &nbsp;&nbsp;&nbsp;
+                對應價格：
+                <select id="price_level" class="input-box">
+                    <option value="">請選擇</option>
+                    <option>直客價</option>
+                    <option>團體價</option>
+                    <option>網路價</option>
+                    <option>員工價</option>
+                    <option>同業價</option>
+                    <option>企業價</option>
+                    <option>促銷價</option>
+                </select>
             </td>
             <td>
                 <input type="checkbox" id="wants_periodical"> 願意收到期刊<br>
@@ -141,19 +199,17 @@
     </table>
 
     <div class="action-row">
-        <button onclick="saveNewCustomer()">新 增</button>
+        <button onclick="window.saveNewCustomer()">新 增</button>
         <button onclick="loadPage('A-A-A')">放 棄</button>
     </div>
 </div>
 
 <script>
-    // 🟢 頁面載入時：自動從資料庫抓取最大的 customer_id，並產生下一個 7 碼流水號
-    window.generatedCustomerId = "0000001"; // 預設值
+    window.generatedCustomerId = "0000001"; 
 
     (function generateNextId() {
         if (!window.db) return;
         try {
-            // 尋找目前最大的客戶編號並轉為數字
             const query = "SELECT MAX(CAST(customer_id AS INTEGER)) FROM Customers";
             const result = window.db.exec(query);
             
@@ -162,19 +218,71 @@
                 nextIdNum = result[0].values[0][0] + 1;
             }
             
-            // 將數字補零成為 7 碼字串
             window.generatedCustomerId = String(nextIdNum).padStart(7, '0');
             document.getElementById('display_customer_id').innerText = window.generatedCustomerId;
         } catch (e) {
-            console.error("產生流水號失敗，可能尚未建立 Customers 資料表", e);
+            console.error("產生流水號失敗", e);
             document.getElementById('display_customer_id').innerText = window.generatedCustomerId;
         }
     })();
 
-    // 🟢 儲存新增的客戶資料
+    window.openBirthPicker = function() {
+        document.getElementById('picker_birth').showPicker(); 
+    };
+
+    window.fillBirthDate = function() {
+        const dateValue = document.getElementById('picker_birth').value;
+        if (dateValue) {
+            const parts = dateValue.split('-'); 
+            document.getElementById('birth_y').value = parts[0];
+            document.getElementById('birth_m').value = parts[1];
+            document.getElementById('birth_d').value = parts[2];
+        }
+    };
+
+    // 🟢 台灣身分證字號驗證邏輯
+    window.isValidTwID = function(id) {
+        id = id.toUpperCase();
+        // 檢查基本長度與格式 (第一碼英文，第二碼 1、2、8、9，後接 8 碼數字)
+        if (!/^[A-Z][1289]\d{8}$/.test(id)) return false;
+        
+        // 字母對應數值表 (A=10, B=11 ... I=34, O=35 ... W=32, Z=33)
+        const letterMapping = {
+            A: 10, B: 11, C: 12, D: 13, E: 14, F: 15, G: 16, H: 17, I: 34,
+            J: 18, K: 19, L: 20, M: 21, N: 22, O: 35, P: 23, Q: 24, R: 25,
+            S: 26, T: 27, U: 28, V: 29, W: 32, X: 30, Y: 31, Z: 33
+        };
+        
+        // 將字首字母轉換為對應的兩碼數字，與後 9 碼數字串接
+        const numStr = letterMapping[id[0]] + id.substring(1);
+        
+        // 權重計算
+        const weights = [1, 9, 8, 7, 6, 5, 4, 3, 2, 1, 1];
+        let sum = 0;
+        for (let i = 0; i < 11; i++) {
+            sum += parseInt(numStr[i], 10) * weights[i];
+        }
+        
+        // 能被 10 整除即為有效身分證
+        return sum % 10 === 0;
+    };
+
     window.saveNewCustomer = async function() {
+        const n_id = document.getElementById('national_id').value.trim();
+
+        // 🟢 新增：執行身分證字號防呆檢核
+        if (!n_id) {
+            alert("❌ 錯誤！請輸入身分證字號。");
+            document.getElementById('national_id').focus();
+            return;
+        }
+        if (!window.isValidTwID(n_id)) {
+            alert("❌ 錯誤！身分證字號格式或檢查碼不正確，請重新確認。");
+            document.getElementById('national_id').focus();
+            return;
+        }
+
         const c_id = window.generatedCustomerId;
-        const n_id = document.getElementById('national_id').value;
         const b_y = document.getElementById('birth_y').value;
         const b_m = document.getElementById('birth_m').value;
         const b_d = document.getElementById('birth_d').value;
@@ -210,10 +318,9 @@
             );
         `;
 
-        const isSuccess = await window.executeAndSave(sql);
+        const isSuccess = await window.executeAndSave(sql);[cite: 29]
         if (isSuccess) {
             alert(`✅ 成功新增客戶資料！\n配發之旅客編號為：${c_id}`);
-            // 新增成功後自動返回查詢首頁
             loadPage('A-A-A');
         }
     };
