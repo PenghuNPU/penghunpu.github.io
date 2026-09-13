@@ -1,0 +1,269 @@
+<style>
+    .detail-wrapper {
+        border: 1px solid #777;
+        background-color: #ece9d8;
+        font-family: "MS Sans Serif", "細明體", sans-serif;
+        font-size: 13px;
+        padding: 10px;
+        position: relative;
+    }
+    .detail-header {
+        background: linear-gradient(to bottom, #d4d0c8, #b5b5b5);
+        border: 1px outset #fff;
+        text-align: center;
+        font-weight: bold;
+        padding: 4px;
+        margin-bottom: 10px;
+    }
+    .detail-table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+    .detail-table td {
+        padding: 6px 4px;
+        vertical-align: middle;
+        border-bottom: 1px solid #d4d0c8;
+    }
+    /* 讓奇數行有微微的灰底，還原圖片質感 */
+    .detail-table tr:nth-child(odd) {
+        background-color: #e2dfd3;
+    }
+    .input-box {
+        border: 1px inset #fff;
+        padding: 2px 4px;
+        background-color: #fff;
+    }
+    .btn {
+        background-color: #ece9d8; border: 1px outset #fff; padding: 1px 6px; cursor: pointer; font-size: 12px;
+    }
+    .btn:active { border-style: inset; }
+    .action-row {
+        background-color: #808080; text-align: center; padding: 8px; margin-top: 15px;
+    }
+    .action-row button {
+        background-color: #d4d0c8; border: 2px outset #fff; padding: 3px 20px; font-weight: bold; letter-spacing: 3px; margin: 0 5px; cursor: pointer;
+    }
+    .action-row button:active { border-style: inset; }
+    
+    /* 隱藏原生日期選擇器 */
+    .hidden-date-picker { position: absolute; opacity: 0; width: 0; height: 0; pointer-events: none; border: none; }
+</style>
+
+<div class="detail-wrapper">
+    <div class="detail-header">
+        【旅客編號：<span id="o_customer_id" style="color: blue;">載入中...</span>】
+    </div>
+
+    <table class="detail-table">
+        <tr>
+            <td style="width: 40%;">
+                別名 (中)：<input type="text" id="alias_c" class="input-box" style="width: 70px;"> 
+                (英)：<input type="text" id="alias_e" class="input-box" style="width: 80px;">
+            </td>
+            <td style="width: 35%;">
+                婚姻狀況：
+                <select id="marital_status" class="input-box">
+                    <option value="未婚">未婚</option>
+                    <option value="已婚">已婚</option>
+                    <option value="離婚">離婚</option>
+                    <option value="喪偶">喪偶</option>
+                </select><br>
+                結婚日期：<input type="text" id="marriage_date" class="input-box" style="width: 75px;" placeholder="YYYY/MM/DD">
+                <button class="btn" onclick="window.openSingleDate('marriage_date')">📅</button>
+                <input type="date" id="picker_marriage_date" class="hidden-date-picker" onchange="window.fillSingleDate('marriage_date')">
+            </td>
+            <td style="width: 25%;">
+                學歷：<select id="education" class="input-box"><option></option><option>高中</option><option>大學</option><option>研究所</option></select><br>
+                學校名稱：<input type="text" id="school_name" class="input-box" style="width: 100px;">
+            </td>
+        </tr>
+        <tr>
+            <td>
+                配偶姓名：<input type="text" id="spouse_name_c" class="input-box" style="width: 70px;"> 
+                (英)：<input type="text" id="spouse_name_e" class="input-box" style="width: 80px;">
+            </td>
+            <td>身高：<input type="number" id="height" class="input-box" style="width: 50px;"> 公分</td>
+            <td>體重：<input type="number" id="weight" class="input-box" style="width: 50px;"> 公斤</td>
+        </tr>
+        <tr>
+            <td>保險繼承人：<input type="text" id="insurance_heir" class="input-box" style="width: 150px;" value="法定繼承人"></td>
+            <td colspan="2">
+                役別：<select id="military_service" class="input-box"><option></option><option>役畢</option><option>免役</option><option>未役</option></select>
+            </td>
+        </tr>
+        <tr>
+            <td colspan="3">
+                備用中文姓：<input type="text" id="backup_last_name" class="input-box" style="width: 60px;"> 
+                名：<input type="text" id="backup_first_name" class="input-box" style="width: 80px;"> 
+                <span style="color: #666; font-size: 12px; margin-left: 10px;">本項備用資料為，當旅客中文姓或名的長度超過 5 個字時使用</span>
+            </td>
+        </tr>
+        <tr>
+            <td>預定行程：<input type="text" id="planned_trip" class="input-box" style="width: 200px;"></td>
+            <td colspan="2">
+                旅遊補助年度：<input type="text" id="subsidy_year" class="input-box" style="width: 60px;"><br>
+                預定日期：<input type="text" id="planned_date" class="input-box" style="width: 75px;" placeholder="YYYY/MM/DD">
+                <button class="btn" onclick="window.openSingleDate('planned_date')">📅</button>
+                <input type="date" id="picker_planned_date" class="hidden-date-picker" onchange="window.fillSingleDate('planned_date')">
+            </td>
+        </tr>
+        <tr>
+            <td>滑雪類別：<button class="btn">說明</button></td>
+            <td><input type="checkbox" id="own_shoes"> 自備鞋具</td>
+            <td><input type="checkbox" id="own_ski_gear"> 自備雪具</td>
+        </tr>
+        <tr>
+            <td>
+                滑雪類別級數：
+                <!-- 🟢 加入指定的滑雪級數選項 -->
+                <select id="ski_level" class="input-box">
+                    <option value="">-請選擇-</option>
+                    <option value="初學者">初學者</option>
+                    <option value="初級">初級</option>
+                    <option value="中級">中級</option>
+                    <option value="中高級">中高級</option>
+                    <option value="高級">高級</option>
+                    <option value="專業級">專業級</option>
+                </select>
+            </td>
+            <td colspan="2">腳的尺寸：<input type="text" id="shoe_size" class="input-box" style="width: 60px;"></td>
+        </tr>
+        <tr>
+            <td colspan="3">緊急連絡人：<input type="text" id="emerg_contact" class="input-box" style="width: 100px;"></td>
+        </tr>
+        <tr>
+            <td>緊急連絡電話1：<input type="text" id="emerg_phone1" class="input-box" style="width: 120px;"></td>
+            <td colspan="2">緊急連絡電話2：<input type="text" id="emerg_phone2" class="input-box" style="width: 120px;"></td>
+        </tr>
+    </table>
+
+    <div class="action-row">
+        <button onclick="window.saveOtherInfo()">更 新</button>
+        <button onclick="loadPage('A-A-A')">放 棄</button>
+    </div>
+</div>
+
+<script>
+    (function initOtherInfo() {
+        const c_id = window.currentCustomerId; 
+        if(!c_id) {
+            alert("系統遺失旅客編號，請重新選擇！");
+            loadPage('A-A-A');
+            return;
+        }
+        document.getElementById('o_customer_id').innerText = c_id;
+
+        // 防呆建立資料表
+        window.db.exec(`
+            CREATE TABLE IF NOT EXISTS CustomerOtherInfo (
+                customer_id TEXT UNIQUE CHECK(length(customer_id) = 7),
+                alias_c TEXT, alias_e TEXT, marital_status TEXT, marriage_date TEXT,
+                education TEXT, school_name TEXT, spouse_name_c TEXT, spouse_name_e TEXT,
+                height INTEGER, weight INTEGER, insurance_heir TEXT, military_service TEXT,
+                backup_last_name TEXT, backup_first_name TEXT, planned_trip TEXT, subsidy_year TEXT,
+                planned_date TEXT, own_shoes INTEGER, own_ski_gear INTEGER, ski_level TEXT,
+                shoe_size TEXT, emerg_contact TEXT, emerg_phone1 TEXT, emerg_phone2 TEXT
+            );
+        `);
+
+        // 讀取資料庫
+        const query = `
+            SELECT alias_c, alias_e, marital_status, marriage_date, education, school_name, spouse_name_c, spouse_name_e,
+                   height, weight, insurance_heir, military_service, backup_last_name, backup_first_name, planned_trip,
+                   subsidy_year, planned_date, own_shoes, own_ski_gear, ski_level, shoe_size, emerg_contact, emerg_phone1, emerg_phone2
+            FROM CustomerOtherInfo WHERE customer_id = '${c_id}'
+        `;
+
+        try {
+            const res = window.db.exec(query);
+            if (res.length > 0) {
+                const data = res[0].values[0];
+                const cleanStr = (val) => (val === null || val === 'null' || val === undefined) ? '' : val;
+
+                document.getElementById('alias_c').value = cleanStr(data[0]);
+                document.getElementById('alias_e').value = cleanStr(data[1]);
+                document.getElementById('marital_status').value = cleanStr(data[2]) || '未婚';
+                document.getElementById('marriage_date').value = cleanStr(data[3]);
+                document.getElementById('education').value = cleanStr(data[4]);
+                document.getElementById('school_name').value = cleanStr(data[5]);
+                document.getElementById('spouse_name_c').value = cleanStr(data[6]);
+                document.getElementById('spouse_name_e').value = cleanStr(data[7]);
+                document.getElementById('height').value = cleanStr(data[8]);
+                document.getElementById('weight').value = cleanStr(data[9]);
+                document.getElementById('insurance_heir').value = cleanStr(data[10]) || '法定繼承人';
+                document.getElementById('military_service').value = cleanStr(data[11]);
+                document.getElementById('backup_last_name').value = cleanStr(data[12]);
+                document.getElementById('backup_first_name').value = cleanStr(data[13]);
+                document.getElementById('planned_trip').value = cleanStr(data[14]);
+                document.getElementById('subsidy_year').value = cleanStr(data[15]);
+                document.getElementById('planned_date').value = cleanStr(data[16]);
+                document.getElementById('own_shoes').checked = (data[17] === 1);
+                document.getElementById('own_ski_gear').checked = (data[18] === 1);
+                document.getElementById('ski_level').value = cleanStr(data[19]);
+                document.getElementById('shoe_size').value = cleanStr(data[20]);
+                document.getElementById('emerg_contact').value = cleanStr(data[21]);
+                document.getElementById('emerg_phone1').value = cleanStr(data[22]);
+                document.getElementById('emerg_phone2').value = cleanStr(data[23]);
+            }
+        } catch (e) {
+            console.error("讀取旅客其他資料錯誤：", e);
+        }
+    })();
+
+    // 🟢 日期選擇器功能
+    window.openSingleDate = function(prefix) { 
+        document.getElementById(`picker_${prefix}`).showPicker(); 
+    };
+
+    window.fillSingleDate = function(prefix) {
+        const dateValue = document.getElementById(`picker_${prefix}`).value;
+        if (dateValue) {
+            document.getElementById(prefix).value = dateValue.replace(/-/g, '/');
+        }
+    };
+
+    // 🟢 儲存資料
+    window.saveOtherInfo = async function() {
+        const c_id = window.currentCustomerId; 
+        
+        const alias_c = document.getElementById('alias_c').value;
+        const alias_e = document.getElementById('alias_e').value;
+        const marital_status = document.getElementById('marital_status').value;
+        const marriage_date = document.getElementById('marriage_date').value;
+        const education = document.getElementById('education').value;
+        const school_name = document.getElementById('school_name').value;
+        const spouse_name_c = document.getElementById('spouse_name_c').value;
+        const spouse_name_e = document.getElementById('spouse_name_e').value;
+        const height = document.getElementById('height').value;
+        const weight = document.getElementById('weight').value;
+        const insurance_heir = document.getElementById('insurance_heir').value;
+        const military_service = document.getElementById('military_service').value;
+        const backup_last_name = document.getElementById('backup_last_name').value;
+        const backup_first_name = document.getElementById('backup_first_name').value;
+        const planned_trip = document.getElementById('planned_trip').value;
+        const subsidy_year = document.getElementById('subsidy_year').value;
+        const planned_date = document.getElementById('planned_date').value;
+        const own_shoes = document.getElementById('own_shoes').checked ? 1 : 0;
+        const own_ski_gear = document.getElementById('own_ski_gear').checked ? 1 : 0;
+        const ski_level = document.getElementById('ski_level').value;
+        const shoe_size = document.getElementById('shoe_size').value;
+        const emerg_contact = document.getElementById('emerg_contact').value;
+        const emerg_phone1 = document.getElementById('emerg_phone1').value;
+        const emerg_phone2 = document.getElementById('emerg_phone2').value;
+
+        const sql = `
+            REPLACE INTO CustomerOtherInfo (
+                customer_id, alias_c, alias_e, marital_status, marriage_date, education, school_name, spouse_name_c, spouse_name_e,
+                height, weight, insurance_heir, military_service, backup_last_name, backup_first_name, planned_trip, subsidy_year,
+                planned_date, own_shoes, own_ski_gear, ski_level, shoe_size, emerg_contact, emerg_phone1, emerg_phone2
+            ) VALUES (
+                '${c_id}', '${alias_c}', '${alias_e}', '${marital_status}', '${marriage_date}', '${education}', '${school_name}', '${spouse_name_c}', '${spouse_name_e}',
+                '${height}', '${weight}', '${insurance_heir}', '${military_service}', '${backup_last_name}', '${backup_first_name}', '${planned_trip}', '${subsidy_year}',
+                '${planned_date}', ${own_shoes}, ${own_ski_gear}, '${ski_level}', '${shoe_size}', '${emerg_contact}', '${emerg_phone1}', '${emerg_phone2}'
+            );
+        `;
+
+        const isSuccess = await window.executeAndSave(sql);
+        if (isSuccess) alert(`✅ 旅客 [${c_id}] 的「其他基本資料」已成功更新！`);
+    };
+</script>
