@@ -76,6 +76,7 @@
 </div>
 
 <div class="search-container">
+    <!-- 快速搜尋區 -->
     <div class="search-block">
         <div class="search-header">➲ 快速搜尋：</div>
         <div class="search-row">
@@ -87,7 +88,7 @@
         </div>
     </div>
 
-    <!-- 🟢 補回進階搜尋區塊 -->
+    <!-- 進階搜尋區 -->
     <div class="search-block">
         <div class="search-header">➲ 進階搜尋：</div>
         
@@ -95,20 +96,21 @@
             <div style="flex: 1;">
                 <div class="search-row">
                     <span class="search-label">旅客編號：</span>
-                    <input type="text" class="input-box" style="width: 120px;">
+                    <!-- 🟢 加入 ID 供 JS 讀取 -->
+                    <input type="text" id="adv_cid" class="input-box" style="width: 120px;">
                 </div>
                 <div class="search-row">
                     <span class="search-label">旅客姓名關鍵字：</span>
-                    <span>中文</span> <input type="text" class="input-box" style="width: 120px;">
+                    <span>中文</span> <input type="text" id="adv_cname" class="input-box" style="width: 120px;">
                 </div>
                 <div class="search-row">
                     <span class="search-label"></span>
-                    <span>英文姓</span> <input type="text" class="input-box" style="width: 60px;">
-                    <span>名</span> <input type="text" class="input-box" style="width: 80px;">
+                    <span>英文姓</span> <input type="text" id="adv_elast" class="input-box" style="width: 60px;">
+                    <span>名</span> <input type="text" id="adv_efirst" class="input-box" style="width: 80px;">
                 </div>
                 <div class="search-row">
                     <span class="search-label">業務員：</span>
-                    <input type="text" class="input-box" style="width: 60px;">
+                    <input type="text" id="adv_sales" class="input-box" style="width: 60px;">
                     <button class="btn" style="padding: 1px 5px; margin-right: 5px;">❓</button>
                     <input type="text" class="input-box" style="width: 80px; background-color: #e0e0e0;" readonly>
                 </div>
@@ -117,21 +119,38 @@
             <div style="flex: 1;">
                 <div class="search-row">
                     <span class="search-label">性別：</span>
-                    <select class="input-box" style="width: 60px;"><option></option><option>男</option><option>女</option></select>
+                    <select id="adv_gender" class="input-box" style="width: 60px;">
+                        <option value=""></option>
+                        <option value="男">男</option>
+                        <option value="女">女</option>
+                    </select>
                 </div>
                 <div class="search-row">
                     <span class="search-label">通路來源：</span>
-                    <select class="input-box" style="width: 150px;"><option>請選擇</option></select>
+                    <!-- 🟢 選項比照 base 網頁 -->
+                    <select id="adv_channel" class="input-box" style="width: 150px;">
+                        <option value="">請選擇</option>
+                        <option value="報紙廣告">報紙廣告</option>
+                        <option value="旅行平台">旅行平台</option>
+                        <option value="通路徑銷">通路徑銷</option>
+                        <option value="企業客戶">企業客戶</option>
+                        <option value="線上訂購">線上訂購</option>
+                    </select>
                 </div>
                 <div class="search-row" style="justify-content: space-between;">
                     <div style="display: flex; align-items: center;">
                         <span class="search-label">往來狀態：</span>
-                        <select class="input-box" style="width: 60px;"><option></option></select>
+                        <!-- 🟢 選項比照 base 網頁 -->
+                        <select id="adv_status" class="input-box" style="width: 60px;">
+                            <option value=""></option>
+                            <option value="正常">正常</option>
+                            <option value="拒絕">拒絕</option>
+                        </select>
                     </div>
                     <div style="display: flex; gap: 5px;">
-                        <!-- 目前只有快速搜尋有寫好資料庫邏輯，進階搜尋按鈕保留原本的樣式 -->
-                        <button class="btn">🔍 搜尋</button>
-                        <button class="btn">❌ 清除</button>
+                        <!-- 🟢 綁定進階搜尋與清除按鈕 -->
+                        <button class="btn" onclick="window.performAdvancedSearch()">🔍 搜尋</button>
+                        <button class="btn" onclick="window.clearAdvancedSearch()">❌ 清除</button>
                     </div>
                 </div>
             </div>
@@ -146,22 +165,12 @@
         loadPage('A-A-A-BASE'); 
     };
 
-    window.performSearch = function() {
+    // 🟢 共用的「繪製查詢結果表格」模組
+    window.renderTable = function(query) {
         if (!window.db) {
             alert("資料庫尚未綁定！");
             return;
         }
-
-        const nid = document.getElementById('search_nid').value.trim();
-        const cname = document.getElementById('search_cname').value.trim();
-
-        const query = `
-            SELECT customer_id, national_id, c_last_name, c_first_name, gender, birth_y, birth_m, birth_d, other_id, channel, salesperson, status 
-            FROM Customers 
-            WHERE national_id LIKE '%${nid}%' 
-            AND (c_last_name || c_first_name) LIKE '%${cname}%'
-            ORDER BY customer_id ASC
-        `;
 
         try {
             const res = window.db.exec(query);
@@ -216,6 +225,63 @@
             console.error(e);
             alert("查詢失敗：" + e.message);
         }
+    };
+
+    // 🟢 快速搜尋：只針對身分證與中文姓名
+    window.performSearch = function() {
+        const nid = document.getElementById('search_nid').value.trim();
+        const cname = document.getElementById('search_cname').value.trim();
+
+        // 加上 IFNULL 防呆，避免因資料庫欄位為 NULL 導致字串相加變成 NULL 查不到資料
+        const query = `
+            SELECT customer_id, national_id, c_last_name, c_first_name, gender, birth_y, birth_m, birth_d, other_id, channel, salesperson, status 
+            FROM Customers 
+            WHERE IFNULL(national_id,'') LIKE '%${nid}%' 
+            AND (IFNULL(c_last_name,'') || IFNULL(c_first_name,'')) LIKE '%${cname}%'
+            ORDER BY customer_id ASC
+        `;
+        window.renderTable(query);
+    };
+
+    // 🟢 進階搜尋：8 個條件複合模糊查詢 (全部空白時 '%''%' 會列出全表)
+    window.performAdvancedSearch = function() {
+        const cid = document.getElementById('adv_cid').value.trim();
+        const cname = document.getElementById('adv_cname').value.trim();
+        const elast = document.getElementById('adv_elast').value.trim();
+        const efirst = document.getElementById('adv_efirst').value.trim();
+        const sales = document.getElementById('adv_sales').value.trim();
+        const gender = document.getElementById('adv_gender').value;
+        const channel = document.getElementById('adv_channel').value;
+        const status = document.getElementById('adv_status').value;
+
+        const query = `
+            SELECT customer_id, national_id, c_last_name, c_first_name, gender, birth_y, birth_m, birth_d, other_id, channel, salesperson, status 
+            FROM Customers 
+            WHERE IFNULL(customer_id,'') LIKE '%${cid}%'
+            AND (IFNULL(c_last_name,'') || IFNULL(c_first_name,'')) LIKE '%${cname}%'
+            AND IFNULL(e_last_name,'') LIKE '%${elast}%'
+            AND IFNULL(e_first_name,'') LIKE '%${efirst}%'
+            AND IFNULL(salesperson,'') LIKE '%${sales}%'
+            AND IFNULL(gender,'') LIKE '%${gender}%'
+            AND IFNULL(channel,'') LIKE '%${channel}%'
+            AND IFNULL(status,'') LIKE '%${status}%'
+            ORDER BY customer_id ASC
+        `;
+        window.renderTable(query);
+    };
+
+    // 🟢 清除進階搜尋的所有欄位
+    window.clearAdvancedSearch = function() {
+        document.getElementById('adv_cid').value = '';
+        document.getElementById('adv_cname').value = '';
+        document.getElementById('adv_elast').value = '';
+        document.getElementById('adv_efirst').value = '';
+        document.getElementById('adv_sales').value = '';
+        document.getElementById('adv_gender').value = '';
+        document.getElementById('adv_channel').value = '';
+        document.getElementById('adv_status').value = '';
+        // 同時清空查詢結果
+        document.getElementById('search_results_container').innerHTML = '';
     };
 
     window.goToCustomerTabs = function(customerId) {
