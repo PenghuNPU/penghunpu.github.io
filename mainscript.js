@@ -39,8 +39,58 @@ const menuData = [
             { id: 'A-Y', title: 'Y. 業務員替換處理' }
         ]
     },
-    { id: 'B', title: 'B. 訂單管理', icon: 'icon/b.icon' },
-    { id: 'C', title: 'C. 商品管理', icon: 'icon/c.icon' },
+    { 
+        id: 'B', 
+        title: 'B. 訂單管理', 
+        icon: 'icon/b.icon',
+        isExpanded: false,
+        children: [
+            { id: 'B-A', title: 'A. 業務員訂單作業' },
+            { id: 'B-B', title: 'B. OP人員訂單作業' },
+            { id: 'B-C', title: 'C. 信用卡刷卡查詢' },
+            { id: 'B-D', title: 'D. 分配訂單負責業務' },
+            { id: 'B-E', title: 'E. 請款單作業' },
+            { id: 'B-F', title: 'F. 繳款單作業' },
+            { id: 'B-G', title: 'G. 旅館訂房作業' },
+            { id: 'B-H', title: 'H. 客戶付款通知作業' },
+            { id: 'B-I', title: 'I. 訂購資料轉出作業' },
+            { id: 'B-K', title: 'K. Invoice作業' },
+            { id: 'B-X', title: 'X. 購物台訂單匯入作業' },
+            { id: 'B-Y', title: 'Y. 各項作業報表列印' },
+            { id: 'B-Z', title: 'Z. 業績報表列印' }
+        ]
+    },
+    // 🟢 擴充 C. 商品管理，並實作至第四層
+    { 
+        id: 'C', 
+        title: 'C. 商品管理', 
+        icon: 'icon/c.icon',
+        isExpanded: false,
+        children: [
+            { 
+                id: 'C-A', 
+                title: 'A. 團體旅遊',
+                children: [
+                    { 
+                        id: 'C-A-A', 
+                        title: 'A. 產品行程管理',
+                        // 第四層選單
+                        children: [
+                            { id: 'C-A-A-A', title: 'A. 產品線別管理' },
+                            { id: 'C-A-A-B', title: 'B. 產品系列名稱管理' },
+                            { id: 'C-A-A-C', title: 'C. 共用基本行程編輯' }
+                        ]
+                    },
+                    { id: 'C-A-B', title: 'B. 基本團型管理' },
+                    { id: 'C-A-C', title: 'C. 開團管理' },
+                    { id: 'C-A-D', title: 'D. 個團&銷售管理' }
+                ]
+            },
+            { id: 'C-B', title: 'B. 自由行' },
+            { id: 'C-C', title: 'C. 機票' },
+            { id: 'C-D', title: 'D. 旅館' }
+        ]
+    },
     { 
         id: 'D', 
         title: 'D. 團銷管理', 
@@ -269,12 +319,14 @@ function updateTime() {
     timeElement.textContent = `${year}/${month}/${day} ${hours}:${minutes}`;
 }
 
+// 🟢 高度支援第四層選單的產生與點擊邏輯
 function renderMenu() {
     const menuContainer = document.getElementById('menu-list');
     if (!menuContainer) return;
     menuContainer.innerHTML = ''; 
 
     menuData.forEach(menu => {
+        // 第一層
         const menuItem = document.createElement('div');
         menuItem.className = 'menu-item';
         
@@ -307,6 +359,7 @@ function renderMenu() {
             submenu.id = `submenu-${menu.id}`;
             submenu.style.display = menu.isExpanded ? 'flex' : 'none';
 
+            // 第二層
             menu.children.forEach(sub => {
                 const subItem = document.createElement('a');
                 subItem.href = "#";
@@ -333,20 +386,52 @@ function renderMenu() {
                     subSubmenu.style.backgroundColor = '#fdf8e4'; 
                     subSubmenu.style.borderTop = 'none';
 
+                    // 第三層
                     sub.children.forEach(sub3 => {
                         const sub3Item = document.createElement('a');
                         sub3Item.href = "#";
                         sub3Item.className = 'sub-item';
-                        sub3Item.innerText = sub3.title;
-                        sub3Item.style.paddingLeft = '45px'; 
+                        sub3Item.innerText = sub3.children ? sub3.title + " ▸" : sub3.title;
+                        sub3Item.style.paddingLeft = '45px'; // 第三層縮排
 
                         sub3Item.onclick = (e) => {
                             e.preventDefault(); 
-                            document.querySelectorAll('.sub-item').forEach(el => el.classList.remove('active'));
-                            sub3Item.classList.add('active');
-                            loadPage(sub3.id); 
+                            if (sub3.children) {
+                                toggleSubMenu(`submenu-${sub3.id}`);
+                            } else {
+                                document.querySelectorAll('.sub-item').forEach(el => el.classList.remove('active'));
+                                sub3Item.classList.add('active');
+                                loadPage(sub3.id); 
+                            }
                         };
                         subSubmenu.appendChild(sub3Item);
+
+                        // 🟢 第四層
+                        if (sub3.children) {
+                            const sub4Submenu = document.createElement('div');
+                            sub4Submenu.className = 'submenu';
+                            sub4Submenu.id = `submenu-${sub3.id}`;
+                            sub4Submenu.style.display = 'none'; 
+                            sub4Submenu.style.backgroundColor = '#faedd3'; // 第四層更深一點的背景色
+                            sub4Submenu.style.borderTop = 'none';
+
+                            sub3.children.forEach(sub4 => {
+                                const sub4Item = document.createElement('a');
+                                sub4Item.href = "#";
+                                sub4Item.className = 'sub-item';
+                                sub4Item.innerText = sub4.title;
+                                sub4Item.style.paddingLeft = '60px'; // 第四層進階縮排
+
+                                sub4Item.onclick = (e) => {
+                                    e.preventDefault(); 
+                                    document.querySelectorAll('.sub-item').forEach(el => el.classList.remove('active'));
+                                    sub4Item.classList.add('active');
+                                    loadPage(sub4.id); 
+                                };
+                                sub4Submenu.appendChild(sub4Item);
+                            });
+                            subSubmenu.appendChild(sub4Submenu);
+                        }
                     });
                     submenu.appendChild(subSubmenu);
                 }
@@ -385,7 +470,7 @@ function loadPage(pageId) {
             });
         })
         .catch(error => {
-            // 🟢 當找不到網頁檔案時，載入佈告欄，並將錯誤訊息傳遞給它
+            // 當找不到網頁檔案時，載入佈告欄，並將錯誤訊息傳遞給它
             window.loadBulletin(filePath);
         });
 }
@@ -402,7 +487,6 @@ window.closeModal = function() {
     if (modal) modal.style.display = 'none';
 }
 
-// 🟢 擴充 loadBulletin 函數，接收可選的 errorPath 參數
 window.loadBulletin = function(errorPath = null) {
     const contentArea = document.getElementById('content-area');
     fetch('bulletin.html')
@@ -413,20 +497,18 @@ window.loadBulletin = function(errorPath = null) {
         .then(html => {
             contentArea.innerHTML = html; 
             
-            // 🟢 若有錯誤路徑，則在佈告欄容器的底部動態插入警告區塊
             if (errorPath) {
                 const bulletinContainer = contentArea.querySelector('.bulletin-container');
                 if (bulletinContainer) {
                     const errorDiv = document.createElement('div');
                     errorDiv.className = 'bulletin-section';
-                    errorDiv.style.borderColor = '#d32f2f'; // 紅色邊框
-                    errorDiv.style.backgroundColor = '#ffebee'; // 淺紅底色
+                    errorDiv.style.borderColor = '#d32f2f'; 
+                    errorDiv.style.backgroundColor = '#ffebee'; 
                     errorDiv.innerHTML = `
                         <h3 style="color: #c62828; border-bottom: 2px dashed #ef9a9a;">⚠️ 網頁建置中</h3>
                         <p style="color: #b71c1c; font-weight: bold;">抱歉，您點選的功能尚未建置完成。</p>
                         <p style="color: #555; font-size: 13px;">嘗試載入的系統路徑為：<span style="background: #fff; padding: 2px 6px; border: 1px solid #ccc; font-family: monospace;">${errorPath}</span></p>
                     `;
-                    // 將錯誤訊息插入到最下方，版權宣告之上
                     const copyrightSection = bulletinContainer.querySelector('.copyright-section');
                     if (copyrightSection) {
                         bulletinContainer.insertBefore(errorDiv, copyrightSection);
