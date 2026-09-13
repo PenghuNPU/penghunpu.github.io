@@ -36,7 +36,6 @@
     .link-id { color: #0000ff; text-decoration: underline; cursor: pointer; font-weight: bold; }
     
     .action-icon { cursor: pointer; font-size: 16px; margin: 0 4px; }
-    /* 🟢 新增：無作用圖示的專屬樣式，游標變回預設箭頭，並稍微變淡 */
     .action-icon.disabled { cursor: default; opacity: 0.6; }
 </style>
 
@@ -46,7 +45,6 @@
 </div>
 
 <div class="search-container">
-    <!-- 快速搜尋區 -->
     <div class="search-block">
         <div class="search-header">➲ 快速搜尋：</div>
         <div class="search-row">
@@ -58,7 +56,6 @@
         </div>
     </div>
 
-    <!-- 進階搜尋區 -->
     <div class="search-block">
         <div class="search-header">➲ 進階搜尋：</div>
         <div style="display: flex; padding: 10px;">
@@ -163,9 +160,9 @@
                         <td>${status}</td>
                         <td>
                             <span class="action-icon" title="修改基本資料" onclick="window.editCustomerBase('${c_id}')">📝</span>
-                            <!-- 🟢 修正：移除 onclick 與獨立樣式，變更為無作用的單純圖示 -->
                             <span class="action-icon disabled" title="無作用圖示">📄</span>
-                            <span class="action-icon" title="刪除">🗑️</span>
+                            <!-- 🟢 綁定刪除功能 -->
+                            <span class="action-icon" title="刪除旅客與所有相依紀錄" onclick="window.deleteCustomerFull('${c_id}', '${name}')">🗑️</span>
                         </td>
                     </tr>
                 `;
@@ -221,5 +218,44 @@
     window.editCustomerBase = function(customerId) {
         window.currentEditCustomerId = customerId; 
         loadPage('A-A-A-BASE');
+    };
+
+    // 🟢 執行「關聯刪除」功能 (已包含 confirm 提醒視窗防呆)
+    window.deleteCustomerFull = async function(c_id, name) {
+        const confirmMsg = `警告：您確定要刪除旅客 [${c_id}] ${name} 的所有資料嗎？\n此動作將一併刪除該旅客的簽證、偏好、會員等所有相依紀錄，且無法復原！`;
+        
+        // 如果使用者點擊「取消」，則終止刪除程序
+        if (!confirm(confirmMsg)) {
+            return;
+        }
+
+        try {
+            // 一口氣將所有主檔與相依表格清空
+            const sql = `
+                DELETE FROM Customers WHERE customer_id = '${c_id}';
+                DELETE FROM CustomerDetails WHERE customer_id = '${c_id}';
+                DELETE FROM CustomerOtherInfo WHERE customer_id = '${c_id}';
+                DELETE FROM CustomerEnglishInfo WHERE customer_id = '${c_id}';
+                DELETE FROM CustomerPreferences WHERE customer_id = '${c_id}';
+                DELETE FROM CustomerVisas WHERE customer_id = '${c_id}';
+                DELETE FROM CustomerCredit WHERE customer_id = '${c_id}';
+                DELETE FROM CustomerMember WHERE customer_id = '${c_id}';
+            `;
+
+            // 執行資料庫刪除與儲存
+            const isSuccess = await window.executeAndSave(sql);
+            if (isSuccess) {
+                alert(`✅ 旅客 [${c_id}] 的所有資料已成功刪除！`);
+                // 清空畫面並重新整理結果
+                document.getElementById('search_results_container').innerHTML = '';
+                // 若搜尋框還有字，順便幫他重查一次
+                const nid = document.getElementById('search_nid').value.trim();
+                const cname = document.getElementById('search_cname').value.trim();
+                if(nid || cname) { window.performSearch(); }
+            }
+        } catch (e) {
+            console.error("刪除失敗", e);
+            alert("❌ 刪除過程中發生錯誤！");
+        }
     };
 </script>
