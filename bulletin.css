@@ -72,3 +72,26 @@
     margin-left: 15px;
     font-size: 16px;
 }
+
+/* 🟢 版權宣告專屬樣式 */
+.copyright-section h4 {
+    color: #0277bd;
+    margin: 15px 0 5px 0;
+    font-size: 15px;
+}
+.copyright-section p {
+    font-size: 13px;
+    color: #546e7a; /* 稍暗的灰藍色，區隔內文與聲明 */
+    line-height: 1.6;
+    margin: 5px 0;
+    text-align: justify;
+}
+.footer-copy {
+    text-align: center;
+    margin-top: 20px;
+    font-weight: bold;
+    color: #01579b;
+    font-size: 13px;
+    border-top: 1px dashed #b3e5fc;
+    padding-top: 15px;
+}

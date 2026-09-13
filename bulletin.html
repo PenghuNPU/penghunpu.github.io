@@ -24,6 +24,26 @@
             </div>
         </div>
     </div>
+
+    <!-- 🟢 版權宣告區塊 -->
+    <div class="bulletin-section copyright-section">
+        <h3>⚖️ 版權宣告</h3>
+        
+        <h4>版權與使用聲明</h4>
+        <p>本網站內容為教學用途所製作，僅供課程教學、學習與研究使用。</p>
+        <p>除另有特別標示外，本網站之文字、圖片、圖表、教材、程式碼、教學文件及其他內容，其著作權均屬本網站製作者或合法權利人所有。</p>
+        <p>未經著作權人事前同意，不得以任何形式進行重製、下載、轉載、複製、修改、散布、公開傳輸、商業使用，或提供予非本課程相關人員使用。</p>
+        <p>本網站教材僅限於授權之教學對象使用，請勿將教材、下載檔案或網站內容轉傳至其他網站、社群平台、雲端空間或提供第三人使用。</p>
+
+        <h4>著作權及侵權通知</h4>
+        <p>本網站尊重智慧財產權。網站內容如有引用或使用第三方之文字、圖片、影片、資料或其他素材，均盡可能標示來源或依相關授權規範使用。</p>
+        <p>如您認為本網站任何內容涉及著作權或其他權利侵害，請與我們聯絡並提供相關資訊，我們將儘速確認；如確認有不當使用或侵權情形，將立即移除或停止提供相關內容。</p>
+        <p>如對本網站內容之使用權限或授權有任何疑問，請先聯絡網站製作者取得同意。</p>
+
+        <div class="footer-copy">
+            © 2026 本網站製作者. All Rights Reserved.
+        </div>
+    </div>
 </div>
 
 <script>
@@ -43,17 +63,13 @@
             <li><strong>作業繳交方式：</strong>${bulletinData.courseRules.homework}</li>
         `;
 
-        // 填寫書籍資訊
+        // 填寫精簡版書籍資訊
         document.getElementById('book-img').src = bulletinData.bookInfo.imageSrc;
         const bDetails = document.getElementById('book-details');
         bDetails.innerHTML = `
-            <p><strong>書名：</strong>${bulletinData.bookInfo.title}</p>
-            <p><strong>作者：</strong>${bulletinData.bookInfo.author}</p>
-            <p><strong>出版日期：</strong>${bulletinData.bookInfo.publishDate}</p>
-            <p><strong>書號：</strong>${bulletinData.bookInfo.bookNo}</p>
-            <p><strong>規格：</strong>${bulletinData.bookInfo.specs}</p>
-            <p><strong>ISBN：</strong>${bulletinData.bookInfo.isbn}</p>
-            <p><strong>紙本書定價：</strong>${bulletinData.bookInfo.originalPrice} 元 <span class="highlight-price">優惠價 ${bulletinData.bookInfo.discountPrice} 元</span></p>
+            <p>🔸 <strong>書名：</strong>${bulletinData.bookInfo.title}</p>
+            <p>🔸 <strong>作者：</strong>${bulletinData.bookInfo.author}</p>
+            <p>🔸 <strong>ISBN：</strong>${bulletinData.bookInfo.isbn}</p>
         `;
     })();
 </script>
