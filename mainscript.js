@@ -91,7 +91,6 @@ document.addEventListener("DOMContentLoaded", () => {
     const userNameSpan = document.querySelector('.user-name');
     const authTemplateSpan = document.querySelector('.auth-template');
     
-    // 🟢 判斷如果是老師 (0099)，顯示「切換檔案」按鈕
     if (userNameSpan && authTemplateSpan) {
         if (userAccount === "0099") {
             userNameSpan.textContent = "老師";
@@ -138,7 +137,6 @@ async function openAndBindDatabase() {
         const fileName = file.name;
         const userAccount = localStorage.getItem('userAccount');
 
-        // 🟢 檔名安全防護邏輯 (老師 0099 可以開啟任何檔案)
         if (userAccount !== "0099") {
             const expectedFileName = userAccount + "tourdata.sqlite";
             if (fileName !== expectedFileName) {
@@ -176,7 +174,6 @@ async function openAndBindDatabase() {
     }
 }
 
-// 🟢 老師專用：系統內動態切換學生資料庫檔案
 window.switchStudentDatabase = async function() {
     if (!confirm("確定要切換資料庫檔案嗎？\n系統將會重新載入並返回首頁。")) return;
     
@@ -193,13 +190,11 @@ window.switchStudentDatabase = async function() {
         const fileName = file.name;
         const buffer = await file.arrayBuffer();
 
-        // 重新初始化 DB 實例
         const SQL = await initSqlJs({
             locateFile: file => `https://cdnjs.cloudflare.com/ajax/libs/sql.js/1.8.0/${file}`
         });
         window.db = new SQL.Database(new Uint8Array(buffer));
         
-        // 更新左下角檔案名稱
         const currentFileSpan = document.getElementById('current-file');
         if (currentFileSpan) {
             currentFileSpan.textContent = `[本機] ${fileName}`;
@@ -208,7 +203,6 @@ window.switchStudentDatabase = async function() {
 
         alert(`✅ 已成功切換至學生檔案：${fileName}`);
         
-        // 切換檔案後，自動回到首頁（佈告欄）確保畫面資料重置
         window.loadBulletin();
 
     } catch (error) {
@@ -391,14 +385,8 @@ function loadPage(pageId) {
             });
         })
         .catch(error => {
-            contentArea.innerHTML = `
-                <div class="content-header"><span class="icon-folder">📁</span> 系統提示</div>
-                <div style="padding: 20px;">
-                    請從左側選擇功能項目。<br><br>
-                    <span style="color:red; font-weight:bold;">檔案尚未建置，嘗試載入路徑：${filePath}</span><br>
-                    請在您的資料夾中建立此檔案即可顯示內容。
-                </div>
-            `;
+            // 🟢 當找不到網頁檔案時，載入佈告欄，並將錯誤訊息傳遞給它
+            window.loadBulletin(filePath);
         });
 }
 
@@ -414,7 +402,8 @@ window.closeModal = function() {
     if (modal) modal.style.display = 'none';
 }
 
-window.loadBulletin = function() {
+// 🟢 擴充 loadBulletin 函數，接收可選的 errorPath 參數
+window.loadBulletin = function(errorPath = null) {
     const contentArea = document.getElementById('content-area');
     fetch('bulletin.html')
         .then(response => {
@@ -424,6 +413,29 @@ window.loadBulletin = function() {
         .then(html => {
             contentArea.innerHTML = html; 
             
+            // 🟢 若有錯誤路徑，則在佈告欄容器的底部動態插入警告區塊
+            if (errorPath) {
+                const bulletinContainer = contentArea.querySelector('.bulletin-container');
+                if (bulletinContainer) {
+                    const errorDiv = document.createElement('div');
+                    errorDiv.className = 'bulletin-section';
+                    errorDiv.style.borderColor = '#d32f2f'; // 紅色邊框
+                    errorDiv.style.backgroundColor = '#ffebee'; // 淺紅底色
+                    errorDiv.innerHTML = `
+                        <h3 style="color: #c62828; border-bottom: 2px dashed #ef9a9a;">⚠️ 網頁建置中</h3>
+                        <p style="color: #b71c1c; font-weight: bold;">抱歉，您點選的功能尚未建置完成。</p>
+                        <p style="color: #555; font-size: 13px;">嘗試載入的系統路徑為：<span style="background: #fff; padding: 2px 6px; border: 1px solid #ccc; font-family: monospace;">${errorPath}</span></p>
+                    `;
+                    // 將錯誤訊息插入到最下方，版權宣告之上
+                    const copyrightSection = bulletinContainer.querySelector('.copyright-section');
+                    if (copyrightSection) {
+                        bulletinContainer.insertBefore(errorDiv, copyrightSection);
+                    } else {
+                        bulletinContainer.appendChild(errorDiv);
+                    }
+                }
+            }
+
             const scripts = contentArea.querySelectorAll('script');
             scripts.forEach(oldScript => {
                 const newScript = document.createElement('script');
