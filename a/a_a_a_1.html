@@ -1,0 +1,308 @@
+<style>
+    .detail-wrapper {
+        border: 1px solid #777;
+        background-color: #ece9d8;
+        font-family: "MS Sans Serif", "細明體", sans-serif;
+        font-size: 13px;
+        padding: 10px;
+        position: relative;
+    }
+    .detail-header {
+        background: linear-gradient(to bottom, #d4d0c8, #b5b5b5);
+        border: 1px outset #fff;
+        text-align: center;
+        font-weight: bold;
+        padding: 4px;
+        margin-bottom: 10px;
+    }
+    .layout-container {
+        display: flex;
+        gap: 15px;
+    }
+    .form-section {
+        flex: 1;
+    }
+    .photo-section {
+        width: 180px;
+        text-align: center;
+        border-left: 1px solid #a0a0a0;
+        padding-left: 15px;
+    }
+    .photo-box {
+        width: 115px;
+        height: 150px;
+        background-color: #d4d0c8;
+        border: 2px inset #fff;
+        margin: 0 auto 10px auto;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #777;
+        font-size: 12px;
+    }
+    .detail-table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+    .detail-table td {
+        padding: 3px 2px;
+        vertical-align: middle;
+    }
+    .input-box {
+        border: 1px inset #fff;
+        padding: 2px 4px;
+        background-color: #fff;
+    }
+    .btn {
+        background-color: #ece9d8; border: 1px outset #fff; padding: 1px 6px; cursor: pointer; font-size: 12px;
+    }
+    .btn:active { border-style: inset; }
+    .action-row {
+        background-color: #808080; text-align: center; padding: 8px; margin-top: 15px;
+    }
+    .action-row button {
+        background-color: #d4d0c8; border: 2px outset #fff; padding: 3px 20px; font-weight: bold; letter-spacing: 3px; margin: 0 5px; cursor: pointer;
+    }
+    .action-row button:active { border-style: inset; }
+    
+    /* 🟢 隱藏原生日期選擇器 */
+    .hidden-date-picker { position: absolute; opacity: 0; width: 0; height: 0; pointer-events: none; border: none; }
+</style>
+
+<div class="detail-wrapper">
+    <div class="detail-header">
+        【旅客編號：<span id="d_customer_id" style="color: blue;">載入中...</span>】
+    </div>
+
+    <div class="layout-container">
+        <!-- 左側表單區 -->
+        <div class="form-section">
+            <table class="detail-table">
+                <tr>
+                    <td>出生地(城市)：<input type="text" id="b_city" class="input-box" style="width: 50px;"> <input type="text" id="b_country" class="input-box" style="width: 50px;"> <button class="btn">❓</button></td>
+                    <td>國籍：<input type="text" id="nationality" class="input-box" style="width: 80px;" value="中華民國"> <button class="btn">❓</button></td>
+                </tr>
+                <tr>
+                    <td>籍貫：<input type="text" id="n_province" class="input-box" style="width: 40px;"> 省 <input type="text" id="n_city" class="input-box" style="width: 60px;"> 縣/市</td>
+                    <td>列印郵遞標籤：<input type="checkbox" id="print_label" checked></td>
+                </tr>
+                <tr>
+                    <td colspan="2">服務單位：<input type="text" id="company_code" class="input-box" style="width: 60px;"> <button class="btn">❓</button> <span style="color:#555;">台灣人壽保險公司</span></td>
+                </tr>
+                <tr>
+                    <td>負責人：<input type="text" id="resp_person" class="input-box" style="width: 80px;"></td>
+                    <td>聯絡人：<input type="text" id="contact_person" class="input-box" style="width: 80px;"></td>
+                </tr>
+                <tr>
+                    <td>服務單位員工代號：<input type="text" id="emp_id" class="input-box" style="width: 80px;"></td>
+                    <td>服務單位所屬部門：<input type="text" id="dept" class="input-box" style="width: 80px;"></td>
+                </tr>
+                <tr>
+                    <td>聯絡窗口：<input type="checkbox" id="is_window"> &nbsp; 已離職：<input type="checkbox" id="is_resigned"></td>
+                    <td>職稱：<input type="text" id="job_title" class="input-box" style="width: 60px;"> <button class="btn">❓</button> <input type="checkbox"></td>
+                </tr>
+                <tr>
+                    <td>護照號碼：<input type="text" id="pass_no" class="input-box" style="width: 100px;"></td>
+                    <td>
+                        發照地：<input type="text" id="issue_place" class="input-box" style="width: 50px;" value="TPE"><br>
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        發照日：<input type="text" id="pass_issue" class="input-box" style="width: 75px;" placeholder="YYYY/MM/DD">
+                        <button class="btn" onclick="window.openSingleDate('pass_issue')">📅</button>
+                        <input type="date" id="picker_pass_issue" class="hidden-date-picker" onchange="window.fillSingleDate('pass_issue')">
+                    </td>
+                    <td>
+                        效期：<input type="text" id="pass_exp" class="input-box" style="width: 75px;" placeholder="YYYY/MM/DD">
+                        <button class="btn" onclick="window.openSingleDate('pass_exp')">📅</button>
+                        <input type="date" id="picker_pass_exp" class="hidden-date-picker" onchange="window.fillSingleDate('pass_exp')">
+                        <button class="btn">💬說明</button>
+                    </td>
+                </tr>
+                <tr>
+                    <td colspan="2">出境證號：<input type="text" id="exit_no" class="input-box" style="width: 100px;"></td>
+                </tr>
+                <tr>
+                    <td>
+                        發證日：<input type="text" id="exit_issue" class="input-box" style="width: 75px;" placeholder="YYYY/MM/DD">
+                        <button class="btn" onclick="window.openSingleDate('exit_issue')">📅</button>
+                        <input type="date" id="picker_exit_issue" class="hidden-date-picker" onchange="window.fillSingleDate('exit_issue')">
+                    </td>
+                    <td>
+                        效期：<input type="text" id="exit_exp" class="input-box" style="width: 75px;" placeholder="YYYY/MM/DD">
+                        <button class="btn" onclick="window.openSingleDate('exit_exp')">📅</button>
+                        <input type="date" id="picker_exit_exp" class="hidden-date-picker" onchange="window.fillSingleDate('exit_exp')">
+                    </td>
+                </tr>
+                <tr>
+                    <td>國台加簽：<input type="text" id="tw_endors" class="input-box" style="width: 100px;"></td>
+                    <td>
+                        效期：<input type="text" id="tw_exp" class="input-box" style="width: 75px;" placeholder="YYYY/MM/DD">
+                        <button class="btn" onclick="window.openSingleDate('tw_exp')">📅</button>
+                        <input type="date" id="picker_tw_exp" class="hidden-date-picker" onchange="window.fillSingleDate('tw_exp')">
+                    </td>
+                </tr>
+                <tr>
+                    <td>是否有多國護照：<input type="checkbox" id="multi_pass"></td>
+                    <td>合併帳號：<input type="text" id="merged_acc" class="input-box" style="width: 60px;"></td>
+                </tr>
+                <tr>
+                    <td colspan="2">
+                        備註：<br>
+                        <textarea id="remarks" class="input-box" style="width: 95%; height: 40px; resize: none;"></textarea>
+                    </td>
+                </tr>
+            </table>
+        </div>
+
+        <!-- 右側相片區 -->
+        <div class="photo-section">
+            <div style="font-size:12px; color:#555; margin-bottom:5px;">
+                請以瀏覽方式上傳圖檔<br>寬度以115pixels<br>高度以150pixels為限<br>(二吋照片尺吋)
+            </div>
+            <div class="photo-box">照片預覽區</div>
+            <input type="file" style="width: 140px; font-size: 11px; margin-bottom: 5px;">
+            <div style="font-size: 12px; text-align: left; padding-left: 15px;">
+                <input type="checkbox" id="pic_update">更新圖片 <input type="checkbox" id="pic_delete">刪除圖片
+            </div>
+        </div>
+    </div>
+
+    <!-- 底部按鈕 -->
+    <div class="action-row">
+        <button onclick="window.savePassengerData()">更 新</button>
+        <button onclick="loadPage('A-A-A')">放 棄</button>
+    </div>
+</div>
+
+<script>
+    (function initPassengerData() {
+        const c_id = window.currentCustomerId; 
+        if(!c_id) {
+            alert("系統遺失旅客編號，請重新選擇！");
+            loadPage('A-A-A');
+            return;
+        }
+        document.getElementById('d_customer_id').innerText = c_id;
+
+        window.db.exec(`
+            CREATE TABLE IF NOT EXISTS CustomerDetails (
+                customer_id TEXT UNIQUE CHECK(length(customer_id) = 7), birth_place_city TEXT, birth_place_country TEXT, nationality TEXT, print_label INTEGER,
+                native_province TEXT, native_city TEXT, company_code TEXT, contact_person TEXT, responsible_person TEXT, department TEXT, employee_id TEXT,
+                job_title TEXT, is_contact_window INTEGER, is_resigned INTEGER, issue_place TEXT, passport_no TEXT, passport_issue_date TEXT, passport_expiry_date TEXT,
+                exit_permit_no TEXT, exit_permit_issue_date TEXT, exit_permit_expiry_date TEXT, tw_endorsement TEXT, tw_endorsement_expiry_date TEXT,
+                has_multiple_passports INTEGER, merged_account TEXT, remarks TEXT
+            );
+        `);
+
+        const query = `
+            SELECT birth_place_city, birth_place_country, nationality, print_label, native_province, native_city, company_code, contact_person,
+                   responsible_person, department, employee_id, job_title, is_contact_window, is_resigned, issue_place, passport_no, passport_issue_date,
+                   passport_expiry_date, exit_permit_no, exit_permit_issue_date, exit_permit_expiry_date, tw_endorsement, tw_endorsement_expiry_date,
+                   has_multiple_passports, merged_account, remarks 
+            FROM CustomerDetails WHERE customer_id = '${c_id}'
+        `;
+
+        try {
+            const res = window.db.exec(query);
+            if (res.length > 0) {
+                const data = res[0].values[0];
+                const cleanStr = (val) => (val === null || val === 'null' || val === undefined) ? '' : val;
+
+                document.getElementById('b_city').value = cleanStr(data[0]);
+                document.getElementById('b_country').value = cleanStr(data[1]);
+                document.getElementById('nationality').value = cleanStr(data[2]) || '中華民國';
+                document.getElementById('print_label').checked = (data[3] === 1);
+                document.getElementById('n_province').value = cleanStr(data[4]);
+                document.getElementById('n_city').value = cleanStr(data[5]);
+                document.getElementById('company_code').value = cleanStr(data[6]);
+                document.getElementById('contact_person').value = cleanStr(data[7]);
+                document.getElementById('resp_person').value = cleanStr(data[8]);
+                document.getElementById('dept').value = cleanStr(data[9]);
+                document.getElementById('emp_id').value = cleanStr(data[10]);
+                document.getElementById('job_title').value = cleanStr(data[11]);
+                document.getElementById('is_window').checked = (data[12] === 1);
+                document.getElementById('is_resigned').checked = (data[13] === 1);
+                document.getElementById('issue_place').value = cleanStr(data[14]) || 'TPE';
+                document.getElementById('pass_no').value = cleanStr(data[15]);
+                document.getElementById('pass_issue').value = cleanStr(data[16]);
+                document.getElementById('pass_exp').value = cleanStr(data[17]);
+                document.getElementById('exit_no').value = cleanStr(data[18]);
+                document.getElementById('exit_issue').value = cleanStr(data[19]);
+                document.getElementById('exit_exp').value = cleanStr(data[20]);
+                document.getElementById('tw_endors').value = cleanStr(data[21]);
+                document.getElementById('tw_exp').value = cleanStr(data[22]);
+                document.getElementById('multi_pass').checked = (data[23] === 1);
+                document.getElementById('merged_acc').value = cleanStr(data[24]);
+                document.getElementById('remarks').value = cleanStr(data[25]);
+            }
+        } catch (e) {
+            console.error("讀取旅客資料錯誤：", e);
+        }
+    })();
+
+    // 🟢 喚起隱藏的原生日期選擇器
+    window.openSingleDate = function(prefix) { 
+        document.getElementById(`picker_${prefix}`).showPicker(); 
+    };
+
+    // 🟢 選擇日期後，將格式 YYYY-MM-DD 轉為 YYYY/MM/DD 並填入
+    window.fillSingleDate = function(prefix) {
+        const dateValue = document.getElementById(`picker_${prefix}`).value;
+        if (dateValue) {
+            document.getElementById(prefix).value = dateValue.replace(/-/g, '/');
+        }
+    };
+
+    window.savePassengerData = async function() {
+        const c_id = window.currentCustomerId; 
+        
+        const b_city = document.getElementById('b_city').value;
+        const b_country = document.getElementById('b_country').value;
+        const nationality = document.getElementById('nationality').value;
+        const print_label = document.getElementById('print_label').checked ? 1 : 0;
+        const n_prov = document.getElementById('n_province').value;
+        const n_city = document.getElementById('n_city').value;
+        const c_code = document.getElementById('company_code').value;
+        const c_person = document.getElementById('contact_person').value;
+        const r_person = document.getElementById('resp_person').value;
+        const dept = document.getElementById('dept').value;
+        const emp_id = document.getElementById('emp_id').value;
+        const job = document.getElementById('job_title').value;
+        const is_win = document.getElementById('is_window').checked ? 1 : 0;
+        const is_res = document.getElementById('is_resigned').checked ? 1 : 0;
+        const issue_p = document.getElementById('issue_place').value;
+        const pass_no = document.getElementById('pass_no').value;
+        const pass_iss = document.getElementById('pass_issue').value;
+        const pass_exp = document.getElementById('pass_exp').value;
+        const exit_no = document.getElementById('exit_no').value;
+        const exit_iss = document.getElementById('exit_issue').value;
+        const exit_exp = document.getElementById('exit_exp').value;
+        const tw_end = document.getElementById('tw_endors').value;
+        const tw_exp = document.getElementById('tw_exp').value;
+        const multi = document.getElementById('multi_pass').checked ? 1 : 0;
+        const m_acc = document.getElementById('merged_acc').value;
+        const rem = document.getElementById('remarks').value;
+
+        // 🟢 修復：確保 sql 語句乾淨且不含文字干擾
+        const sql = `
+            REPLACE INTO CustomerDetails (
+                customer_id, birth_place_city, birth_place_country, nationality, print_label, native_province, native_city, company_code,
+                contact_person, responsible_person, department, employee_id, job_title, is_contact_window, is_resigned, issue_place,
+                passport_no, passport_issue_date, passport_expiry_date, exit_permit_no, exit_permit_issue_date, exit_permit_expiry_date,
+                tw_endorsement, tw_endorsement_expiry_date, has_multiple_passports, merged_account, remarks
+            ) VALUES (
+                '${c_id}', '${b_city}', '${b_country}', '${nationality}', ${print_label}, '${n_prov}', '${n_city}', '${c_code}',
+                '${c_person}', '${r_person}', '${dept}', '${emp_id}', '${job}', ${is_win}, ${is_res}, '${issue_p}',
+                '${pass_no}', '${pass_iss}', '${pass_exp}', '${exit_no}', '${exit_iss}', '${exit_exp}',
+                '${tw_end}', '${tw_exp}', ${multi}, '${m_acc}', '${rem}'
+            );
+        `;
+
+        const isSuccess = await window.executeAndSave(sql);
+        if (isSuccess) {
+            alert(`✅ 旅客 [${c_id}] 的詳細資料已成功更新！`);
+        }
+    };
+</script>
