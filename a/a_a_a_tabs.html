@@ -66,8 +66,9 @@
             });
     };
 
+    // 🟢 將預設載入修改為第一個標籤 (1.旅客資料)
     setTimeout(() => {
-        const targetTab = document.querySelector('.tabs-header .tab-btn:nth-child(5)');
-        if (targetTab) window.switchTab(5, targetTab);
+        const targetTab = document.querySelector('.tabs-header .tab-btn:nth-child(1)');
+        if (targetTab) window.switchTab(1, targetTab);
     }, 100);
 </script>
