@@ -34,7 +34,10 @@
     .result-table td { border: 1px solid #a0a0a0; padding: 4px 8px; text-align: center; }
     .result-table tr:nth-child(even) { background-color: #f5f5f5; }
     .link-id { color: #0000ff; text-decoration: underline; cursor: pointer; font-weight: bold; }
+    
     .action-icon { cursor: pointer; font-size: 16px; margin: 0 4px; }
+    /* 🟢 新增：無作用圖示的專屬樣式，游標變回預設箭頭，並稍微變淡 */
+    .action-icon.disabled { cursor: default; opacity: 0.6; }
 </style>
 
 <div class="content-header">
@@ -43,6 +46,7 @@
 </div>
 
 <div class="search-container">
+    <!-- 快速搜尋區 -->
     <div class="search-block">
         <div class="search-header">➲ 快速搜尋：</div>
         <div class="search-row">
@@ -54,6 +58,7 @@
         </div>
     </div>
 
+    <!-- 進階搜尋區 -->
     <div class="search-block">
         <div class="search-header">➲ 進階搜尋：</div>
         <div style="display: flex; padding: 10px;">
@@ -108,7 +113,6 @@
 </div>
 
 <script>
-    // 🟢 點擊新增按鈕時，清空編輯用的全域變數，確保進入「純新增模式」
     window.openAddCustomer = function() {
         window.currentEditCustomerId = null; 
         loadPage('A-A-A-BASE'); 
@@ -158,9 +162,9 @@
                         <td>${sales}</td>
                         <td>${status}</td>
                         <td>
-                            <!-- 🟢 將最左邊的 📝 綁定為修改基本資料 -->
                             <span class="action-icon" title="修改基本資料" onclick="window.editCustomerBase('${c_id}')">📝</span>
-                            <span class="action-icon" title="詳細資料(簽證、家屬...)" onclick="window.goToCustomerTabs('${c_id}')">📁</span>
+                            <!-- 🟢 修正：移除 onclick 與獨立樣式，變更為無作用的單純圖示 -->
+                            <span class="action-icon disabled" title="無作用圖示">📄</span>
                             <span class="action-icon" title="刪除">🗑️</span>
                         </td>
                     </tr>
@@ -214,9 +218,8 @@
         loadPage('A-A-A-TABS'); 
     };
 
-    // 🟢 進入修改客戶基本資料模式
     window.editCustomerBase = function(customerId) {
-        window.currentEditCustomerId = customerId; // 將這筆 ID 存為全域變數供修改用
+        window.currentEditCustomerId = customerId; 
         loadPage('A-A-A-BASE');
     };
 </script>
