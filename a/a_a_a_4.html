@@ -34,6 +34,9 @@
         color: #333;
     }
     .input-box { border: 1px inset #fff; padding: 2px 4px; background-color: #fff; }
+    /* 🟢 唯讀輸入框專屬樣式，加入微微灰底並改變游標 */
+    .input-readonly { background-color: #e0e0e0; cursor: default; color: #333; }
+    
     .btn { background-color: #ece9d8; border: 1px outset #fff; padding: 1px 6px; cursor: pointer; font-size: 12px; }
     .btn:active { border-style: inset; }
     
@@ -79,13 +82,15 @@
         <tr>
             <td style="width: 50%;">
                 航空公司1：
-                <input type="text" id="airline1" class="input-box" style="width: 40px;" oninput="this.value = this.value.toUpperCase();"> 
+                <!-- 🟢 加上 readonly 屬性與專屬樣式 class -->
+                <input type="text" id="airline1" class="input-box input-readonly" style="width: 40px;" readonly> 
                 <button class="btn" onclick="window.openAirlinePicker('airline1', 'name1')">📄❓</button> 
                 <span id="name1" style="color:#555; margin-left: 5px;"></span>
             </td>
             <td style="width: 50%;">
                 航空公司2：
-                <input type="text" id="airline2" class="input-box" style="width: 40px;" oninput="this.value = this.value.toUpperCase();"> 
+                <!-- 🟢 加上 readonly 屬性與專屬樣式 class -->
+                <input type="text" id="airline2" class="input-box input-readonly" style="width: 40px;" readonly> 
                 <button class="btn" onclick="window.openAirlinePicker('airline2', 'name2')">📄❓</button> 
                 <span id="name2" style="color:#555; margin-left: 5px;"></span>
             </td>
@@ -131,7 +136,7 @@
     </div>
 </div>
 
-<!-- 🟢 航空公司選擇器 Modal -->
+<!-- 航空公司選擇器 Modal -->
 <div id="airline_modal" class="modal-overlay">
     <div class="modal-box">
         <div class="modal-header">
@@ -145,7 +150,6 @@
 </div>
 
 <script>
-    // 🟢 建立航空公司對照表字典
     window.airlineData = [
         { code: 'CI', name: '中華航空 (Taiwan)' },
         { code: 'BR', name: '長榮航空 (Taiwan)' },
@@ -166,7 +170,6 @@
         { code: 'DL', name: '達美航空 (USA)' }
     ];
 
-    // 儲存目前正在操作哪一個欄位
     window.currentAirlineTarget = { codeId: null, nameId: null };
 
     window.openAirlinePicker = function(codeId, nameId) {
@@ -194,7 +197,6 @@
         window.closeAirlinePicker();
     };
 
-    // 根據輸入的代碼反查航空公司名稱
     window.lookupAirlineName = function(code) {
         const found = window.airlineData.find(a => a.code === code);
         return found ? found.name : '';
@@ -261,15 +263,9 @@
             );
         `;
 
-        const isSuccess = await window.executeAndSave(sql);[cite: 31]
+        const isSuccess = await window.executeAndSave(sql);
         if (isSuccess) alert(`✅ 旅客 [${c_id}] 的「旅遊偏好」已成功更新！`);
     };
 
-    // 🟢 當使用者手動輸入代碼時，自動更新旁邊的名稱
-    document.getElementById('airline1').addEventListener('blur', function() {
-        document.getElementById('name1').innerText = window.lookupAirlineName(this.value);
-    });
-    document.getElementById('airline2').addEventListener('blur', function() {
-        document.getElementById('name2').innerText = window.lookupAirlineName(this.value);
-    });
+    // 🟢 由於欄位已設為唯讀，使用者無法手動輸入，因此移除了原本監聽手動輸入自動更新名稱的邏輯。
 </script>
