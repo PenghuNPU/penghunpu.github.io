@@ -1,0 +1,74 @@
+/* ==========================================
+   佈告欄專屬樣式 (bulletin.css)
+   ========================================== */
+.bulletin-container {
+    padding: 25px;
+    background-color: #f4fafe; /* 海洋風微藍背景 */
+    height: 100%;
+    box-sizing: border-box;
+    overflow-y: auto;
+    font-family: "Microsoft JhengHei", sans-serif;
+}
+
+.bulletin-section {
+    background-color: #fff;
+    border: 2px solid #0288d1; /* 海洋藍邊框 */
+    border-radius: 10px;
+    padding: 20px 25px;
+    margin-bottom: 20px;
+    box-shadow: 3px 3px 10px rgba(2, 136, 209, 0.15);
+}
+
+.bulletin-section h3 {
+    margin-top: 0;
+    color: #01579b; /* 深海藍標題 */
+    border-bottom: 2px dashed #81d4fa;
+    padding-bottom: 10px;
+    font-size: 18px;
+}
+
+/* 課程資訊列表 */
+#course-info-list {
+    list-style-type: none;
+    padding-left: 0;
+}
+#course-info-list li {
+    margin-bottom: 12px;
+    font-size: 15px;
+    line-height: 1.6;
+    color: #37474f;
+}
+#course-info-list strong {
+    color: #0277bd;
+    display: inline-block;
+    width: 120px;
+}
+
+/* 參考書目卡片 */
+.book-card {
+    display: flex;
+    gap: 25px;
+    align-items: flex-start;
+}
+.book-card img {
+    width: 180px;
+    border: 1px solid #ccc;
+    box-shadow: 3px 3px 8px rgba(0,0,0,0.15);
+    border-radius: 4px;
+}
+.book-details {
+    font-size: 15px;
+}
+.book-details p {
+    margin: 8px 0;
+    color: #424242;
+}
+.book-details strong {
+    color: #01579b;
+}
+.highlight-price {
+    color: #d32f2f; /* 優惠價紅色凸顯 */
+    font-weight: bold;
+    margin-left: 15px;
+    font-size: 16px;
+}

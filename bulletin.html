@@ -1,0 +1,59 @@
+<!-- 引入專屬 CSS -->
+<link rel="stylesheet" href="bulletin.css">
+
+<div class="content-header">
+    系統佈告欄 (課程資訊與參考書目)
+</div>
+
+<div class="bulletin-container">
+    <!-- 課程說明區塊 -->
+    <div class="bulletin-section">
+        <h3>📌 課程說明與評分標準</h3>
+        <ul id="course-info-list">
+            <!-- JS 將自動從 bulletin.js 填入此處 -->
+        </ul>
+    </div>
+
+    <!-- 參考書目區塊 -->
+    <div class="bulletin-section">
+        <h3>📖 參考書目</h3>
+        <div class="book-card">
+            <img id="book-img" src="" alt="旅行業資訊管理書影">
+            <div class="book-details" id="book-details">
+                <!-- JS 將自動從 bulletin.js 填入此處 -->
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // 動態讀取 bulletinData 並渲染畫面
+    (function renderBulletin() {
+        if (typeof bulletinData === 'undefined') {
+            console.error("找不到佈告欄資料，請確認 bulletin.js 是否已正確載入！");
+            return;
+        }
+
+        // 填寫課程說明
+        const cList = document.getElementById('course-info-list');
+        cList.innerHTML = `
+            <li><strong>期中考資訊：</strong>${bulletinData.courseRules.midterm}</li>
+            <li><strong>期末考資訊：</strong>${bulletinData.courseRules.final}</li>
+            <li><strong>成績計算方式：</strong>${bulletinData.courseRules.grading}</li>
+            <li><strong>作業繳交方式：</strong>${bulletinData.courseRules.homework}</li>
+        `;
+
+        // 填寫書籍資訊
+        document.getElementById('book-img').src = bulletinData.bookInfo.imageSrc;
+        const bDetails = document.getElementById('book-details');
+        bDetails.innerHTML = `
+            <p><strong>書名：</strong>${bulletinData.bookInfo.title}</p>
+            <p><strong>作者：</strong>${bulletinData.bookInfo.author}</p>
+            <p><strong>出版日期：</strong>${bulletinData.bookInfo.publishDate}</p>
+            <p><strong>書號：</strong>${bulletinData.bookInfo.bookNo}</p>
+            <p><strong>規格：</strong>${bulletinData.bookInfo.specs}</p>
+            <p><strong>ISBN：</strong>${bulletinData.bookInfo.isbn}</p>
+            <p><strong>紙本書定價：</strong>${bulletinData.bookInfo.originalPrice} 元 <span class="highlight-price">優惠價 ${bulletinData.bookInfo.discountPrice} 元</span></p>
+        `;
+    })();
+</script>
