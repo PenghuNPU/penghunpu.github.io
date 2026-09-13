@@ -15,22 +15,26 @@
                 ⚠️ 歡迎進入系統！請先綁定資料庫
             </h2>
             <p style="font-size: 16px; font-weight: bold; color: #4e342e;">
-                系統剛剛已自動下載了一份全新的資料庫至您的「下載」資料夾中。
+                若您的電腦中尚無專屬資料庫，請點擊下方按鈕下載全新的空白資料庫；若已有檔案，請直接點擊開啟。
             </p>
-            <div style="background-color: #fffde7; border: 2px solid #fbc02d; padding: 20px; border-radius: 8px; margin: 20px 0;">
-                <p style="color: #d84315; font-size: 18px; margin: 0; font-weight: bold;">
-                    👉 請點擊下方按鈕，選取剛剛下載的檔案：<br>
-                    <span id="target-filename" style="font-size: 24px; color: #b71c1c; display: block; margin-top: 15px; background-color: #ffcdd2; padding: 10px; border-radius: 5px; border: 1px dashed #d32f2f;">
+            <div style="background-color: #fffde7; border: 2px solid #fbc02d; padding: 15px; border-radius: 8px; margin: 20px 0;">
+                <p style="color: #d84315; font-size: 16px; margin: 0; font-weight: bold;">
+                    資料庫檔名必須為：<br>
+                    <span id="target-filename" style="font-size: 20px; color: #b71c1c; display: block; margin-top: 10px; background-color: #ffcdd2; padding: 8px; border-radius: 5px; border: 1px dashed #d32f2f;">
                         您的專屬檔案.sqlite
                     </span>
                 </p>
             </div>
-            <p style="font-size: 14px; color: #757575;">
-                (綁定後，您在系統內的修改將會自動存檔，無須重複下載)
-            </p>
-            <button class="file-btn" onclick="openAndBindDatabase()" style="background-color: #ff9800; color: white; border: 2px solid #e65100; padding: 15px 30px; font-size: 20px; font-weight: bold; cursor: pointer; border-radius: 8px; margin-top: 20px;">
-                📁 選取 SQLite 檔案並進入系統
-            </button>
+            
+            <!-- 雙按鈕供使用者選擇 -->
+            <div style="display: flex; justify-content: center; gap: 15px; margin-top: 20px;">
+                <button class="file-btn" onclick="downloadBlankDatabaseInMain()" style="background-color: #0288d1; border: 2px solid #01579b; padding: 12px 20px; font-size: 16px; font-weight: bold; cursor: pointer; border-radius: 8px; color: white;">
+                    📥 下載新的空白資料庫
+                </button>
+                <button class="file-btn" onclick="openAndBindDatabase()" style="background-color: #ff9800; border: 2px solid #e65100; padding: 12px 20px; font-size: 16px; font-weight: bold; cursor: pointer; border-radius: 8px; color: white;">
+                    📁 開啟資料庫
+                </button>
+            </div>
         </div>
     </div>
 
@@ -44,7 +48,6 @@
                 <!-- 檔案狀態顯示區塊 -->
                 <div class="file-status-bar" style="position: relative;">
                     <span style="color: #2e7d32; font-weight:bold;">檔案狀態：</span>
-                    <!-- 🟢 老師專屬的「切換檔案」按鈕，預設隱藏，由 JS 控制顯示 -->
                     <button id="btn-switch-db" onclick="switchStudentDatabase()" style="display: none; position: absolute; right: 5px; top: 2px; background-color: #ff9800; color: white; border: 1px solid #e65100; cursor: pointer; font-size: 11px; padding: 2px 5px; border-radius: 3px;">
                         📂 切換檔案
                     </button>
@@ -66,5 +69,30 @@
     </div>
 
     <script src="mainscript.js"></script>
+    <script>
+        function downloadBlankDatabaseInMain() {
+            const userAccount = localStorage.getItem("userAccount") || "0001";
+            fetch('tourdata.sqlite')
+                .then(response => {
+                    if(!response.ok) throw new Error("找不到原始資料庫檔案");
+                    return response.blob();
+                })
+                .then(blob => {
+                    const url = window.URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = userAccount + "tourdata.sqlite"; 
+                    document.body.appendChild(a);
+                    a.click();
+                    a.remove();
+                    window.URL.revokeObjectURL(url);
+                    alert("✅ 空白資料庫已成功下載至您的電腦！請接著點擊「開啟資料庫」來選取它。");
+                })
+                .catch(err => {
+                    console.error(err);
+                    alert("❌ 下載空白資料庫失敗，請確認環境或直接點擊開啟資料庫。");
+                });
+        }
+    </script>
 </body>
 </html>

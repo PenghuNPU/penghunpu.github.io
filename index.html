@@ -142,32 +142,8 @@
             // 記錄帳號
             localStorage.setItem("userAccount", acc);
 
-            // 觸發下載空白的 tourdata.sqlite
-            fetch('tourdata.sqlite')
-                .then(response => {
-                    if(!response.ok) throw new Error("找不到原始資料庫檔案");
-                    return response.blob();
-                })
-                .then(blob => {
-                    const url = window.URL.createObjectURL(blob);
-                    const a = document.createElement('a');
-                    a.href = url;
-                    a.download = acc + "tourdata.sqlite"; 
-                    document.body.appendChild(a);
-                    a.click();
-                    a.remove();
-                    window.URL.revokeObjectURL(url);
-                    
-                    // 等待 1 秒後跳轉至主頁
-                    setTimeout(() => {
-                        window.location.href = "main.html"; 
-                    }, 1000);
-                })
-                .catch(err => {
-                    console.error(err);
-                    alert("登入成功，但下載預設資料庫失敗 (請確認 Github 空間或本機環境)。");
-                    window.location.href = "main.html"; 
-                });
+            // 🟢 修改：登入成功後不自動下載 sqlite，直接跳轉至主頁
+            window.location.href = "main.html";
         }
     </script>
 </body>
