@@ -1,0 +1,222 @@
+<style>
+    .detail-wrapper {
+        border: 1px solid #777;
+        background-color: #ece9d8;
+        font-family: "MS Sans Serif", "細明體", sans-serif;
+        font-size: 13px;
+        padding: 10px;
+        position: relative;
+    }
+    .detail-header {
+        background: linear-gradient(to bottom, #d4d0c8, #b5b5b5);
+        border: 1px outset #fff;
+        text-align: center;
+        font-weight: bold;
+        padding: 4px;
+        margin-bottom: 10px;
+    }
+    .detail-table {
+        width: 100%;
+        border-collapse: collapse;
+        border: 1px solid #a0a0a0;
+    }
+    .detail-table td {
+        padding: 6px 10px;
+        vertical-align: middle;
+        border-bottom: 1px solid #d4d0c8;
+    }
+    /* 斑馬紋灰底 */
+    .detail-table tr:nth-child(even) {
+        background-color: #e2dfd3;
+    }
+    .category-title {
+        text-decoration: underline;
+        font-weight: bold;
+        background-color: #d4d0c8 !important; /* 強制覆蓋斑馬紋 */
+        color: #333;
+    }
+    .input-box {
+        border: 1px inset #fff;
+        padding: 2px 4px;
+        background-color: #fff;
+    }
+    .btn {
+        background-color: #ece9d8; border: 1px outset #fff; padding: 1px 6px; cursor: pointer; font-size: 12px;
+    }
+    .btn:active { border-style: inset; }
+    .action-row {
+        background-color: #808080; text-align: center; padding: 8px; margin-top: 15px;
+    }
+    .action-row button {
+        background-color: #d4d0c8; border: 2px outset #fff; padding: 3px 20px; font-weight: bold; letter-spacing: 3px; margin: 0 5px; cursor: pointer;
+    }
+    .action-row button:active { border-style: inset; }
+</style>
+
+<div class="detail-wrapper">
+    <div class="detail-header">
+        【旅客編號：<span id="p_customer_id" style="color: blue;">載入中...</span>】
+    </div>
+
+    <table class="detail-table">
+        <!-- 航空偏好區塊 -->
+        <tr>
+            <td colspan="2" class="category-title">航空偏好：</td>
+        </tr>
+        <tr>
+            <td style="width: 50%;">
+                航空公司1：<input type="text" id="airline1" class="input-box" style="width: 40px;" oninput="this.value = this.value.toUpperCase();"> 
+                <button class="btn">📄❓</button> <span style="color:#555;">中國國際航空公司</span>
+            </td>
+            <td style="width: 50%;">
+                航空公司2：<input type="text" id="airline2" class="input-box" style="width: 40px;" oninput="this.value = this.value.toUpperCase();"> 
+                <button class="btn">📄❓</button> <span style="color:#555;">荷蘭皇家航空</span>
+            </td>
+        </tr>
+        <tr>
+            <td colspan="2">
+                座位艙等：
+                <select id="cabin_class" class="input-box">
+                    <option value="">-請選擇-</option>
+                    <option value="經濟艙">經濟艙</option>
+                    <option value="豪華經濟艙">豪華經濟艙</option>
+                    <option value="商務艙">商務艙</option>
+                    <option value="頭等艙">頭等艙</option>
+                    <option value="其它艙">其它艙</option>
+                </select>
+                &nbsp;&nbsp;&nbsp;&nbsp;
+                座位安排：
+                <select id="seat_arrange" class="input-box">
+                    <option value="">-請選擇-</option>
+                    <option value="窗邊">窗邊</option>
+                    <option value="走道">走道</option>
+                    <option value="中間">中間</option>
+                </select>
+            </td>
+        </tr>
+        <tr>
+            <td colspan="2">
+                航空公司備註：<input type="text" id="airline_remarks" class="input-box" style="width: 400px;">
+            </td>
+        </tr>
+
+        <!-- 住宿偏好區塊 -->
+        <tr>
+            <td colspan="2" class="category-title">住宿偏好：</td>
+        </tr>
+        <tr>
+            <td colspan="2">
+                旅館資料備註：<input type="text" id="hotel_remarks" class="input-box" style="width: 400px;">
+            </td>
+        </tr>
+
+        <!-- 飲食偏好區塊 -->
+        <tr>
+            <td colspan="2" class="category-title">飲食偏好：</td>
+        </tr>
+        <tr>
+            <td colspan="2">
+                飲食習慣：
+                <select id="diet_habit" class="input-box">
+                    <option value="">-請選擇-</option>
+                    <option value="正常">正常</option>
+                    <option value="早齋">早齋</option>
+                    <option value="全素">全素</option>
+                    <option value="蛋奶素">蛋奶素</option>
+                    <option value="不吃牛">不吃牛</option>
+                    <option value="不吃豬">不吃豬</option>
+                    <option value="海鮮餐">海鮮餐</option>
+                    <option value="兒童餐">兒童餐</option>
+                </select>
+            </td>
+        </tr>
+        <tr>
+            <td colspan="2">
+                餐食備註：<input type="text" id="meal_remarks" class="input-box" style="width: 300px;">
+            </td>
+        </tr>
+    </table>
+
+    <div class="action-row">
+        <button onclick="window.savePreferencesInfo()">更 新</button>
+        <button onclick="loadPage('A-A-A')">放 棄</button>
+    </div>
+</div>
+
+<script>
+    (function initPreferencesInfo() {
+        const c_id = window.currentCustomerId; 
+        if(!c_id) {
+            alert("系統遺失旅客編號，請重新選擇！");
+            loadPage('A-A-A');
+            return;
+        }
+        document.getElementById('p_customer_id').innerText = c_id;
+
+        // 防呆建立資料表
+        window.db.exec(`
+            CREATE TABLE IF NOT EXISTS CustomerPreferences (
+                customer_id TEXT UNIQUE CHECK(length(customer_id) = 7),
+                airline1 TEXT, airline2 TEXT, cabin_class TEXT, seat_arrange TEXT,
+                airline_remarks TEXT, hotel_remarks TEXT, diet_habit TEXT, meal_remarks TEXT
+            );
+        `);
+
+        // 讀取資料庫
+        const query = `
+            SELECT airline1, airline2, cabin_class, seat_arrange, airline_remarks, 
+                   hotel_remarks, diet_habit, meal_remarks
+            FROM CustomerPreferences WHERE customer_id = '${c_id}'
+        `;
+
+        try {
+            const res = window.db.exec(query);
+            if (res.length > 0) {
+                const data = res[0].values[0];
+                const cleanStr = (val) => (val === null || val === 'null' || val === undefined) ? '' : val;
+
+                document.getElementById('airline1').value = cleanStr(data[0]);
+                document.getElementById('airline2').value = cleanStr(data[1]);
+                document.getElementById('cabin_class').value = cleanStr(data[2]);
+                document.getElementById('seat_arrange').value = cleanStr(data[3]);
+                document.getElementById('airline_remarks').value = cleanStr(data[4]);
+                document.getElementById('hotel_remarks').value = cleanStr(data[5]);
+                document.getElementById('diet_habit').value = cleanStr(data[6]);
+                document.getElementById('meal_remarks').value = cleanStr(data[7]);
+            }
+        } catch (e) {
+            console.error("讀取旅客旅遊偏好錯誤：", e);
+        }
+    })();
+
+    // 🟢 儲存資料
+    window.savePreferencesInfo = async function() {
+        const c_id = window.currentCustomerId; 
+        if(!c_id) {
+            alert("找不到旅客編號，無法儲存！");
+            return;
+        }
+        
+        const airline1 = document.getElementById('airline1').value;
+        const airline2 = document.getElementById('airline2').value;
+        const cabin_class = document.getElementById('cabin_class').value;
+        const seat_arrange = document.getElementById('seat_arrange').value;
+        const airline_remarks = document.getElementById('airline_remarks').value;
+        const hotel_remarks = document.getElementById('hotel_remarks').value;
+        const diet_habit = document.getElementById('diet_habit').value;
+        const meal_remarks = document.getElementById('meal_remarks').value;
+
+        const sql = `
+            REPLACE INTO CustomerPreferences (
+                customer_id, airline1, airline2, cabin_class, seat_arrange,
+                airline_remarks, hotel_remarks, diet_habit, meal_remarks
+            ) VALUES (
+                '${c_id}', '${airline1}', '${airline2}', '${cabin_class}', '${seat_arrange}',
+                '${airline_remarks}', '${hotel_remarks}', '${diet_habit}', '${meal_remarks}'
+            );
+        `;
+
+        const isSuccess = await window.executeAndSave(sql);
+        if (isSuccess) alert(`✅ 旅客 [${c_id}] 的「旅遊偏好」已成功更新！`);
+    };
+</script>

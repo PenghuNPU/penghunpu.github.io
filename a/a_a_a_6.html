@@ -1,0 +1,147 @@
+<style>
+    .detail-wrapper {
+        border: 1px solid #777;
+        background-color: #ece9d8;
+        font-family: "MS Sans Serif", "細明體", sans-serif;
+        font-size: 13px;
+        padding: 10px;
+        position: relative;
+    }
+    .detail-header {
+        background: linear-gradient(to bottom, #d4d0c8, #b5b5b5);
+        border: 1px outset #fff;
+        text-align: center;
+        font-weight: bold;
+        padding: 4px;
+        margin-bottom: 10px;
+    }
+    .detail-table {
+        width: 100%;
+        border-collapse: collapse;
+        border: 1px solid #a0a0a0;
+    }
+    .detail-table td {
+        padding: 8px 15px;
+        vertical-align: middle;
+        border-bottom: 1px solid #d4d0c8;
+    }
+    /* 斑馬紋灰底 */
+    .detail-table tr:nth-child(even) {
+        background-color: #e2dfd3;
+    }
+    .input-box {
+        border: 1px inset #fff;
+        padding: 3px 4px;
+        background-color: #fff;
+    }
+    .action-row {
+        background-color: #808080; 
+        text-align: center; 
+        padding: 8px; 
+        margin-top: 15px;
+    }
+    .action-row button {
+        background-color: #d4d0c8; 
+        border: 2px outset #fff; 
+        padding: 3px 20px; 
+        font-weight: bold; 
+        letter-spacing: 3px; 
+        margin: 0 5px; 
+        cursor: pointer;
+    }
+    .action-row button:active { 
+        border-style: inset; 
+    }
+</style>
+
+<div class="detail-wrapper">
+    <div class="detail-header">
+        【旅客編號：<span id="c_customer_id" style="color: blue;">載入中...</span>】
+    </div>
+
+    <table class="detail-table">
+        <tr>
+            <td style="width: 150px;">信用額度：</td>
+            <td>新台幣 <input type="number" id="credit_limit" class="input-box" style="width: 150px;"> 元</td>
+        </tr>
+        <tr>
+            <td>信用期限：</td>
+            <td><input type="number" id="credit_term" class="input-box" style="width: 60px;"> 天</td>
+        </tr>
+    </table>
+
+    <div class="action-row">
+        <button onclick="window.saveCreditInfo()">更 新</button>
+        <button onclick="loadPage('A-A-A')">放 棄</button>
+    </div>
+</div>
+
+<script>
+    // 🟢 初始化載入：讀取該旅客的信用額度資料
+    (function initCreditInfo() {
+        const c_id = window.currentCustomerId; 
+        if(!c_id) {
+            alert("系統遺失旅客編號，請重新選擇！");
+            loadPage('A-A-A');
+            return;
+        }
+        document.getElementById('c_customer_id').innerText = c_id;
+
+        // 防呆建立資料表
+        window.db.exec(`
+            CREATE TABLE IF NOT EXISTS CustomerCredit (
+                customer_id TEXT UNIQUE CHECK(length(customer_id) = 7),
+                credit_limit INTEGER,
+                credit_term INTEGER
+            );
+        `);
+
+        // 讀取資料庫
+        const query = `
+            SELECT credit_limit, credit_term
+            FROM CustomerCredit WHERE customer_id = '${c_id}'
+        `;
+
+        try {
+            const res = window.db.exec(query);
+            if (res.length > 0) {
+                const data = res[0].values[0];
+                const cleanNum = (val) => (val === null || val === 'null' || val === undefined) ? '' : val;
+
+                document.getElementById('credit_limit').value = cleanNum(data[0]);
+                document.getElementById('credit_term').value = cleanNum(data[1]);
+            }
+        } catch (e) {
+            console.error("讀取旅客信用額度錯誤：", e);
+        }
+    })();
+
+    // 🟢 儲存資料
+    window.saveCreditInfo = async function() {
+        const c_id = window.currentCustomerId; 
+        if(!c_id) {
+            alert("找不到旅客編號，無法儲存！");
+            return;
+        }
+        
+        const credit_limit = document.getElementById('credit_limit').value;
+        const credit_term = document.getElementById('credit_term').value;
+
+        // 若無填寫數值則存入 NULL 以保持資料庫整潔
+        const valLimit = credit_limit === "" ? "NULL" : credit_limit;
+        const valTerm = credit_term === "" ? "NULL" : credit_term;
+
+        const sql = `
+            REPLACE INTO CustomerCredit (
+                customer_id, credit_limit, credit_term
+            ) VALUES (
+                '${c_id}', ${valLimit}, ${valTerm}
+            );
+        `;
+
+        const isSuccess = await window.executeAndSave(sql);
+        if (isSuccess) {
+            alert(`✅ 旅客 [${c_id}] 的「信用額度」已成功更新！`);
+        }
+    };
+</script>
