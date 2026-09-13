@@ -10,7 +10,7 @@ const bulletinData = {
         homework: "請於每週五 23:59 前，將個人練習進度的 .sqlite 檔案上傳至學校數位學習平台。"
     },
     bookInfo: {
-        imageSrc: "image_aa3c63.png", 
+        imageSrc: "bookinfo.png", 
         title: "旅行業資訊管理",
         author: "顧景昇、陳純德",
         isbn: "9789865774158"
