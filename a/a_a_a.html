@@ -21,53 +21,20 @@
         align-items: center;
         justify-content: space-between;
     }
-    .search-row {
-        display: flex; align-items: center; padding: 6px 10px; border-bottom: 1px solid #fff;
-    }
+    .search-row { display: flex; align-items: center; padding: 6px 10px; border-bottom: 1px solid #fff; }
     .search-row:last-child { border-bottom: none; }
-    .search-label {
-        width: 110px; text-align: right; margin-right: 10px; font-weight: bold;
-    }
-    .input-box {
-        border: 1px inset #fff; padding: 2px 4px; margin-right: 15px;
-    }
-    .btn {
-        background-color: #ece9d8; border: 2px outset #fff; padding: 2px 10px; cursor: pointer; display: flex; align-items: center; gap: 5px;
-    }
+    .search-label { width: 110px; text-align: right; margin-right: 10px; font-weight: bold; }
+    .input-box { border: 1px inset #fff; padding: 2px 4px; margin-right: 15px; }
+    .btn { background-color: #ece9d8; border: 2px outset #fff; padding: 2px 10px; cursor: pointer; display: flex; align-items: center; gap: 5px; }
     .btn:active { border-style: inset; }
-    .top-right-btn {
-        background-color: #ece9d8; color: black; border: 2px outset #fff; padding: 1px 8px; cursor: pointer;
-    }
+    .top-right-btn { background-color: #ece9d8; color: black; border: 2px outset #fff; padding: 1px 8px; cursor: pointer; }
 
-    .result-table {
-        width: 100%;
-        border-collapse: collapse;
-        background-color: #fff;
-        margin-top: 10px;
-        border: 1px solid #a0a0a0;
-    }
-    .result-table th {
-        background-color: #eeddbb; 
-        border: 1px solid #a0a0a0;
-        padding: 4px 8px;
-        color: #900; 
-        font-weight: bold;
-        text-align: center;
-    }
-    .result-table td {
-        border: 1px solid #a0a0a0;
-        padding: 4px 8px;
-        text-align: center;
-    }
-    .result-table tr:nth-child(even) {
-        background-color: #f5f5f5;
-    }
-    .link-id {
-        color: #0000ff;
-        text-decoration: underline;
-        cursor: pointer;
-        font-weight: bold;
-    }
+    .result-table { width: 100%; border-collapse: collapse; background-color: #fff; margin-top: 10px; border: 1px solid #a0a0a0; }
+    .result-table th { background-color: #eeddbb; border: 1px solid #a0a0a0; padding: 4px 8px; color: #900; font-weight: bold; text-align: center; }
+    .result-table td { border: 1px solid #a0a0a0; padding: 4px 8px; text-align: center; }
+    .result-table tr:nth-child(even) { background-color: #f5f5f5; }
+    .link-id { color: #0000ff; text-decoration: underline; cursor: pointer; font-weight: bold; }
+    .action-icon { cursor: pointer; font-size: 16px; margin: 0 4px; }
 </style>
 
 <div class="content-header">
@@ -76,7 +43,6 @@
 </div>
 
 <div class="search-container">
-    <!-- 快速搜尋區 -->
     <div class="search-block">
         <div class="search-header">➲ 快速搜尋：</div>
         <div class="search-row">
@@ -88,15 +54,12 @@
         </div>
     </div>
 
-    <!-- 進階搜尋區 -->
     <div class="search-block">
         <div class="search-header">➲ 進階搜尋：</div>
-        
         <div style="display: flex; padding: 10px;">
             <div style="flex: 1;">
                 <div class="search-row">
                     <span class="search-label">旅客編號：</span>
-                    <!-- 🟢 加入 ID 供 JS 讀取 -->
                     <input type="text" id="adv_cid" class="input-box" style="width: 120px;">
                 </div>
                 <div class="search-row">
@@ -115,40 +78,24 @@
                     <input type="text" class="input-box" style="width: 80px; background-color: #e0e0e0;" readonly>
                 </div>
             </div>
-            
             <div style="flex: 1;">
                 <div class="search-row">
                     <span class="search-label">性別：</span>
-                    <select id="adv_gender" class="input-box" style="width: 60px;">
-                        <option value=""></option>
-                        <option value="男">男</option>
-                        <option value="女">女</option>
-                    </select>
+                    <select id="adv_gender" class="input-box" style="width: 60px;"><option value=""></option><option value="男">男</option><option value="女">女</option></select>
                 </div>
                 <div class="search-row">
                     <span class="search-label">通路來源：</span>
-                    <!-- 🟢 選項比照 base 網頁 -->
                     <select id="adv_channel" class="input-box" style="width: 150px;">
-                        <option value="">請選擇</option>
-                        <option value="報紙廣告">報紙廣告</option>
-                        <option value="旅行平台">旅行平台</option>
-                        <option value="通路徑銷">通路徑銷</option>
-                        <option value="企業客戶">企業客戶</option>
-                        <option value="線上訂購">線上訂購</option>
+                        <option value="">請選擇</option><option value="報紙廣告">報紙廣告</option><option value="旅行平台">旅行平台</option>
+                        <option value="通路徑銷">通路徑銷</option><option value="企業客戶">企業客戶</option><option value="線上訂購">線上訂購</option>
                     </select>
                 </div>
                 <div class="search-row" style="justify-content: space-between;">
                     <div style="display: flex; align-items: center;">
                         <span class="search-label">往來狀態：</span>
-                        <!-- 🟢 選項比照 base 網頁 -->
-                        <select id="adv_status" class="input-box" style="width: 60px;">
-                            <option value=""></option>
-                            <option value="正常">正常</option>
-                            <option value="拒絕">拒絕</option>
-                        </select>
+                        <select id="adv_status" class="input-box" style="width: 60px;"><option value=""></option><option value="正常">正常</option><option value="拒絕">拒絕</option></select>
                     </div>
                     <div style="display: flex; gap: 5px;">
-                        <!-- 🟢 綁定進階搜尋與清除按鈕 -->
                         <button class="btn" onclick="window.performAdvancedSearch()">🔍 搜尋</button>
                         <button class="btn" onclick="window.clearAdvancedSearch()">❌ 清除</button>
                     </div>
@@ -161,17 +108,14 @@
 </div>
 
 <script>
+    // 🟢 點擊新增按鈕時，清空編輯用的全域變數，確保進入「純新增模式」
     window.openAddCustomer = function() {
+        window.currentEditCustomerId = null; 
         loadPage('A-A-A-BASE'); 
     };
 
-    // 🟢 共用的「繪製查詢結果表格」模組
     window.renderTable = function(query) {
-        if (!window.db) {
-            alert("資料庫尚未綁定！");
-            return;
-        }
-
+        if (!window.db) { alert("資料庫尚未綁定！"); return; }
         try {
             const res = window.db.exec(query);
             const container = document.getElementById('search_results_container');
@@ -213,7 +157,12 @@
                         <td>${channel}</td>
                         <td>${sales}</td>
                         <td>${status}</td>
-                        <td>📝 📁 🗑️</td>
+                        <td>
+                            <!-- 🟢 將最左邊的 📝 綁定為修改基本資料 -->
+                            <span class="action-icon" title="修改基本資料" onclick="window.editCustomerBase('${c_id}')">📝</span>
+                            <span class="action-icon" title="詳細資料(簽證、家屬...)" onclick="window.goToCustomerTabs('${c_id}')">📁</span>
+                            <span class="action-icon" title="刪除">🗑️</span>
+                        </td>
                     </tr>
                 `;
             });
@@ -227,23 +176,14 @@
         }
     };
 
-    // 🟢 快速搜尋：只針對身分證與中文姓名
     window.performSearch = function() {
         const nid = document.getElementById('search_nid').value.trim();
         const cname = document.getElementById('search_cname').value.trim();
-
-        // 加上 IFNULL 防呆，避免因資料庫欄位為 NULL 導致字串相加變成 NULL 查不到資料
-        const query = `
-            SELECT customer_id, national_id, c_last_name, c_first_name, gender, birth_y, birth_m, birth_d, other_id, channel, salesperson, status 
-            FROM Customers 
-            WHERE IFNULL(national_id,'') LIKE '%${nid}%' 
-            AND (IFNULL(c_last_name,'') || IFNULL(c_first_name,'')) LIKE '%${cname}%'
-            ORDER BY customer_id ASC
-        `;
+        const query = `SELECT customer_id, national_id, c_last_name, c_first_name, gender, birth_y, birth_m, birth_d, other_id, channel, salesperson, status 
+            FROM Customers WHERE IFNULL(national_id,'') LIKE '%${nid}%' AND (IFNULL(c_last_name,'') || IFNULL(c_first_name,'')) LIKE '%${cname}%' ORDER BY customer_id ASC`;
         window.renderTable(query);
     };
 
-    // 🟢 進階搜尋：8 個條件複合模糊查詢 (全部空白時 '%''%' 會列出全表)
     window.performAdvancedSearch = function() {
         const cid = document.getElementById('adv_cid').value.trim();
         const cname = document.getElementById('adv_cname').value.trim();
@@ -254,38 +194,29 @@
         const channel = document.getElementById('adv_channel').value;
         const status = document.getElementById('adv_status').value;
 
-        const query = `
-            SELECT customer_id, national_id, c_last_name, c_first_name, gender, birth_y, birth_m, birth_d, other_id, channel, salesperson, status 
-            FROM Customers 
-            WHERE IFNULL(customer_id,'') LIKE '%${cid}%'
-            AND (IFNULL(c_last_name,'') || IFNULL(c_first_name,'')) LIKE '%${cname}%'
-            AND IFNULL(e_last_name,'') LIKE '%${elast}%'
-            AND IFNULL(e_first_name,'') LIKE '%${efirst}%'
-            AND IFNULL(salesperson,'') LIKE '%${sales}%'
-            AND IFNULL(gender,'') LIKE '%${gender}%'
-            AND IFNULL(channel,'') LIKE '%${channel}%'
-            AND IFNULL(status,'') LIKE '%${status}%'
-            ORDER BY customer_id ASC
-        `;
+        const query = `SELECT customer_id, national_id, c_last_name, c_first_name, gender, birth_y, birth_m, birth_d, other_id, channel, salesperson, status 
+            FROM Customers WHERE IFNULL(customer_id,'') LIKE '%${cid}%' AND (IFNULL(c_last_name,'') || IFNULL(c_first_name,'')) LIKE '%${cname}%'
+            AND IFNULL(e_last_name,'') LIKE '%${elast}%' AND IFNULL(e_first_name,'') LIKE '%${efirst}%' AND IFNULL(salesperson,'') LIKE '%${sales}%'
+            AND IFNULL(gender,'') LIKE '%${gender}%' AND IFNULL(channel,'') LIKE '%${channel}%' AND IFNULL(status,'') LIKE '%${status}%' ORDER BY customer_id ASC`;
         window.renderTable(query);
     };
 
-    // 🟢 清除進階搜尋的所有欄位
     window.clearAdvancedSearch = function() {
-        document.getElementById('adv_cid').value = '';
-        document.getElementById('adv_cname').value = '';
-        document.getElementById('adv_elast').value = '';
-        document.getElementById('adv_efirst').value = '';
-        document.getElementById('adv_sales').value = '';
-        document.getElementById('adv_gender').value = '';
-        document.getElementById('adv_channel').value = '';
-        document.getElementById('adv_status').value = '';
-        // 同時清空查詢結果
+        document.getElementById('adv_cid').value = ''; document.getElementById('adv_cname').value = '';
+        document.getElementById('adv_elast').value = ''; document.getElementById('adv_efirst').value = '';
+        document.getElementById('adv_sales').value = ''; document.getElementById('adv_gender').value = '';
+        document.getElementById('adv_channel').value = ''; document.getElementById('adv_status').value = '';
         document.getElementById('search_results_container').innerHTML = '';
     };
 
     window.goToCustomerTabs = function(customerId) {
         window.currentCustomerId = customerId; 
         loadPage('A-A-A-TABS'); 
+    };
+
+    // 🟢 進入修改客戶基本資料模式
+    window.editCustomerBase = function(customerId) {
+        window.currentEditCustomerId = customerId; // 將這筆 ID 存為全域變數供修改用
+        loadPage('A-A-A-BASE');
     };
 </script>
