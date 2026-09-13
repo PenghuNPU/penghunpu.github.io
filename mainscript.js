@@ -117,9 +117,6 @@ document.addEventListener("DOMContentLoaded", () => {
     setInterval(updateTime, 1000); 
 });
 
-// ==========================================
-// 3. 核心：選取檔案並進行「權限驗證」與「綁定」
-// ==========================================
 async function openAndBindDatabase() {
     try {
         if (typeof initSqlJs === 'undefined') {
@@ -165,7 +162,9 @@ async function openAndBindDatabase() {
 
         document.getElementById('file-overlay').style.display = 'none';
         renderMenu();
-        loadPage('F-Y'); 
+        
+        // 🟢 將系統預設載入頁面改為佈告欄
+        window.loadBulletin();
 
     } catch (error) {
         console.error("選取檔案失敗或取消：", error);
@@ -298,8 +297,8 @@ function renderMenu() {
                     const subSubmenu = document.createElement('div');
                     subSubmenu.className = 'submenu';
                     subSubmenu.id = `submenu-${sub.id}`;
-                    subSubmenu.style.display = 'none'; // 預設隱藏
-                    subSubmenu.style.backgroundColor = '#fdf8e4'; // 給予微微的底色區別
+                    subSubmenu.style.display = 'none'; 
+                    subSubmenu.style.backgroundColor = '#fdf8e4'; 
                     subSubmenu.style.borderTop = 'none';
 
                     sub.children.forEach(sub3 => {
@@ -379,3 +378,27 @@ window.closeModal = function() {
     const modal = document.getElementById('print-modal');
     if (modal) modal.style.display = 'none';
 }
+
+// 🟢 載入首頁佈告欄的專用函數
+window.loadBulletin = function() {
+    const contentArea = document.getElementById('content-area');
+    fetch('bulletin.html')
+        .then(response => {
+            if (!response.ok) throw new Error('找不到 bulletin.html');
+            return response.text();
+        })
+        .then(html => {
+            contentArea.innerHTML = html; 
+            
+            const scripts = contentArea.querySelectorAll('script');
+            scripts.forEach(oldScript => {
+                const newScript = document.createElement('script');
+                Array.from(oldScript.attributes).forEach(attr => newScript.setAttribute(attr.name, attr.value));
+                newScript.appendChild(document.createTextNode(oldScript.innerHTML));
+                oldScript.parentNode.replaceChild(newScript, oldScript);
+            });
+        })
+        .catch(error => {
+            contentArea.innerHTML = `<div style="padding: 20px; color: red; font-weight: bold;">無法載入佈告欄，請確認 bulletin.html 檔案是否存在。</div>`;
+        });
+};
