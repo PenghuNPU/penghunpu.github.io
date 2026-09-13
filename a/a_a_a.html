@@ -1,0 +1,271 @@
+<style>
+    .search-container {
+        padding: 10px;
+        background-color: #ece9d8;
+        height: 100%;
+        box-sizing: border-box;
+        font-size: 13px;
+        overflow-y: auto;
+    }
+    .search-block {
+        border: 1px solid #a0a0a0;
+        background-color: #d4d0c8;
+        margin-bottom: 15px;
+    }
+    .search-header {
+        background: linear-gradient(to right, #808080, #c0c0c0);
+        color: white;
+        padding: 4px 8px;
+        font-weight: bold;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+    }
+    .search-row { display: flex; align-items: center; padding: 6px 10px; border-bottom: 1px solid #fff; }
+    .search-row:last-child { border-bottom: none; }
+    .search-label { width: 110px; text-align: right; margin-right: 10px; font-weight: bold; }
+    .input-box { border: 1px inset #fff; padding: 2px 4px; margin-right: 15px; }
+    .btn { background-color: #ece9d8; border: 2px outset #fff; padding: 2px 10px; cursor: pointer; display: flex; align-items: center; gap: 5px; }
+    .btn:active { border-style: inset; }
+    
+    /* 🟢 新增：查詢按鈕專屬樣式 (淺橘底、白字) */
+    .btn-query {
+        background-color: #ffaa44; /* 淺橘色 */
+        color: #ffffff; /* 白色 */
+        font-weight: bold;
+        justify-content: center;
+    }
+
+    .top-right-btn { background-color: #ece9d8; color: black; border: 2px outset #fff; padding: 1px 8px; cursor: pointer; }
+
+    .result-table { width: 100%; border-collapse: collapse; background-color: #fff; margin-top: 10px; border: 1px solid #a0a0a0; }
+    .result-table th { background-color: #eeddbb; border: 1px solid #a0a0a0; padding: 4px 8px; color: #900; font-weight: bold; text-align: center; }
+    .result-table td { border: 1px solid #a0a0a0; padding: 4px 8px; text-align: center; }
+    .result-table tr:nth-child(even) { background-color: #f5f5f5; }
+    .link-id { color: #0000ff; text-decoration: underline; cursor: pointer; font-weight: bold; }
+    
+    .action-icon { cursor: pointer; font-size: 16px; margin: 0 4px; }
+    .action-icon.disabled { cursor: default; opacity: 0.6; }
+</style>
+
+<div class="content-header">
+    旅客資料管理首頁
+    <button class="top-right-actions top-right-btn" onclick="window.openAddCustomer()">➕ 新增</button>
+</div>
+
+<div class="search-container">
+    <div class="search-block">
+        <div class="search-header">➲ 快速搜尋：</div>
+        <div class="search-row">
+            <span class="search-label">旅客身分證字號：</span>
+            <input type="text" id="search_nid" class="input-box" style="width: 120px;">
+            <span class="search-label" style="width: auto;">旅客中文姓名：</span>
+            <input type="text" id="search_cname" class="input-box" style="width: 120px;">
+            <button class="btn" onclick="window.performSearch()">🔍 搜尋</button>
+        </div>
+    </div>
+
+    <div class="search-block">
+        <div class="search-header">➲ 進階搜尋：</div>
+        <div style="display: flex; padding: 10px;">
+            <div style="flex: 1;">
+                <div class="search-row">
+                    <span class="search-label">旅客編號：</span>
+                    <input type="text" id="adv_cid" class="input-box" style="width: 120px;">
+                </div>
+                <div class="search-row">
+                    <span class="search-label">旅客姓名關鍵字：</span>
+                    <span>中文</span> <input type="text" id="adv_cname" class="input-box" style="width: 120px;">
+                </div>
+                <div class="search-row">
+                    <span class="search-label"></span>
+                    <span>英文姓</span> <input type="text" id="adv_elast" class="input-box" style="width: 60px;">
+                    <span>名</span> <input type="text" id="adv_efirst" class="input-box" style="width: 80px;">
+                </div>
+                <div class="search-row">
+                    <span class="search-label">業務員：</span>
+                    <input type="text" id="adv_sales" class="input-box" style="width: 60px;">
+                    <!-- 🟢 修改：套用淺橘色與白色問號 -->
+                    <button class="btn btn-query" style="padding: 1px 5px; margin-right: 5px;">?</button>
+                    <input type="text" class="input-box" style="width: 80px; background-color: #e0e0e0;" readonly>
+                </div>
+            </div>
+            <div style="flex: 1;">
+                <div class="search-row">
+                    <span class="search-label">性別：</span>
+                    <select id="adv_gender" class="input-box" style="width: 60px;"><option value=""></option><option value="男">男</option><option value="女">女</option></select>
+                </div>
+                <div class="search-row">
+                    <span class="search-label">通路來源：</span>
+                    <select id="adv_channel" class="input-box" style="width: 150px;">
+                        <option value="">請選擇</option><option value="報紙廣告">報紙廣告</option><option value="旅行平台">旅行平台</option>
+                        <option value="通路徑銷">通路徑銷</option><option value="企業客戶">企業客戶</option><option value="線上訂購">線上訂購</option>
+                    </select>
+                </div>
+                <div class="search-row" style="justify-content: space-between;">
+                    <div style="display: flex; align-items: center;">
+                        <span class="search-label">往來狀態：</span>
+                        <select id="adv_status" class="input-box" style="width: 60px;"><option value=""></option><option value="正常">正常</option><option value="拒絕">拒絕</option></select>
+                    </div>
+                    <div style="display: flex; gap: 5px;">
+                        <button class="btn" onclick="window.performAdvancedSearch()">🔍 搜尋</button>
+                        <button class="btn" onclick="window.clearAdvancedSearch()">❌ 清除</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="search_results_container"></div>
+</div>
+
+<script>
+    window.openAddCustomer = function() {
+        window.currentEditCustomerId = null; 
+        loadPage('A-A-A-BASE'); 
+    };
+
+    window.renderTable = function(query) {
+        if (!window.db) { alert("資料庫尚未綁定！"); return; }
+        try {
+            const res = window.db.exec(query);
+            const container = document.getElementById('search_results_container');
+            
+            if (res.length === 0) {
+                container.innerHTML = `<div style="padding:15px; color:red; font-weight:bold;">查無符合條件的旅客資料。</div>`;
+                return;
+            }
+
+            const rows = res[0].values;
+            let html = `
+                <table class="result-table">
+                    <tr>
+                        <th>編 號</th><th>身份證字號</th><th>中文姓名</th><th>性別</th>
+                        <th>生日</th><th>其他證號</th><th>來源</th><th>業務員</th>
+                        <th>往來狀態</th><th>管理</th>
+                    </tr>
+            `;
+
+            rows.forEach(row => {
+                const c_id = row[0] || '';
+                const n_id = row[1] || '';
+                const name = (row[2] || '') + (row[3] || '');
+                const gender = row[4] || '';
+                const birth = (row[5] && row[6] && row[7]) ? `${row[5]}/${row[6]}/${row[7]}` : '';
+                const other = row[8] || '';
+                const channel = row[9] || '';
+                const sales = row[10] || '';
+                const status = row[11] || '';
+
+                html += `
+                    <tr>
+                        <td><span class="link-id" onclick="window.goToCustomerTabs('${c_id}')">${c_id}</span></td>
+                        <td>${n_id}</td>
+                        <td>${name}</td>
+                        <td>${gender}</td>
+                        <td>${birth}</td>
+                        <td>${other}</td>
+                        <td>${channel}</td>
+                        <td>${sales}</td>
+                        <td>${status}</td>
+                        <td>
+                            <span class="action-icon" title="修改基本資料" onclick="window.editCustomerBase('${c_id}')">📝</span>
+                            <span class="action-icon disabled" title="無作用圖示">📄</span>
+                            <!-- 🟢 綁定刪除功能 -->
+                            <span class="action-icon" title="刪除旅客與所有相依紀錄" onclick="window.deleteCustomerFull('${c_id}', '${name}')">🗑️</span>
+                        </td>
+                    </tr>
+                `;
+            });
+
+            html += `</table>`;
+            container.innerHTML = html;
+
+        } catch (e) {
+            console.error(e);
+            alert("查詢失敗：" + e.message);
+        }
+    };
+
+    window.performSearch = function() {
+        const nid = document.getElementById('search_nid').value.trim();
+        const cname = document.getElementById('search_cname').value.trim();
+        const query = `SELECT customer_id, national_id, c_last_name, c_first_name, gender, birth_y, birth_m, birth_d, other_id, channel, salesperson, status 
+            FROM Customers WHERE IFNULL(national_id,'') LIKE '%${nid}%' AND (IFNULL(c_last_name,'') || IFNULL(c_first_name,'')) LIKE '%${cname}%' ORDER BY customer_id ASC`;
+        window.renderTable(query);
+    };
+
+    window.performAdvancedSearch = function() {
+        const cid = document.getElementById('adv_cid').value.trim();
+        const cname = document.getElementById('adv_cname').value.trim();
+        const elast = document.getElementById('adv_elast').value.trim();
+        const efirst = document.getElementById('adv_efirst').value.trim();
+        const sales = document.getElementById('adv_sales').value.trim();
+        const gender = document.getElementById('adv_gender').value;
+        const channel = document.getElementById('adv_channel').value;
+        const status = document.getElementById('adv_status').value;
+
+        const query = `SELECT customer_id, national_id, c_last_name, c_first_name, gender, birth_y, birth_m, birth_d, other_id, channel, salesperson, status 
+            FROM Customers WHERE IFNULL(customer_id,'') LIKE '%${cid}%' AND (IFNULL(c_last_name,'') || IFNULL(c_first_name,'')) LIKE '%${cname}%'
+            AND IFNULL(e_last_name,'') LIKE '%${elast}%' AND IFNULL(e_first_name,'') LIKE '%${efirst}%' AND IFNULL(salesperson,'') LIKE '%${sales}%'
+            AND IFNULL(gender,'') LIKE '%${gender}%' AND IFNULL(channel,'') LIKE '%${channel}%' AND IFNULL(status,'') LIKE '%${status}%' ORDER BY customer_id ASC`;
+        window.renderTable(query);
+    };
+
+    window.clearAdvancedSearch = function() {
+        document.getElementById('adv_cid').value = ''; document.getElementById('adv_cname').value = '';
+        document.getElementById('adv_elast').value = ''; document.getElementById('adv_efirst').value = '';
+        document.getElementById('adv_sales').value = ''; document.getElementById('adv_gender').value = '';
+        document.getElementById('adv_channel').value = ''; document.getElementById('adv_status').value = '';
+        document.getElementById('search_results_container').innerHTML = '';
+    };
+
+    window.goToCustomerTabs = function(customerId) {
+        window.currentCustomerId = customerId; 
+        loadPage('A-A-A-TABS'); 
+    };
+
+    window.editCustomerBase = function(customerId) {
+        window.currentEditCustomerId = customerId; 
+        loadPage('A-A-A-BASE');
+    };
+
+    // 🟢 執行「關聯刪除」功能 (已包含 confirm 提醒視窗防呆)
+    window.deleteCustomerFull = async function(c_id, name) {
+        const confirmMsg = `警告：您確定要刪除旅客 [${c_id}] ${name} 的所有資料嗎？\n此動作將一併刪除該旅客的簽證、偏好、會員等所有相依紀錄，且無法復原！`;
+        
+        // 如果使用者點擊「取消」，則終止刪除程序
+        if (!confirm(confirmMsg)) {
+            return;
+        }
+
+        try {
+            // 一口氣將所有主檔與相依表格清空
+            const sql = `
+                DELETE FROM Customers WHERE customer_id = '${c_id}';
+                DELETE FROM CustomerDetails WHERE customer_id = '${c_id}';
+                DELETE FROM CustomerOtherInfo WHERE customer_id = '${c_id}';
+                DELETE FROM CustomerEnglishInfo WHERE customer_id = '${c_id}';
+                DELETE FROM CustomerPreferences WHERE customer_id = '${c_id}';
+                DELETE FROM CustomerVisas WHERE customer_id = '${c_id}';
+                DELETE FROM CustomerCredit WHERE customer_id = '${c_id}';
+                DELETE FROM CustomerMember WHERE customer_id = '${c_id}';
+            `;
+
+            // 執行資料庫刪除與儲存
+            const isSuccess = await window.executeAndSave(sql);
+            if (isSuccess) {
+                alert(`✅ 旅客 [${c_id}] 的所有資料已成功刪除！`);
+                // 清空畫面並重新整理結果
+                document.getElementById('search_results_container').innerHTML = '';
+                // 若搜尋框還有字，順便幫他重查一次
+                const nid = document.getElementById('search_nid').value.trim();
+                const cname = document.getElementById('search_cname').value.trim();
+                if(nid || cname) { window.performSearch(); }
+            }
+        } catch (e) {
+            console.error("刪除失敗", e);
+            alert("❌ 刪除過程中發生錯誤！");
+        }
+    };
+</script>

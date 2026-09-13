@@ -1,0 +1,74 @@
+<style>
+    .tab-container { padding: 10px; background-color: #ece9d8; height: 100%; box-sizing: border-box; }
+    .tabs-header { display: flex; border-bottom: 2px solid #fff; position: relative; }
+    .tabs-header::after { content: ""; position: absolute; bottom: -2px; left: 0; right: 0; border-bottom: 1px solid #999; z-index: 1; }
+    .tab-btn {
+        padding: 6px 12px; border: 1px solid #999; border-bottom: none; background-color: #d6d3ce; margin-right: 2px; border-radius: 4px 4px 0 0; cursor: pointer; font-size: 13px; position: relative; z-index: 0;
+    }
+    .tab-btn.active { background-color: #ece9d8; border-top: 3px solid #ff9800; border-left: 1px solid #fff; font-weight: bold; z-index: 2; padding-bottom: 7px; margin-bottom: -1px; }
+    .tab-btn:hover:not(.active) { background-color: #e6e6e6; }
+    .tab-content-box { border: 1px solid #999; border-top: none; border-right: 2px solid #fff; border-bottom: 2px solid #fff; background-color: #ece9d8; padding: 15px; min-height: 450px; }
+</style>
+
+<div class="content-header">
+    旅客資料管理 ▹ 編輯旅客：<span id="header_customer_id" style="color: blue; margin-left:5px;"></span>
+</div>
+
+<div class="tab-container">
+    <div class="tabs-header">
+        <div class="tab-btn" onclick="window.switchTab(1, this)">1.旅客資料</div>
+        <div class="tab-btn" onclick="window.switchTab(2, this)">2.其他基本資料</div>
+        <div class="tab-btn" onclick="window.switchTab(3, this)">3.英文資料</div>
+        <div class="tab-btn" onclick="window.switchTab(4, this)">4.旅遊偏好</div>
+        <div class="tab-btn" onclick="window.switchTab(5, this)">5.簽證紀錄</div>
+        <div class="tab-btn" onclick="window.switchTab(6, this)">6.信用額度</div>
+        <div class="tab-btn" onclick="window.switchTab(7, this)">7.會員資料</div>
+        <div class="tab-btn" onclick="window.switchTab(8, this)">8.往來紀錄</div>
+    </div>
+
+    <div id="sub-tab-content" class="tab-content-box">正在載入分頁內容...</div>
+</div>
+
+<script>
+    // 檢查是否有傳遞 customer_id 過來
+    if (!window.currentCustomerId) {
+        alert("⚠️ 系統遺失旅客編號，請重新從查詢清單點選！");
+        loadPage('A-A-A');
+    } else {
+        document.getElementById('header_customer_id').innerText = window.currentCustomerId;
+    }
+
+    window.switchTab = function(tabIndex, element) {
+        const tabs = document.querySelectorAll('.tabs-header .tab-btn');
+        tabs.forEach(tab => tab.classList.remove('active'));
+        if (element) element.classList.add('active');
+
+        const subFilePath = `a/a_a_a_${tabIndex}.html`;
+        const contentBox = document.getElementById('sub-tab-content');
+
+        fetch(subFilePath)
+            .then(response => {
+                if (!response.ok) throw new Error('檔案讀取失敗');
+                return response.text();
+            })
+            .then(html => {
+                contentBox.innerHTML = html;
+                const scripts = contentBox.querySelectorAll('script');
+                scripts.forEach(oldScript => {
+                    const newScript = document.createElement('script');
+                    Array.from(oldScript.attributes).forEach(attr => newScript.setAttribute(attr.name, attr.value));
+                    newScript.appendChild(document.createTextNode(oldScript.innerHTML));
+                    oldScript.parentNode.replaceChild(newScript, oldScript);
+                });
+            })
+            .catch(error => {
+                contentBox.innerHTML = `<div style="color:red; font-weight:bold; padding:20px;">⚠️ 無法載入檔案：${subFilePath}</div>`;
+            });
+    };
+
+    // 🟢 將預設載入修改為第一個標籤 (1.旅客資料)
+    setTimeout(() => {
+        const targetTab = document.querySelector('.tabs-header .tab-btn:nth-child(1)');
+        if (targetTab) window.switchTab(1, targetTab);
+    }, 100);
+</script>

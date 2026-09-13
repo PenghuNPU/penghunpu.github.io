@@ -1,0 +1,280 @@
+<style>
+    .detail-wrapper {
+        border: 1px solid #777;
+        background-color: #ece9d8;
+        font-family: "MS Sans Serif", "細明體", sans-serif;
+        font-size: 13px;
+        padding: 10px;
+        position: relative;
+    }
+    .detail-header {
+        background: linear-gradient(to bottom, #d4d0c8, #b5b5b5);
+        border: 1px outset #fff;
+        text-align: center;
+        font-weight: bold;
+        padding: 4px;
+        margin-bottom: 10px;
+    }
+    .detail-table {
+        width: 100%;
+        border-collapse: collapse;
+        border: 1px solid #a0a0a0;
+    }
+    .detail-table td {
+        padding: 6px 10px;
+        vertical-align: middle;
+        border-bottom: 1px solid #d4d0c8;
+    }
+    .detail-table tr:nth-child(even) { background-color: #e2dfd3; }
+    
+    .category-title {
+        text-decoration: underline;
+        font-weight: bold;
+        background-color: #d4d0c8 !important; 
+        color: #333;
+    }
+    .input-box { border: 1px inset #fff; padding: 2px 4px; background-color: #fff; }
+    /* 🟢 唯讀輸入框專屬樣式，加入微微灰底並改變游標 */
+    .input-readonly { background-color: #e0e0e0; cursor: default; color: #333; }
+    
+    .btn { background-color: #ece9d8; border: 1px outset #fff; padding: 1px 6px; cursor: pointer; font-size: 12px; }
+    .btn:active { border-style: inset; }
+    
+    /* 🟢 新增：查詢按鈕專屬樣式 (淺橘底、白字) */
+    .btn-query {
+        background-color: #ffaa44; /* 淺橘色 */
+        color: #ffffff; /* 白色 */
+        font-weight: bold;
+    }
+
+    .action-row { background-color: #808080; text-align: center; padding: 8px; margin-top: 15px; }
+    .action-row button { background-color: #d4d0c8; border: 2px outset #fff; padding: 3px 20px; font-weight: bold; letter-spacing: 3px; margin: 0 5px; cursor: pointer; }
+    .action-row button:active { border-style: inset; }
+
+    /* 🟢 航空公司選擇器 Modal 樣式 */
+    .modal-overlay {
+        display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+        background-color: rgba(0, 0, 0, 0.4); z-index: 999;
+    }
+    .modal-box {
+        position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+        background-color: #ece9d8; border: 2px solid #000; padding: 10px; width: 350px;
+        box-shadow: 2px 2px 10px rgba(0,0,0,0.5); font-family: "MS Sans Serif", "細明體", sans-serif;
+    }
+    .modal-header {
+        background: linear-gradient(to right, #000080, #1084d0); color: white;
+        padding: 4px; font-weight: bold; display: flex; justify-content: space-between; margin-bottom: 5px;
+    }
+    .modal-close { cursor: pointer; background: #d4d0c8; color: black; border: 1px outset #fff; padding: 0 4px; }
+    .modal-close:active { border-style: inset; }
+    
+    .airline-list {
+        height: 250px; overflow-y: auto; background-color: white; border: 1px inset #fff; padding: 5px;
+    }
+    .airline-item {
+        padding: 4px; cursor: pointer; border-bottom: 1px dashed #ccc; display: flex;
+    }
+    .airline-item:hover { background-color: #000080; color: white; }
+    .airline-code { font-weight: bold; width: 50px; display: inline-block; color: #900; }
+    .airline-item:hover .airline-code { color: #ffcc00; }
+</style>
+
+<div class="detail-wrapper">
+    <div class="detail-header">
+        【旅客編號：<span id="p_customer_id" style="color: blue;">載入中...</span>】
+    </div>
+
+    <table class="detail-table">
+        <tr><td colspan="2" class="category-title">航空偏好：</td></tr>
+        <tr>
+            <td style="width: 50%;">
+                航空公司1：
+                <!-- 🟢 加上 readonly 屬性與專屬樣式 class -->
+                <input type="text" id="airline1" class="input-box input-readonly" style="width: 40px;" readonly> 
+                <!-- 🟢 修改：套用淺橘色與白色問號 -->
+                <button class="btn btn-query" onclick="window.openAirlinePicker('airline1', 'name1')">📄?</button> 
+                <span id="name1" style="color:#555; margin-left: 5px;"></span>
+            </td>
+            <td style="width: 50%;">
+                航空公司2：
+                <!-- 🟢 加上 readonly 屬性與專屬樣式 class -->
+                <input type="text" id="airline2" class="input-box input-readonly" style="width: 40px;" readonly> 
+                <!-- 🟢 修改：套用淺橘色與白色問號 -->
+                <button class="btn btn-query" onclick="window.openAirlinePicker('airline2', 'name2')">📄?</button> 
+                <span id="name2" style="color:#555; margin-left: 5px;"></span>
+            </td>
+        </tr>
+        <tr>
+            <td colspan="2">
+                座位艙等：
+                <select id="cabin_class" class="input-box">
+                    <option value="">-請選擇-</option>
+                    <option value="經濟艙">經濟艙</option><option value="豪華經濟艙">豪華經濟艙</option>
+                    <option value="商務艙">商務艙</option><option value="頭等艙">頭等艙</option><option value="其它艙">其它艙</option>
+                </select>
+                &nbsp;&nbsp;&nbsp;&nbsp; 座位安排：
+                <select id="seat_arrange" class="input-box">
+                    <option value="">-請選擇-</option>
+                    <option value="窗邊">窗邊</option><option value="走道">走道</option><option value="中間">中間</option>
+                </select>
+            </td>
+        </tr>
+        <tr><td colspan="2">航空公司備註：<input type="text" id="airline_remarks" class="input-box" style="width: 400px;"></td></tr>
+
+        <tr><td colspan="2" class="category-title">住宿偏好：</td></tr>
+        <tr><td colspan="2">旅館資料備註：<input type="text" id="hotel_remarks" class="input-box" style="width: 400px;"></td></tr>
+
+        <tr><td colspan="2" class="category-title">飲食偏好：</td></tr>
+        <tr>
+            <td colspan="2">
+                飲食習慣：
+                <select id="diet_habit" class="input-box">
+                    <option value="">-請選擇-</option>
+                    <option value="正常">正常</option><option value="早齋">早齋</option><option value="全素">全素</option>
+                    <option value="蛋奶素">蛋奶素</option><option value="不吃牛">不吃牛</option><option value="不吃豬">不吃豬</option>
+                    <option value="海鮮餐">海鮮餐</option><option value="兒童餐">兒童餐</option>
+                </select>
+            </td>
+        </tr>
+        <tr><td colspan="2">餐食備註：<input type="text" id="meal_remarks" class="input-box" style="width: 300px;"></td></tr>
+    </table>
+
+    <div class="action-row">
+        <button onclick="window.savePreferencesInfo()">更 新</button>
+        <button onclick="loadPage('A-A-A')">放 棄</button>
+    </div>
+</div>
+
+<!-- 航空公司選擇器 Modal -->
+<div id="airline_modal" class="modal-overlay">
+    <div class="modal-box">
+        <div class="modal-header">
+            <span>✈️ 選擇航空公司</span>
+            <span class="modal-close" onclick="window.closeAirlinePicker()">Ｘ</span>
+        </div>
+        <div class="airline-list" id="airline_list_container">
+            <!-- JS 動態產生清單 -->
+        </div>
+    </div>
+</div>
+
+<script>
+    window.airlineData = [
+        { code: 'CI', name: '中華航空 (Taiwan)' },
+        { code: 'BR', name: '長榮航空 (Taiwan)' },
+        { code: 'JX', name: '星宇航空 (Taiwan)' },
+        { code: 'IT', name: '台灣虎航 (Taiwan)' },
+        { code: 'JL', name: '日本航空 (Japan)' },
+        { code: 'NH', name: '全日本空輸 (Japan)' },
+        { code: 'KE', name: '大韓航空 (Korea)' },
+        { code: 'OZ', name: '韓亞航空 (Korea)' },
+        { code: 'CA', name: '中國國際航空公司 (China)' },
+        { code: 'CZ', name: '中國南方航空 (China)' },
+        { code: 'MU', name: '中國東方航空 (China)' },
+        { code: 'CX', name: '國泰航空 (Hong Kong)' },
+        { code: 'KL', name: '荷蘭皇家航空 (Netherlands)' },
+        { code: 'SQ', name: '新加坡航空 (Singapore)' },
+        { code: 'EK', name: '阿聯酋航空 (UAE)' },
+        { code: 'UA', name: '聯合航空 (USA)' },
+        { code: 'DL', name: '達美航空 (USA)' }
+    ];
+
+    window.currentAirlineTarget = { codeId: null, nameId: null };
+
+    window.openAirlinePicker = function(codeId, nameId) {
+        window.currentAirlineTarget = { codeId, nameId };
+        
+        let listHtml = '';
+        window.airlineData.forEach(item => {
+            listHtml += `<div class="airline-item" onclick="window.selectAirline('${item.code}', '${item.name}')">
+                            <span class="airline-code">${item.code}</span>
+                            <span>${item.name}</span>
+                         </div>`;
+        });
+        
+        document.getElementById('airline_list_container').innerHTML = listHtml;
+        document.getElementById('airline_modal').style.display = 'block';
+    };
+
+    window.closeAirlinePicker = function() {
+        document.getElementById('airline_modal').style.display = 'none';
+    };
+
+    window.selectAirline = function(code, name) {
+        document.getElementById(window.currentAirlineTarget.codeId).value = code;
+        document.getElementById(window.currentAirlineTarget.nameId).innerText = name;
+        window.closeAirlinePicker();
+    };
+
+    window.lookupAirlineName = function(code) {
+        const found = window.airlineData.find(a => a.code === code);
+        return found ? found.name : '';
+    };
+
+    (function initPreferencesInfo() {
+        const c_id = window.currentCustomerId; 
+        if(!c_id) { alert("系統遺失旅客編號，請重新選擇！"); loadPage('A-A-A'); return; }
+        document.getElementById('p_customer_id').innerText = c_id;
+
+        window.db.exec(`
+            CREATE TABLE IF NOT EXISTS CustomerPreferences (
+                customer_id TEXT UNIQUE CHECK(length(customer_id) = 7),
+                airline1 TEXT, airline2 TEXT, cabin_class TEXT, seat_arrange TEXT,
+                airline_remarks TEXT, hotel_remarks TEXT, diet_habit TEXT, meal_remarks TEXT
+            );
+        `);
+
+        const query = `SELECT airline1, airline2, cabin_class, seat_arrange, airline_remarks, hotel_remarks, diet_habit, meal_remarks FROM CustomerPreferences WHERE customer_id = '${c_id}'`;
+
+        try {
+            const res = window.db.exec(query);
+            if (res.length > 0) {
+                const data = res[0].values[0];
+                const cleanStr = (val) => (val === null || val === 'null' || val === undefined) ? '' : val;
+
+                const code1 = cleanStr(data[0]);
+                const code2 = cleanStr(data[1]);
+
+                document.getElementById('airline1').value = code1;
+                document.getElementById('name1').innerText = window.lookupAirlineName(code1);
+                
+                document.getElementById('airline2').value = code2;
+                document.getElementById('name2').innerText = window.lookupAirlineName(code2);
+
+                document.getElementById('cabin_class').value = cleanStr(data[2]);
+                document.getElementById('seat_arrange').value = cleanStr(data[3]);
+                document.getElementById('airline_remarks').value = cleanStr(data[4]);
+                document.getElementById('hotel_remarks').value = cleanStr(data[5]);
+                document.getElementById('diet_habit').value = cleanStr(data[6]);
+                document.getElementById('meal_remarks').value = cleanStr(data[7]);
+            }
+        } catch (e) { console.error("讀取旅客旅遊偏好錯誤：", e); }
+    })();
+
+    window.savePreferencesInfo = async function() {
+        const c_id = window.currentCustomerId; 
+        if(!c_id) return;
+        
+        const airline1 = document.getElementById('airline1').value;
+        const airline2 = document.getElementById('airline2').value;
+        const cabin_class = document.getElementById('cabin_class').value;
+        const seat_arrange = document.getElementById('seat_arrange').value;
+        const airline_remarks = document.getElementById('airline_remarks').value;
+        const hotel_remarks = document.getElementById('hotel_remarks').value;
+        const diet_habit = document.getElementById('diet_habit').value;
+        const meal_remarks = document.getElementById('meal_remarks').value;
+
+        const sql = `
+            REPLACE INTO CustomerPreferences (
+                customer_id, airline1, airline2, cabin_class, seat_arrange, airline_remarks, hotel_remarks, diet_habit, meal_remarks
+            ) VALUES (
+                '${c_id}', '${airline1}', '${airline2}', '${cabin_class}', '${seat_arrange}', '${airline_remarks}', '${hotel_remarks}', '${diet_habit}', '${meal_remarks}'
+            );
+        `;
+
+        const isSuccess = await window.executeAndSave(sql);
+        if (isSuccess) alert(`✅ 旅客 [${c_id}] 的「旅遊偏好」已成功更新！`);
+    };
+
+    // 🟢 由於欄位已設為唯讀，使用者無法手動輸入，因此移除了原本監聽手動輸入自動更新名稱的邏輯。
+</script>
