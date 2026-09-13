@@ -4,7 +4,7 @@
 window.db = null; 
 window.fileHandle = null; 
 
-// 1. 左側選單結構設定 (🟢 擴充 A 區塊支援第三層)
+// 1. 左側選單結構設定
 const menuData = [
     { 
         id: 'A', 
@@ -15,7 +15,6 @@ const menuData = [
             { 
                 id: 'A-A', 
                 title: 'A. 客戶及供應商管理',
-                // 第三層選單
                 children: [
                     { id: 'A-A-A', title: 'A. 旅客資料管理' },
                     { id: 'A-A-B', title: 'B. 同業資料管理' },
@@ -92,11 +91,15 @@ document.addEventListener("DOMContentLoaded", () => {
     const userNameSpan = document.querySelector('.user-name');
     const authTemplateSpan = document.querySelector('.auth-template');
     
+    // 🟢 判斷如果是老師 (0099)，顯示「切換檔案」按鈕
     if (userNameSpan && authTemplateSpan) {
-        if (userAccount === "0100") {
+        if (userAccount === "0099") {
             userNameSpan.textContent = "老師";
             userNameSpan.style.color = "blue";
-            authTemplateSpan.textContent = "系統管理員權限";
+            authTemplateSpan.textContent = "系統管理員權限 (批改模式)";
+            
+            const switchBtn = document.getElementById('btn-switch-db');
+            if(switchBtn) switchBtn.style.display = 'inline-block';
         } else {
             userNameSpan.textContent = "學生 (" + userAccount + ")";
             authTemplateSpan.textContent = "一般練習操作權限";
@@ -105,8 +108,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
     const targetFilenameSpan = document.getElementById('target-filename');
     if (targetFilenameSpan) {
-        if (userAccount === "0100") {
-            targetFilenameSpan.textContent = "任何學生的 .sqlite 檔案 (批改模式)";
+        if (userAccount === "0099") {
+            targetFilenameSpan.textContent = "請選取任何學生的 .sqlite 檔案";
             targetFilenameSpan.style.fontSize = "20px";
         } else {
             targetFilenameSpan.textContent = userAccount + "tourdata.sqlite";
@@ -135,8 +138,8 @@ async function openAndBindDatabase() {
         const fileName = file.name;
         const userAccount = localStorage.getItem('userAccount');
 
-        // 檔名安全防護邏輯
-        if (userAccount !== "0100") {
+        // 🟢 檔名安全防護邏輯 (老師 0099 可以開啟任何檔案)
+        if (userAccount !== "0099") {
             const expectedFileName = userAccount + "tourdata.sqlite";
             if (fileName !== expectedFileName) {
                 alert(`❌ 錯誤！您只能開啟屬於您的資料庫檔案：\n👉 ${expectedFileName}\n\n您目前選取的是：${fileName}\n請重新點擊按鈕選取正確的檔案。`);
@@ -163,7 +166,6 @@ async function openAndBindDatabase() {
         document.getElementById('file-overlay').style.display = 'none';
         renderMenu();
         
-        // 🟢 將系統預設載入頁面改為佈告欄
         window.loadBulletin();
 
     } catch (error) {
@@ -173,6 +175,49 @@ async function openAndBindDatabase() {
         }
     }
 }
+
+// 🟢 老師專用：系統內動態切換學生資料庫檔案
+window.switchStudentDatabase = async function() {
+    if (!confirm("確定要切換資料庫檔案嗎？\n系統將會重新載入並返回首頁。")) return;
+    
+    try {
+        [window.fileHandle] = await window.showOpenFilePicker({
+            types: [{
+                description: 'SQLite Database',
+                accept: { 'application/octet-stream': ['.sqlite', '.db'] }
+            }],
+            multiple: false
+        });
+
+        const file = await window.fileHandle.getFile();
+        const fileName = file.name;
+        const buffer = await file.arrayBuffer();
+
+        // 重新初始化 DB 實例
+        const SQL = await initSqlJs({
+            locateFile: file => `https://cdnjs.cloudflare.com/ajax/libs/sql.js/1.8.0/${file}`
+        });
+        window.db = new SQL.Database(new Uint8Array(buffer));
+        
+        // 更新左下角檔案名稱
+        const currentFileSpan = document.getElementById('current-file');
+        if (currentFileSpan) {
+            currentFileSpan.textContent = `[本機] ${fileName}`;
+            currentFileSpan.style.color = '#1a237e'; 
+        }
+
+        alert(`✅ 已成功切換至學生檔案：${fileName}`);
+        
+        // 切換檔案後，自動回到首頁（佈告欄）確保畫面資料重置
+        window.loadBulletin();
+
+    } catch (error) {
+        if (error.name !== 'AbortError') {
+            alert("切換檔案發生錯誤！");
+            console.error(error);
+        }
+    }
+};
 
 // ==========================================
 // 4. 全域函數：執行 SQL 並自動覆蓋存檔
@@ -230,14 +275,12 @@ function updateTime() {
     timeElement.textContent = `${year}/${month}/${day} ${hours}:${minutes}`;
 }
 
-// 🟢 升級版 renderMenu (支援第三層選單生成)
 function renderMenu() {
     const menuContainer = document.getElementById('menu-list');
     if (!menuContainer) return;
     menuContainer.innerHTML = ''; 
 
     menuData.forEach(menu => {
-        // 第一層選單
         const menuItem = document.createElement('div');
         menuItem.className = 'menu-item';
         
@@ -264,7 +307,6 @@ function renderMenu() {
         };
         menuContainer.appendChild(menuItem);
 
-        // 第二層子選單
         if (menu.children) {
             const submenu = document.createElement('div');
             submenu.className = 'submenu';
@@ -275,16 +317,13 @@ function renderMenu() {
                 const subItem = document.createElement('a');
                 subItem.href = "#";
                 subItem.className = 'sub-item';
-                // 如果有第三層，標題後方加上箭頭提示
                 subItem.innerText = sub.children ? sub.title + " ▸" : sub.title;
                 
                 subItem.onclick = (e) => {
                     e.preventDefault(); 
                     if (sub.children) {
-                        // 點擊有第三層的節點，展開/收合第三層
                         toggleSubMenu(`submenu-${sub.id}`);
                     } else {
-                        // 沒有第三層，直接切換頁面
                         document.querySelectorAll('.sub-item').forEach(el => el.classList.remove('active'));
                         subItem.classList.add('active');
                         loadPage(sub.id); 
@@ -292,7 +331,6 @@ function renderMenu() {
                 };
                 submenu.appendChild(subItem);
 
-                // 第三層子選單
                 if (sub.children) {
                     const subSubmenu = document.createElement('div');
                     subSubmenu.className = 'submenu';
@@ -306,7 +344,7 @@ function renderMenu() {
                         sub3Item.href = "#";
                         sub3Item.className = 'sub-item';
                         sub3Item.innerText = sub3.title;
-                        sub3Item.style.paddingLeft = '45px'; // 讓第三層自動向右縮排
+                        sub3Item.style.paddingLeft = '45px'; 
 
                         sub3Item.onclick = (e) => {
                             e.preventDefault(); 
@@ -333,8 +371,6 @@ function loadPage(pageId) {
     const contentArea = document.getElementById('content-area');
     const parts = pageId.split('-');
     const folderName = parts[0].toLowerCase(); 
-    
-    // 🟢 修正：使用正規表達式取代所有的 '-' 為 '_'，才能正確載入如 a_a_a.html 的路徑
     const fileNameBase = pageId.replace(/-/g, '_').toLowerCase(); 
     const filePath = `${folderName}/${fileNameBase}.html`; 
 
@@ -346,7 +382,6 @@ function loadPage(pageId) {
         .then(html => {
             contentArea.innerHTML = html; 
             
-            // 手動重新執行載入 HTML 內的 <script> 標籤
             const scripts = contentArea.querySelectorAll('script');
             scripts.forEach(oldScript => {
                 const newScript = document.createElement('script');
@@ -379,7 +414,6 @@ window.closeModal = function() {
     if (modal) modal.style.display = 'none';
 }
 
-// 🟢 載入首頁佈告欄的專用函數
 window.loadBulletin = function() {
     const contentArea = document.getElementById('content-area');
     fetch('bulletin.html')

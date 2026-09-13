@@ -3,13 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <title>旅行業資訊管理系統</title>
-    <!-- 引入樣式表 -->
     <link rel="stylesheet" href="mainstyle.css">
-    
-    <!-- 🟢 引入佈告欄資料 -->
     <script src="bulletin.js"></script>
-
-    <!-- 載入 SQLite 網頁引擎 -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/sql.js/1.8.0/sql-wasm.js"></script>
 </head>
 <body>
@@ -40,15 +35,20 @@
     </div>
 
     <div class="main-container">
-        <!-- 左側導覽列外殼 -->
+        <!-- 左側導覽列 -->
         <div class="sidebar">
             <div class="login-info">
                 <div class="login-time-bar">
                     登入時間：<span id="current-time"></span>
                 </div>
-                <!-- 🟢 新增：檔案狀態顯示區塊 -->
-                <div class="file-status-bar">
-                    <span style="color: #2e7d32; font-weight:bold;">檔案狀態：</span><br>
+                <!-- 檔案狀態顯示區塊 -->
+                <div class="file-status-bar" style="position: relative;">
+                    <span style="color: #2e7d32; font-weight:bold;">檔案狀態：</span>
+                    <!-- 🟢 老師專屬的「切換檔案」按鈕，預設隱藏，由 JS 控制顯示 -->
+                    <button id="btn-switch-db" onclick="switchStudentDatabase()" style="display: none; position: absolute; right: 5px; top: 2px; background-color: #ff9800; color: white; border: 1px solid #e65100; cursor: pointer; font-size: 11px; padding: 2px 5px; border-radius: 3px;">
+                        📂 切換檔案
+                    </button>
+                    <br>
                     <span id="current-file" style="word-break: break-all; color:#d84315;">等待綁定...</span>
                 </div>
                 <div class="user-info-bar">
@@ -59,11 +59,9 @@
             <div class="logout-area">
                 <button class="logout-btn" onclick="logout()">登 出</button>
             </div>
-            <!-- JS 將在這裡生成選單 -->
             <div class="menu-list" id="menu-list"></div>
         </div>
 
-        <!-- 右側內容區外殼 -->
         <div class="content-area" id="content-area"></div>
     </div>
 
