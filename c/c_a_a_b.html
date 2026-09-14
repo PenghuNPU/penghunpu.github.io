@@ -31,8 +31,8 @@
             2、此處之公司聯絡人及電話，為各系列之國內聯絡或負責人，將顯示於Hotel list上。<br>
             P.S.一旦建立系列名稱，可修改但無法刪除。
         </div>
-        <!-- 點擊跳轉至新增頁面，並確保清空修改狀態 -->
-        <button class="btn-add" onclick="window.currentEditSeriesCode = null; loadPage('C-A-A-B-ADD')">
+        <!-- 🟢 確保點擊新增時，清空修改狀態並跳轉至 C-A-A-B-ADD -->
+        <button class="btn-add" onclick="window.currentEditSeriesCode = null; loadPage('C-A-A-B-ADD');">
             <span class="icon">📝➕</span> 新 增
         </button>
     </div>
@@ -65,6 +65,9 @@
 
 <script>
     (function renderTable() {
+        // 🟢 進入列表頁時，強制清空修改變數，避免錯誤帶入舊資料
+        window.currentEditSeriesCode = null;
+
         if (!window.db) { alert("資料庫未綁定！"); return; }
         
         window.db.exec(`
@@ -109,8 +112,8 @@
                         <td>${phone}</td>
                         <td><input type="checkbox" disabled ${isActive}></td>
                         <td class="action-icons">
-                            <!-- 點擊時傳遞對應的 record 代碼，並切換至新增/修改頁面 -->
-                            <span title="修改此筆資料" onclick="window.currentEditSeriesCode = '${code}'; loadPage('C-A-A-B-ADD')">📝</span>
+                            <!-- 🟢 點擊修改時傳遞變數並跳轉至 C-A-A-B-ADD -->
+                            <span title="修改此筆資料" onclick="window.currentEditSeriesCode = '${code}'; loadPage('C-A-A-B-ADD');">📝</span>
                             <!-- 複製功能只留圖示，無作用 -->
                             <span title="複製 (目前無作用)" class="icon-disabled">📄</span>
                         </td>

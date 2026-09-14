@@ -30,8 +30,8 @@
             建議您建立一個通用的線別，以利產品系列的規劃。<br>
             P.S.一旦建立線別可修改名稱和旅遊區域，但無法刪除。
         </div>
-        <!-- 🟢 點擊跳轉至新增頁面，清空修改狀態並使用原檔名路徑 -->
-        <button class="btn-add" onclick="window.currentEditLineCode = null; loadPage('C-A-A-A-ADD')">
+        <!-- 🟢 點擊新增時，強制清空修改變數，並載入 C-A-A-A-ADD -->
+        <button class="btn-add" onclick="window.currentEditLineCode = null; loadPage('C-A-A-A-ADD');">
             <span class="icon">📝➕</span> 新 增
         </button>
     </div>
@@ -61,6 +61,9 @@
 
 <script>
     (function renderTable() {
+        // 🟢 每次進入列表頁，確保修改變數被清空，避免點擊「新增」卻帶入舊資料
+        window.currentEditLineCode = null;
+
         if (!window.db) { alert("資料庫未綁定！"); return; }
         
         window.db.exec(`
@@ -95,8 +98,8 @@
                         <td>${continent}</td>
                         <td><input type="checkbox" disabled ${isActive}></td>
                         <td class="action-icons">
-                            <!-- 🟢 點擊時傳遞對應的 record 代碼，使用原檔名路徑 -->
-                            <span title="修改此筆資料" onclick="window.currentEditLineCode = '${code}'; loadPage('C-A-A-A-ADD')">📝</span>
+                            <!-- 🟢 點擊修改時賦予變數並跳轉至 C-A-A-A-ADD -->
+                            <span title="修改此筆資料" onclick="window.currentEditLineCode = '${code}'; loadPage('C-A-A-A-ADD');">📝</span>
                             <span title="複製 (目前無作用)" class="icon-disabled">📄</span>
                         </td>
                     </tr>
