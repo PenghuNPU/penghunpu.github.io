@@ -27,8 +27,8 @@
             建議您建立一個通用的線別，以利產品系列的規劃。<br>
             P.S.一旦建立線別可修改名稱和所對應之洲別，但無法刪除。
         </div>
-        <!-- 點擊跳轉至新增頁面 -->
-        <button class="btn-add" onclick="loadPage('C-A-A-A-ADD')">
+        <!-- 🟢 點擊跳轉至新增頁面，並確保清空修改狀態 -->
+        <button class="btn-add" onclick="window.currentEditLineCode = null; loadPage('C-A-A-A-ADD')">
             <span class="icon">📝➕</span> 新 增
         </button>
     </div>
@@ -44,8 +44,8 @@
         <thead>
             <tr>
                 <th style="width: 15%;">代碼</th>
-                <th style="width: 35%;">旅遊區域 [線別] 名稱</th>
-                <th style="width: 20%;">對應洲別</th>
+                <th style="width: 35%;">區域線別</th>
+                <th style="width: 20%;">旅遊區域/</th>
                 <th style="width: 10%;">上架</th>
                 <th style="width: 20%;">管理項目</th>
             </tr>
@@ -60,7 +60,6 @@
     (function renderTable() {
         if (!window.db) { alert("資料庫未綁定！"); return; }
         
-        // 防呆建立資料表
         window.db.exec(`
             CREATE TABLE IF NOT EXISTS ProductLines (
                 line_code TEXT PRIMARY KEY CHECK(length(line_code) <= 10),
@@ -71,7 +70,6 @@
         `);
 
         try {
-            // 讀取全部資料
             const res = window.db.exec("SELECT line_code, line_name, continent, is_active FROM ProductLines ORDER BY line_code ASC");
             const tbody = document.getElementById('line_list_body');
             
@@ -94,7 +92,8 @@
                         <td>${continent}</td>
                         <td><input type="checkbox" disabled ${isActive}></td>
                         <td class="action-icons">
-                            <span title="修改">📝</span>
+                            <!-- 🟢 點擊時傳遞線別代碼，並切換至新增/修改頁面 -->
+                            <span title="修改" onclick="window.currentEditLineCode = '${code}'; loadPage('C-A-A-A-ADD')">📝</span>
                             <span title="複製">📄</span>
                         </td>
                     </tr>
