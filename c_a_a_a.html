@@ -1,0 +1,112 @@
+<style>
+    .page-wrapper { font-family: "MS Sans Serif", "細明體", sans-serif; font-size: 13px; padding: 15px; background-color: #ece9d8; height: 100%; box-sizing: border-box; overflow-y: auto; }
+    .header-section { display: flex; justify-content: space-between; margin-bottom: 10px; }
+    .info-text { color: #333; line-height: 1.6; text-align: center; flex-grow: 1; }
+    
+    /* 自訂新增按鈕樣式 */
+    .btn-add { background-color: #d4d0c8; border: 2px outset #fff; cursor: pointer; display: flex; align-items: center; padding: 2px 10px; font-weight: bold; font-size: 13px; letter-spacing: 2px; height: 30px; }
+    .btn-add:active { border-style: inset; }
+    .btn-add span.icon { font-size: 16px; margin-right: 5px; font-weight: normal; color: #555; }
+
+    .pagination-bar { text-align: center; margin-bottom: 5px; font-size: 12px; }
+    .pagination-bar a { text-decoration: none; color: black; margin: 0 5px; cursor: pointer; }
+    .pagination-bar a:hover { text-decoration: underline; }
+    
+    .data-table { width: 100%; border-collapse: collapse; border: 1px solid #777; background-color: #fff; }
+    .data-table th { background-color: #d4d0c8; border: 1px solid #777; padding: 6px; font-weight: bold; text-align: center; }
+    .data-table td { border: 1px solid #777; padding: 6px; text-align: center; vertical-align: middle; }
+    .data-table tr:nth-child(even) { background-color: #e2dfd3; } 
+    
+    .action-icons span { cursor: pointer; margin: 0 3px; font-size: 15px; }
+    
+    /* 🟢 複製按鈕禁用樣式 */
+    .icon-disabled { cursor: default !important; opacity: 0.4; }
+</style>
+
+<div class="page-wrapper">
+    <div class="header-section">
+        <div style="width: 80px;"></div> 
+        <div class="info-text">
+            建議您建立一個通用的線別，以利產品系列的規劃。<br>
+            P.S.一旦建立線別可修改名稱和旅遊區域，但無法刪除。
+        </div>
+        <!-- 🟢 點擊跳轉至新增頁面 (指向 _2)，並確保清空修改狀態 -->
+        <button class="btn-add" onclick="window.currentEditLineCode = null; loadPage('C-A-A-A-ADD')">
+            <span class="icon">📝➕</span> 新 增
+        </button>
+    </div>
+
+    <!-- 靜態分頁示意列 -->
+    <div class="pagination-bar">
+        頁次：1 / 1 &nbsp;|&nbsp; 
+        <a>第一頁</a> &nbsp;|&nbsp; <a>上一頁</a> &nbsp;|&nbsp; <a>下一頁</a> &nbsp;|&nbsp; <a>最後一頁</a> &nbsp;|&nbsp; 
+        第 <input type="text" style="width:20px; border:1px solid #777; text-align:center;" value="1"> 頁 <button style="font-size:10px;">GO</button>
+    </div>
+
+    <table class="data-table">
+        <thead>
+            <tr>
+                <th style="width: 15%;">代碼</th>
+                <th style="width: 35%;">區域線別</th>
+                <th style="width: 20%;">旅遊區域/</th>
+                <th style="width: 10%;">上架</th>
+                <th style="width: 20%;">管理項目</th>
+            </tr>
+        </thead>
+        <tbody id="line_list_body">
+            <tr><td colspan="5">載入中...</td></tr>
+        </tbody>
+    </table>
+</div>
+
+<script>
+    (function renderTable() {
+        if (!window.db) { alert("資料庫未綁定！"); return; }
+        
+        window.db.exec(`
+            CREATE TABLE IF NOT EXISTS ProductLines (
+                line_code TEXT PRIMARY KEY CHECK(length(line_code) <= 10),
+                line_name TEXT NOT NULL CHECK(length(line_name) <= 20),
+                continent TEXT NOT NULL,
+                is_active INTEGER NOT NULL DEFAULT 1
+            );
+        `);
+
+        try {
+            const res = window.db.exec("SELECT line_code, line_name, continent, is_active FROM ProductLines ORDER BY line_code ASC");
+            const tbody = document.getElementById('line_list_body');
+            
+            if (res.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="5" style="color:red; font-weight:bold;">目前尚無資料，請點擊右上角新增。</td></tr>`;
+                return;
+            }
+
+            let html = '';
+            res[0].values.forEach(row => {
+                const code = row[0] || '';
+                const name = row[1] || '';
+                const continent = row[2] || '';
+                const isActive = row[3] === 1 ? 'checked' : '';
+
+                html += `
+                    <tr>
+                        <td style="font-weight:bold; color:#0000ff;">${code}</td>
+                        <td>${name}</td>
+                        <td>${continent}</td>
+                        <td><input type="checkbox" disabled ${isActive}></td>
+                        <td class="action-icons">
+                            <!-- 🟢 點擊時傳遞對應的 record 代碼，並切換至新增/修改頁面 -->
+                            <span title="修改此筆資料" onclick="window.currentEditLineCode = '${code}'; loadPage('C-A-A-A-ADD')">📝</span>
+                            <!-- 🟢 複製功能只留圖示，無作用 -->
+                            <span title="複製 (目前無作用)" class="icon-disabled">📄</span>
+                        </td>
+                    </tr>
+                `;
+            });
+            tbody.innerHTML = html;
+        } catch (e) {
+            console.error(e);
+            document.getElementById('line_list_body').innerHTML = `<tr><td colspan="5">讀取失敗</td></tr>`;
+        }
+    })();
+</script>
