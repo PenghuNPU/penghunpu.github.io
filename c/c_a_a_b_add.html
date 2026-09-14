@@ -1,0 +1,234 @@
+<style>
+    .page-wrapper { font-family: "MS Sans Serif", "細明體", sans-serif; font-size: 13px; padding: 20px; background-color: #ece9d8; height: 100%; box-sizing: border-box; position: relative; }
+    
+    .top-selectors { margin-bottom: 15px; text-align: center; font-weight: bold; padding: 10px; background-color: #e2dfd3; border: 1px solid #777; display: inline-block; }
+    
+    .form-table { width: 100%; border-collapse: collapse; border: 1px solid #777; background-color: #fff; margin-bottom: 20px; }
+    .form-table th { background-color: #d4d0c8; border: 1px solid #777; padding: 8px; font-weight: bold; text-align: center; }
+    .form-table td { border: 1px solid #777; padding: 8px; text-align: center; vertical-align: middle; background-color: #e2dfd3; }
+    
+    .input-box { border: 1px inset #fff; padding: 4px; font-size: 13px; }
+    .readonly-box { background-color: #e0e0e0; cursor: default; color: #333; }
+    
+    .icon-btn { background: none; border: none; cursor: pointer; font-size: 16px; display: inline-block; vertical-align: middle; }
+    
+    /* 查詢按鈕專屬樣式 (淺橘底、白字) */
+    .btn-query {
+        background-color: #ffaa44 !important; 
+        color: #ffffff !important; 
+        font-weight: bold;
+        border: 1px outset #fff !important;
+        padding: 2px 6px;
+        font-size: 13px;
+        border-radius: 2px;
+        margin-left: 2px;
+    }
+
+    /* 必填標記圖示樣式 */
+    .req-icon {
+        display: inline-block;
+        width: 14px;
+        height: 14px;
+        background-color: #ffff00;
+        color: #ff0000;
+        border: 1px solid #808080;
+        font-size: 12px;
+        line-height: 14px;
+        text-align: center;
+        font-weight: bold;
+        margin-left: 4px;
+        vertical-align: middle;
+        cursor: help;
+    }
+    
+    .warning-list { color: #333; margin-bottom: 30px; font-weight: bold; line-height: 1.8; }
+    .warning-list span { color: #555; }
+    
+    .action-row { text-align: center; }
+    .action-row button { background-color: #d4d0c8; border: 2px outset #fff; padding: 4px 20px; font-weight: bold; letter-spacing: 2px; margin: 0 10px; cursor: pointer; }
+    .action-row button:active { border-style: inset; }
+</style>
+
+<div class="page-wrapper">
+    <div style="text-align: center;">
+        <div class="top-selectors">
+            洲別：<select id="continent_select" class="input-box" onchange="window.updateLineSelect()"><option value="">-請選擇-</option></select>
+            <span class="req-icon" title="必填">✓</span>
+            &nbsp;&nbsp;&nbsp;&nbsp;
+            線別：<select id="line_select" class="input-box"><option value="">-請先選擇洲別-</option></select>
+            <span class="req-icon" title="必填">✓</span>
+        </div>
+    </div>
+
+    <table class="form-table">
+        <thead>
+            <tr>
+                <th style="width: 15%;">代碼</th>
+                <th style="width: 30%;">產品系列名稱</th>
+                <th style="width: 15%;">旅遊品牌</th>
+                <th style="width: 20%;">公司聯絡人</th>
+                <th style="width: 15%;">聯絡電話</th>
+                <th style="width: 5%;">上架</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td><input type="text" id="add_code" class="input-box" style="width: 70%; text-transform: uppercase;" maxlength="10"><span class="req-icon" title="必填">✓</span></td>
+                <td><input type="text" id="add_name" class="input-box" style="width: 85%;" maxlength="20"><span class="req-icon" title="必填">✓</span></td>
+                <td><input type="text" id="add_brand" class="input-box" style="width: 75%;"><span class="req-icon" title="必填">✓</span></td>
+                <td>
+                    <input type="text" id="add_person" class="input-box" style="width: 60%;">
+                    <button class="icon-btn btn-query" title="查詢">📄?</button>
+                    <span class="req-icon" title="必填">✓</span>
+                </td>
+                <td><input type="text" id="add_phone" class="input-box" style="width: 80%;"><span class="req-icon" title="必填">✓</span></td>
+                <td><input type="checkbox" id="add_active" checked></td>
+            </tr>
+        </tbody>
+    </table>
+
+    <div class="warning-list">
+        <span>➲</span> 不能與其他系列代碼重複<br>
+        <span>➲</span> 產品系列名稱長度，最長為20個中文字
+    </div>
+
+    <div class="action-row">
+        <!-- 加上 ID 以便動態改變文字為「修改」 -->
+        <button id="btn_save" onclick="window.saveProductSeries()">確定新增</button>
+        <button onclick="loadPage('C-A-A-B')">放 棄</button>
+    </div>
+</div>
+
+<script>
+    // 載入洲別選單資料 (從 ProductLines 資料表中取得不重複的 continent)
+    window.loadContinents = function(selectedContinent = '') {
+        const sel = document.getElementById('continent_select');
+        sel.innerHTML = '<option value="">-請選擇-</option>';
+        try {
+            const res = window.db.exec("SELECT DISTINCT continent FROM ProductLines ORDER BY continent");
+            if (res.length > 0) {
+                res[0].values.forEach(row => {
+                    const isSelected = (row[0] === selectedContinent) ? 'selected' : '';
+                    sel.innerHTML += `<option value="${row[0]}" ${isSelected}>${row[0]}</option>`;
+                });
+            }
+        } catch(e) {
+            console.error("載入洲別失敗，請確認已在 C-A-A-A 建立產品線別", e);
+        }
+    };
+
+    // 根據選取的洲別，動態載入對應的線別 (line_name)
+    window.updateLineSelect = function(selectedLine = '') {
+        const continent = document.getElementById('continent_select').value;
+        const sel = document.getElementById('line_select');
+        sel.innerHTML = '<option value="">-請選擇-</option>';
+        if (continent) {
+            try {
+                const res = window.db.exec(`SELECT line_name FROM ProductLines WHERE continent = '${continent}' ORDER BY line_name`);
+                if (res.length > 0) {
+                    res[0].values.forEach(row => {
+                        const isSelected = (row[0] === selectedLine) ? 'selected' : '';
+                        sel.innerHTML += `<option value="${row[0]}" ${isSelected}>${row[0]}</option>`;
+                    });
+                }
+            } catch(e) {
+                console.error("載入線別失敗", e);
+            }
+        }
+    };
+
+    // 初始化表單：判斷是否為修改模式
+    (function initForm() {
+        if (!window.db) return;
+        
+        if (window.currentEditSeriesCode) {
+            document.getElementById('btn_save').innerText = "修 改";
+            // 修改時，代碼為主鍵不能變更，設為唯讀
+            const codeInput = document.getElementById('add_code');
+            codeInput.readOnly = true;
+            codeInput.classList.add('readonly-box');
+
+            try {
+                const res = window.db.exec(`SELECT continent, line_name, series_name, brand, contact_person, contact_phone, is_active FROM ProductSeries WHERE series_code = '${window.currentEditSeriesCode}'`);
+                if (res.length > 0) {
+                    const data = res[0].values[0];
+                    const cleanStr = (val) => val === null ? '' : val;
+
+                    document.getElementById('add_code').value = window.currentEditSeriesCode;
+                    
+                    // 先載入洲別，並設定預設值
+                    window.loadContinents(cleanStr(data[0]));
+                    // 根據載入的洲別，連動載入線別，並設定預設值
+                    window.updateLineSelect(cleanStr(data[1]));
+
+                    document.getElementById('add_name').value = cleanStr(data[2]);
+                    document.getElementById('add_brand').value = cleanStr(data[3]);
+                    document.getElementById('add_person').value = cleanStr(data[4]);
+                    document.getElementById('add_phone').value = cleanStr(data[5]);
+                    document.getElementById('add_active').checked = (data[6] === 1);
+                }
+            } catch (e) {
+                console.error("載入修改資料失敗", e);
+            }
+        } else {
+            // 新增模式，直接載入所有洲別
+            window.loadContinents();
+        }
+    })();
+
+    window.saveProductSeries = async function() {
+        const continent = document.getElementById('continent_select').value;
+        const line = document.getElementById('line_select').value;
+        const code = document.getElementById('add_code').value.trim().toUpperCase();
+        const name = document.getElementById('add_name').value.trim();
+        const brand = document.getElementById('add_brand').value.trim();
+        const person = document.getElementById('add_person').value.trim();
+        const phone = document.getElementById('add_phone').value.trim();
+        const isActive = document.getElementById('add_active').checked ? 1 : 0;
+
+        // 全部欄位必填驗證
+        if (!continent) { alert("❌ 請選擇旅遊區域！"); document.getElementById('continent_select').focus(); return; }
+        if (!line) { alert("❌ 請選擇線別！"); document.getElementById('line_select').focus(); return; }
+        if (!code) { alert("❌ 請填寫代碼！"); document.getElementById('add_code').focus(); return; }
+        if (!name) { alert("❌ 請填寫產品系列名稱！"); document.getElementById('add_name').focus(); return; }
+        if (!brand) { alert("❌ 請填寫旅遊品牌！"); document.getElementById('add_brand').focus(); return; }
+        if (!person) { alert("❌ 請填寫公司聯絡人！"); document.getElementById('add_person').focus(); return; }
+        if (!phone) { alert("❌ 請填寫聯絡電話！"); document.getElementById('add_phone').focus(); return; }
+
+        let sql = "";
+
+        // 判斷為修改 (UPDATE) 還是新增 (INSERT)
+        if (window.currentEditSeriesCode) {
+            sql = `
+                UPDATE ProductSeries SET 
+                    continent = '${continent}',
+                    line_name = '${line}',
+                    series_name = '${name}', 
+                    brand = '${brand}',
+                    contact_person = '${person}',
+                    contact_phone = '${phone}',
+                    is_active = ${isActive}
+                WHERE series_code = '${code}';
+            `;
+        } else {
+            // 新增時確認代碼是否已存在
+            const checkRes = window.db.exec(`SELECT series_code FROM ProductSeries WHERE series_code = '${code}'`);
+            if (checkRes.length > 0) {
+                alert("❌ 錯誤：不能與其他系列代碼重複！");
+                document.getElementById('add_code').focus();
+                return;
+            }
+            sql = `
+                INSERT INTO ProductSeries (series_code, continent, line_name, series_name, brand, contact_person, contact_phone, is_active)
+                VALUES ('${code}', '${continent}', '${line}', '${name}', '${brand}', '${person}', '${phone}', ${isActive});
+            `;
+        }
+
+        const isSuccess = await window.executeAndSave(sql);
+        if (isSuccess) {
+            const actionText = window.currentEditSeriesCode ? "修改" : "新增";
+            alert(`✅ 產品系列 [${code}] 已成功${actionText}！`);
+            loadPage('C-A-A-B'); // 儲存成功後返回列表頁
+        }
+    };
+</script>
