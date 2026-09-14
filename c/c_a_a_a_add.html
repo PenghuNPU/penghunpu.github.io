@@ -100,7 +100,8 @@
 </div>
 
 <script>
-    const continentOptions = ["台灣國內線","中國大陸","東北亞", "東南亞", "大洋洲", "東歐", "西歐", "北歐", "南歐","北美洲", "南美洲","非洲"];
+    // ✅ 修正點：將 const 改為 var，避免切換頁面時發生重複宣告 (Identifier has already been declared) 的錯誤
+    var continentOptions = ["台灣國內線","中國大陸","東北亞", "東南亞", "大洋洲", "東歐", "西歐", "北歐", "南歐","北美洲", "南美洲","非洲"];
 
     (function initForm() {
         if (window.currentEditLineCode) {
