@@ -85,7 +85,7 @@
     <div class="action-row">
         <button id="btn_save" onclick="saveProductLine()">確定新增</button>
         <!-- 🟢 返回指向對應的列表頁 _2 -->
-        <button onclick="loadPage('C-A-A-A-2')">放 棄</button>
+        <button onclick="loadPage('C-A-A-A')">放 棄</button>
     </div>
 </div>
 
@@ -180,7 +180,7 @@
             const actionText = window.currentEditLineCode ? "修改" : "新增";
             alert(`✅ 產品線別 [${code}] 已成功${actionText}！`);
             // 🟢 儲存成功後返回列表頁 _2
-            loadPage('C-A-A-A-2'); 
+            loadPage('C-A-A-A'); 
         }
     };
 </script>
