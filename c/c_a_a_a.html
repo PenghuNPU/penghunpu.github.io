@@ -19,7 +19,7 @@
     
     .action-icons span { cursor: pointer; margin: 0 3px; font-size: 15px; }
     
-    /* 🟢 複製按鈕禁用樣式 */
+    /* 複製按鈕禁用樣式 */
     .icon-disabled { cursor: default !important; opacity: 0.4; }
 </style>
 
@@ -30,7 +30,7 @@
             建議您建立一個通用的線別，以利產品系列的規劃。<br>
             P.S.一旦建立線別可修改名稱和旅遊區域，但無法刪除。
         </div>
-        <!-- 🟢 點擊跳轉至新增頁面 (指向 _2)，並確保清空修改狀態 -->
+        <!-- 🟢 點擊跳轉至新增頁面，清空修改狀態並使用原檔名路徑 -->
         <button class="btn-add" onclick="window.currentEditLineCode = null; loadPage('C-A-A-A-ADD')">
             <span class="icon">📝➕</span> 新 增
         </button>
@@ -95,9 +95,8 @@
                         <td>${continent}</td>
                         <td><input type="checkbox" disabled ${isActive}></td>
                         <td class="action-icons">
-                            <!-- 🟢 點擊時傳遞對應的 record 代碼，並切換至新增/修改頁面 -->
+                            <!-- 🟢 點擊時傳遞對應的 record 代碼，使用原檔名路徑 -->
                             <span title="修改此筆資料" onclick="window.currentEditLineCode = '${code}'; loadPage('C-A-A-A-ADD')">📝</span>
-                            <!-- 🟢 複製功能只留圖示，無作用 -->
                             <span title="複製 (目前無作用)" class="icon-disabled">📄</span>
                         </td>
                     </tr>
