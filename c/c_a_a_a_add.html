@@ -1,0 +1,130 @@
+<style>
+    .page-wrapper { font-family: "MS Sans Serif", "細明體", sans-serif; font-size: 13px; padding: 20px; background-color: #ece9d8; height: 100%; box-sizing: border-box; position: relative; }
+    
+    .form-table { width: 100%; border-collapse: collapse; border: 1px solid #777; background-color: #fff; margin-bottom: 20px; }
+    .form-table th { background-color: #d4d0c8; border: 1px solid #777; padding: 8px; font-weight: bold; text-align: center; }
+    .form-table td { border: 1px solid #777; padding: 10px; text-align: center; vertical-align: top; background-color: #e2dfd3; }
+    
+    .input-box { border: 1px inset #fff; padding: 4px; font-size: 13px; }
+    .readonly-box { background-color: #e0e0e0; cursor: default; }
+    
+    .icon-btn { background: none; border: none; cursor: pointer; font-size: 20px; margin-top: 5px; display: block; margin-left: auto; margin-right: auto; }
+    
+    .warning-list { color: #333; margin-bottom: 30px; font-weight: bold; line-height: 1.8; }
+    .warning-list span { color: #555; }
+    
+    .action-row { text-align: center; }
+    .action-row button { background-color: #d4d0c8; border: 2px outset #fff; padding: 4px 20px; font-weight: bold; letter-spacing: 2px; margin: 0 10px; cursor: pointer; }
+    .action-row button:active { border-style: inset; }
+
+    /* 🟢 對應洲別選擇器 Modal 樣式 */
+    .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.4); z-index: 999; }
+    .modal-box { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background-color: #ece9d8; border: 2px solid #000; padding: 10px; width: 250px; box-shadow: 2px 2px 10px rgba(0,0,0,0.5); }
+    .modal-header { background: linear-gradient(to right, #000080, #1084d0); color: white; padding: 4px; font-weight: bold; display: flex; justify-content: space-between; margin-bottom: 5px; }
+    .modal-close { cursor: pointer; background: #d4d0c8; color: black; border: 1px outset #fff; padding: 0 4px; }
+    .list-container { height: 200px; overflow-y: auto; background-color: white; border: 1px inset #fff; padding: 5px; }
+    .list-item { padding: 6px; cursor: pointer; border-bottom: 1px dashed #ccc; }
+    .list-item:hover { background-color: #000080; color: white; }
+</style>
+
+<div class="page-wrapper">
+    <table class="form-table">
+        <thead>
+            <tr>
+                <th style="width: 20%;">代碼</th>
+                <th style="width: 40%;">旅遊區域 [線別] 名稱</th>
+                <th style="width: 30%;">對應洲別</th>
+                <th style="width: 10%;">上架</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td><input type="text" id="add_code" class="input-box" style="width: 80%; text-transform: uppercase;" maxlength="10"></td>
+                <td><input type="text" id="add_name" class="input-box" style="width: 90%;" maxlength="20"></td>
+                <td>
+                    <!-- 唯讀輸入框 -->
+                    <input type="text" id="add_continent" class="input-box readonly-box" style="width: 80%;" readonly placeholder="請點選下方圖示">
+                    <button class="icon-btn" onclick="openContinentPicker()">📄❓</button>
+                </td>
+                <td style="vertical-align: middle;"><input type="checkbox" id="add_active" checked></td>
+            </tr>
+        </tbody>
+    </table>
+
+    <div class="warning-list">
+        <span>➲</span> 不能與其他產品線代碼重複<br>
+        <span>➲</span> 產品線別名稱長度，最長為20個中文字
+    </div>
+
+    <div class="action-row">
+        <button onclick="saveProductLine()">確定新增</button>
+        <button onclick="loadPage('C-A-A-A')">放 棄</button>
+    </div>
+</div>
+
+<!-- 洲別選擇視窗 -->
+<div id="continent_modal" class="modal-overlay">
+    <div class="modal-box">
+        <div class="modal-header">
+            <span>🌍 選擇對應洲別</span>
+            <span class="modal-close" onclick="closeContinentPicker()">Ｘ</span>
+        </div>
+        <div class="list-container" id="continent_list">
+            <!-- JS 動態產生清單 -->
+        </div>
+    </div>
+</div>
+
+<script>
+    const continentOptions = ["中國大陸", "東北亞", "東南亞", "大洋洲", "東歐", "西歐", "美洲", "南美洲"];
+
+    window.openContinentPicker = function() {
+        let listHtml = '';
+        continentOptions.forEach(item => {
+            listHtml += `<div class="list-item" onclick="selectContinent('${item}')">${item}</div>`;
+        });
+        document.getElementById('continent_list').innerHTML = listHtml;
+        document.getElementById('continent_modal').style.display = 'block';
+    };
+
+    window.closeContinentPicker = function() {
+        document.getElementById('continent_modal').style.display = 'none';
+    };
+
+    window.selectContinent = function(val) {
+        document.getElementById('add_continent').value = val;
+        closeContinentPicker();
+    };
+
+    window.saveProductLine = async function() {
+        const code = document.getElementById('add_code').value.trim().toUpperCase();
+        const name = document.getElementById('add_name').value.trim();
+        const continent = document.getElementById('add_continent').value.trim();
+        const isActive = document.getElementById('add_active').checked ? 1 : 0;
+
+        // 必填驗證
+        if (!code) { alert("❌ 請填寫代碼！"); document.getElementById('add_code').focus(); return; }
+        if (!name) { alert("❌ 請填寫旅遊區域名稱！"); document.getElementById('add_name').focus(); return; }
+        if (!continent) { alert("❌ 請選擇對應洲別！"); return; }
+
+        // 確認代碼是否已存在 (Primary Key 防呆)
+        const checkSql = `SELECT line_code FROM ProductLines WHERE line_code = '${code}'`;
+        const checkRes = window.db.exec(checkSql);
+        if (checkRes.length > 0) {
+            alert("❌ 錯誤：不能與其他產品線代碼重複！");
+            document.getElementById('add_code').focus();
+            return;
+        }
+
+        const sql = `
+            INSERT INTO ProductLines (line_code, line_name, continent, is_active)
+            VALUES ('${code}', '${name}', '${continent}', ${isActive});
+        `;
+
+        const isSuccess = await window.executeAndSave(sql);
+        if (isSuccess) {
+            alert(`✅ 產品線別 [${code}] 已成功新增！`);
+            loadPage('C-A-A-A'); // 儲存成功後返回列表頁
+        }
+    };
+</script>
