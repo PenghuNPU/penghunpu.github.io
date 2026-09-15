@@ -25,7 +25,8 @@
     <div class="header-section">
         <div class="info-text">
             建議您建立共用基本行程，以利後續行程組裝的便利性。<br>
-            P.S.一旦建立可隨時修改，但無法刪除。
+            <!-- 🟢 更新了提示文字，移除無法刪除的字眼 -->
+            P.S.建立後可透過右側管理項目進行修改或刪除。
         </div>
         <!-- 🟢 確保點擊新增時，清空修改狀態並跳轉至 C-A-A-C-ADD -->
         <button class="btn-add" onclick="window.currentEditTripCode = null; loadPage('C-A-A-C-ADD');">
@@ -95,9 +96,10 @@
                         <td>${city}</td>
                         <td>${hotel}</td>
                         <td class="action-icons">
-                            <!-- 點擊修改時傳遞變數並跳轉至 C-A-A-C-ADD -->
+                            <!-- 修改圖示 -->
                             <span title="修改此筆資料" onclick="window.currentEditTripCode = '${code}'; loadPage('C-A-A-C-ADD');">📝</span>
-                            <span title="複製 (目前無作用)" class="icon-disabled">📄</span>
+                            <!-- 🟢 新增的刪除圖示與綁定事件 -->
+                            <span title="刪除此筆資料" onclick="window.deleteTrip('${code}')">🗑️</span>
                         </td>
                     </tr>
                 `;
@@ -108,4 +110,29 @@
             document.getElementById('trip_list_body').innerHTML = `<tr><td colspan="5">讀取失敗</td></tr>`;
         }
     })();
+
+    // 🟢 實作刪除功能，包含原生的確認視窗與刪除語法
+    window.deleteTrip = async function(code) {
+        if (confirm("⚠️ 確定要刪除行程代碼 [" + code + "] 嗎？\\n刪除後將無法恢復！")) {
+            var sql = "DELETE FROM CommonItineraries WHERE trip_code = '" + code + "'";
+            
+            // 呼叫主頁面提供的 executeAndSave 方法來確保資料寫入實體檔案
+            if (window.executeAndSave) {
+                var isSuccess = await window.executeAndSave(sql);
+                if (isSuccess) {
+                    alert("✅ 行程 [" + code + "] 已成功刪除！");
+                    loadPage('C-A-A-C'); // 重新整理列表
+                }
+            } else {
+                // 備用方案 (若 executeAndSave 未定義)
+                try {
+                    window.db.exec(sql);
+                    alert("✅ 行程 [" + code + "] 已成功刪除！");
+                    loadPage('C-A-A-C'); 
+                } catch(e) {
+                    alert("刪除失敗：" + e.message);
+                }
+            }
+        }
+    };
 </script>
