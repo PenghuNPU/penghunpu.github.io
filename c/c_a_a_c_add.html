@@ -12,7 +12,6 @@
     
     .hint-text { color: #e65100; font-size: 11px; margin-top: 4px; display: inline-block; }
     
-    /* 查詢按鈕專屬樣式 (淺橘底、白字) */
     .btn-query {
         background-color: #ffaa44 !important; 
         color: #ffffff !important; 
@@ -30,7 +29,6 @@
     .btn-normal { background-color: #ece9d8; border: 1px outset #fff; padding: 2px 8px; cursor: pointer; font-size: 12px; vertical-align: middle; }
     .btn-normal:active { border-style: inset; }
 
-    /* 必填標記圖示樣式 */
     .req-icon {
         display: inline-block; width: 14px; height: 14px; background-color: #ffff00; color: #ff0000;
         border: 1px solid #808080; font-size: 12px; line-height: 14px; text-align: center;
@@ -43,7 +41,6 @@
     
     .upload-area { text-align: center; color: #0000ff; font-size: 12px; line-height: 1.8; }
     
-    /* 圖片預覽方塊樣式 */
     .preview-box {
         width: 145px;
         height: 112px;
@@ -196,7 +193,6 @@
 </div>
 
 <script>
-    // 🟢 修正：全域變數改為 var
     var cityOptions = [
         "台北市", "新北市", "桃園市", "台中市", "台南市", "高雄市", "基隆市", "新竹市", "嘉義市", "新竹縣", "苗栗縣", "彰化縣", "南投縣", "雲林縣", "嘉義縣", "屏東縣", "宜蘭縣", "花蓮縣", "台東縣", "澎湖縣", "金門縣", "連江縣",
         "東京 (Tokyo)", "大阪 (Osaka)", "京都 (Kyoto)", "札幌 (Sapporo)", "首爾 (Seoul)", "釜山 (Busan)", "曼谷 (Bangkok)", "清邁 (Chiang Mai)", "新加坡 (Singapore)", "吉隆坡 (Kuala Lumpur)", "胡志明市 (Ho Chi Minh City)", "河內 (Hanoi)", "馬尼拉 (Manila)", "雅加達 (Jakarta)", "峇里島 (Bali)"
@@ -245,7 +241,6 @@
         }
     };
 
-    // 🟢 修正：字串拼接避免報錯
     window.openCityPicker = function() {
         var html = '';
         cityOptions.forEach(function(city) {
@@ -265,14 +260,11 @@
         closeCityPicker();
     }
 
-    // 🟢 修正：字串拼接並同時綁定 onclick 到內部標籤 (span)，徹底解決點擊文字沒反應的問題
     window.openHotelPicker = function() {
         var html = '';
         hotelOptions.forEach(function(h) {
             var safeCode = h.code.replace(/'/g, "\\'");
             var safeName = h.name.replace(/'/g, "\\'");
-            
-            // 組合 onclick 事件
             var clickAction = "selectHotel('" + safeCode + "', '" + safeName + "')";
             
             html += '<div class="list-item" onclick="' + clickAction + '">' +
@@ -294,7 +286,7 @@
         closeHotelPicker();
     }
 
-    (function initForm() {
+    function initForm() {
         if (!window.db) return;
         
         if (window.currentEditTripCode) {
@@ -306,7 +298,9 @@
             codeInput.style.backgroundColor = '#e0e0e0';
 
             try {
-                var res = window.db.exec(`SELECT * FROM CommonItineraries WHERE trip_code = '${window.currentEditTripCode}'`);
+                var sql = "SELECT * FROM CommonItineraries WHERE trip_code = '" + window.currentEditTripCode + "'";
+                var res = window.db.exec(sql);
+                
                 if (res.length > 0) {
                     var data = res[0].values[0];
                     var cleanStr = function(val) { return val === null ? '' : val; };
@@ -332,7 +326,7 @@
                 console.error("載入修改資料失敗", e);
             }
         }
-    })();
+    };
 
     function escapeSql(str) {
         return str.replace(/'/g, "''");
@@ -366,36 +360,33 @@
         var sql = "";
 
         if (window.currentEditTripCode) {
-            sql = `
-                UPDATE CommonItineraries SET 
-                    trip_name = '${escapeSql(name)}', tour_city = '${escapeSql(city)}', hotel_code = '${escapeSql(h_code)}',
-                    hotel_same_level = ${h_same}, hotel_name = '${escapeSql(h_name)}', meal_features = '${escapeSql(m_feat)}',
-                    bf_checked = ${bf_chk}, bf_desc = '${escapeSql(bf_desc)}', lun_checked = ${lun_chk}, lun_desc = '${escapeSql(lun_desc)}',
-                    din_checked = ${din_chk}, din_desc = '${escapeSql(din_desc)}', itinerary_content = '${escapeSql(content)}'
-                WHERE trip_code = '${code}';
-            `;
+            sql = "UPDATE CommonItineraries SET " +
+                  "trip_name = '" + escapeSql(name) + "', tour_city = '" + escapeSql(city) + "', hotel_code = '" + escapeSql(h_code) + "', " +
+                  "hotel_same_level = " + h_same + ", hotel_name = '" + escapeSql(h_name) + "', meal_features = '" + escapeSql(m_feat) + "', " +
+                  "bf_checked = " + bf_chk + ", bf_desc = '" + escapeSql(bf_desc) + "', lun_checked = " + lun_chk + ", lun_desc = '" + escapeSql(lun_desc) + "', " +
+                  "din_checked = " + din_chk + ", din_desc = '" + escapeSql(din_desc) + "', itinerary_content = '" + escapeSql(content) + "' " +
+                  "WHERE trip_code = '" + code + "'";
         } else {
-            var checkRes = window.db.exec(`SELECT trip_code FROM CommonItineraries WHERE trip_code = '${code}'`);
+            var checkSql = "SELECT trip_code FROM CommonItineraries WHERE trip_code = '" + code + "'";
+            var checkRes = window.db.exec(checkSql);
             if (checkRes.length > 0) {
                 alert("錯誤：行程代碼不能重複！");
                 document.getElementById('trip_code').focus();
                 return;
             }
-            sql = `
-                INSERT INTO CommonItineraries (
-                    trip_code, trip_name, tour_city, hotel_code, hotel_same_level, hotel_name,
-                    meal_features, bf_checked, bf_desc, lun_checked, lun_desc, din_checked, din_desc, itinerary_content
-                ) VALUES (
-                    '${code}', '${escapeSql(name)}', '${escapeSql(city)}', '${escapeSql(h_code)}', ${h_same}, '${escapeSql(h_name)}',
-                    '${escapeSql(m_feat)}', ${bf_chk}, '${escapeSql(bf_desc)}', ${lun_chk}, '${escapeSql(lun_desc)}', ${din_chk}, '${escapeSql(din_desc)}', '${escapeSql(content)}'
-                );
-            `;
+            sql = "INSERT INTO CommonItineraries (" +
+                  "trip_code, trip_name, tour_city, hotel_code, hotel_same_level, hotel_name, " +
+                  "meal_features, bf_checked, bf_desc, lun_checked, lun_desc, din_checked, din_desc, itinerary_content" +
+                  ") VALUES (" +
+                  "'" + code + "', '" + escapeSql(name) + "', '" + escapeSql(city) + "', '" + escapeSql(h_code) + "', " + h_same + ", '" + escapeSql(h_name) + "', " +
+                  "'" + escapeSql(m_feat) + "', " + bf_chk + ", '" + escapeSql(bf_desc) + "', " + lun_chk + ", '" + escapeSql(lun_desc) + "', " + din_chk + ", '" + escapeSql(din_desc) + "', '" + escapeSql(content) + "'" +
+                  ")";
         }
 
         var isSuccess = await window.executeAndSave(sql);
         if (isSuccess) {
             var actionText = window.currentEditTripCode ? "修改" : "新增";
-            alert(`成功：行程代碼 [${code}] 已成功${actionText}！`);
+            alert("成功：行程代碼 [" + code + "] 已成功" + actionText + "！");
             loadPage('C-A-A-C'); 
         }
     };
