@@ -105,7 +105,7 @@ const menuData = [
             { id: 'D-F', title: 'F. 團體訂單異動紀錄' }
         ]
     },
-    { id: 'E', title: 'E. 票務管理', icon: 'icon/e.icon' },
+    { id: 'E', title: 'E. 票務管理', icon: 'icon/e.png' },
     { 
         id: 'F', 
         title: 'F. 證照管理', 
