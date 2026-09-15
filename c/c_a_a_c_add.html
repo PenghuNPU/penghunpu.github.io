@@ -73,14 +73,13 @@
 <div class="page-wrapper">
     <table class="form-table">
         <tr>
-            <!-- 標題會經由 JS 動態調整為「新增」或「修改」 -->
             <td colspan="3" class="form-title" id="form_title">【 新增共用基本行程內容 】</td>
         </tr>
         <tr>
             <th>行程<br>代碼</th>
             <td>
                 <input type="text" id="trip_code" class="input-box" style="width: 150px; text-transform: uppercase;" maxlength="8">
-                <span class="req-icon" title="必填">✓</span>
+                <span class="req-icon" title="必填">V</span>
                 <br><span class="hint-text">&lt;可使用英文加數字，長度以8個字為限&gt;</span>
             </td>
             <!-- 右側上傳圖片區塊 -->
@@ -107,7 +106,7 @@
             <th>行程<br>名稱</th>
             <td>
                 <textarea id="trip_name" class="textarea-box" rows="2" maxlength="80"></textarea>
-                <span class="req-icon" title="必填">✓</span>
+                <span class="req-icon" title="必填">V</span>
                 <br><span class="hint-text">&lt;長度以80個字為限&gt;</span>
             </td>
         </tr>
@@ -115,10 +114,10 @@
             <th>旅遊<br>城市</th>
             <td>
                 <input type="text" id="tour_city" class="input-box" style="width: 200px; margin-bottom: 5px;" placeholder="手動輸入或清單選取">
-                <span class="req-icon" title="必填">✓</span>
+                <span class="req-icon" title="必填">V</span>
                 <br>
-                <button class="btn-query" onclick="openCityPicker()">📄?</button> <span class="hint-text" style="color: #d84315;">&lt;請從資料庫中選取&gt;</span>
-                <button class="btn-normal" style="margin-left: 10px;" onclick="document.getElementById('tour_city').value=''">❌ 清除</button>
+                <button class="btn-query" onclick="openCityPicker()">?</button> <span class="hint-text" style="color: #d84315;">&lt;請從資料庫中選取&gt;</span>
+                <button class="btn-normal" style="margin-left: 10px;" onclick="document.getElementById('tour_city').value=''">清除</button>
             </td>
         </tr>
         <tr>
@@ -126,18 +125,16 @@
             <td>
                 <div style="margin-bottom: 5px;">
                     <span style="color:#d84315; font-weight:bold;">飯店代碼：</span>
-                    <!-- 🟢 移除 readonly 與鎖定的灰色背景，開放使用者自行輸入 -->
                     <input type="text" id="hotel_code" class="input-box" style="width: 80px;">
-                    <span class="req-icon" title="必填">✓</span>
+                    <span class="req-icon" title="必填">V</span>
                     &nbsp;&nbsp;&nbsp;&nbsp;
                     <input type="checkbox" id="hotel_same_level"> <span style="color:#d84315; font-weight:bold;">或同級</span>
                 </div>
-                <!-- 🟢 移除 readonly 與鎖定的灰色背景，開放使用者自行輸入 -->
                 <textarea id="hotel_name" class="textarea-box" rows="2"></textarea>
-                <span class="req-icon" title="必填">✓</span>
+                <span class="req-icon" title="必填">V</span>
                 <br>
-                <button class="btn-query" onclick="openHotelPicker()">📄?</button> <span class="hint-text" style="color: #999;">&lt;請從資料庫選取飯店，或直接手動輸入&gt;</span>
-                <button class="btn-normal" style="margin-left: 5px;" onclick="document.getElementById('hotel_code').value=''; document.getElementById('hotel_name').value='';">❌ 清除</button>
+                <button class="btn-query" onclick="openHotelPicker()">?</button> <span class="hint-text" style="color: #999;">&lt;請從資料庫選取飯店，或直接手動輸入&gt;</span>
+                <button class="btn-normal" style="margin-left: 5px;" onclick="document.getElementById('hotel_code').value=''; document.getElementById('hotel_name').value='';">清除</button>
             </td>
         </tr>
         
@@ -166,7 +163,7 @@
             <th>行程<br>內容</th>
             <td colspan="2">
                 <textarea id="itinerary_content" class="textarea-box" rows="5" style="margin-bottom: 5px;"></textarea>
-                <span class="req-icon" title="必填">✓</span>
+                <span class="req-icon" title="必填">V</span>
                 <div style="text-align: center; margin-top: 5px;">
                     <button class="btn-normal" style="padding: 4px 15px; font-weight:bold; background-color:#d4d0c8;">使用編輯器</button>
                     <button class="btn-normal" style="padding: 4px 15px; font-weight:bold; background-color:#d4d0c8;">預覽畫面</button>
@@ -184,8 +181,8 @@
 <div id="city_modal" class="modal-overlay">
     <div class="modal-box">
         <div class="modal-header">
-            <span>🏙️ 選擇旅遊城市</span>
-            <span class="modal-close" onclick="closeCityPicker()">Ｘ</span>
+            <span>選擇旅遊城市</span>
+            <span class="modal-close" onclick="closeCityPicker()">X</span>
         </div>
         <div class="list-container" id="city_list"></div>
     </div>
@@ -194,8 +191,8 @@
 <div id="hotel_modal" class="modal-overlay">
     <div class="modal-box" style="width: 450px;">
         <div class="modal-header">
-            <span>🏨 選擇住宿飯店</span>
-            <span class="modal-close" onclick="closeHotelPicker()">Ｘ</span>
+            <span>選擇住宿飯店</span>
+            <span class="modal-close" onclick="closeHotelPicker()">X</span>
         </div>
         <div class="list-container" id="hotel_list"></div>
     </div>
@@ -276,7 +273,6 @@
         document.getElementById('hotel_modal').style.display = 'block';
     }
     window.closeHotelPicker = function() { document.getElementById('hotel_modal').style.display = 'none'; }
-    // 🟢 點擊清單項目後，自動寫入 input
     window.selectHotel = function(code, name) {
         document.getElementById('hotel_code').value = code;
         document.getElementById('hotel_name').value = name;
@@ -345,12 +341,12 @@
         
         const content = document.getElementById('itinerary_content').value.trim();
 
-        if (!code) { alert("❌ 請填寫行程代碼！"); document.getElementById('trip_code').focus(); return; }
-        if (!name) { alert("❌ 請填寫行程名稱！"); document.getElementById('trip_name').focus(); return; }
-        if (!city) { alert("❌ 請選擇旅遊城市！"); document.getElementById('tour_city').focus(); return; }
-        if (!h_code) { alert("❌ 請填寫或選擇飯店代碼！"); document.getElementById('hotel_code').focus(); return; }
-        if (!h_name) { alert("❌ 請填寫或選擇住宿飯店！"); document.getElementById('hotel_name').focus(); return; }
-        if (!content) { alert("❌ 請填寫行程內容！"); document.getElementById('itinerary_content').focus(); return; }
+        if (!code) { alert("錯誤：請填寫行程代碼！"); document.getElementById('trip_code').focus(); return; }
+        if (!name) { alert("錯誤：請填寫行程名稱！"); document.getElementById('trip_name').focus(); return; }
+        if (!city) { alert("錯誤：請選擇旅遊城市！"); document.getElementById('tour_city').focus(); return; }
+        if (!h_code) { alert("錯誤：請點選查詢按鈕選取飯店！"); return; }
+        if (!h_name) { alert("錯誤：請點選查詢按鈕選取飯店！"); return; }
+        if (!content) { alert("錯誤：請填寫行程內容！"); document.getElementById('itinerary_content').focus(); return; }
 
         let sql = "";
 
@@ -366,7 +362,7 @@
         } else {
             const checkRes = window.db.exec(`SELECT trip_code FROM CommonItineraries WHERE trip_code = '${code}'`);
             if (checkRes.length > 0) {
-                alert("❌ 錯誤：行程代碼不能重複！");
+                alert("錯誤：行程代碼不能重複！");
                 document.getElementById('trip_code').focus();
                 return;
             }
@@ -384,7 +380,7 @@
         const isSuccess = await window.executeAndSave(sql);
         if (isSuccess) {
             const actionText = window.currentEditTripCode ? "修改" : "新增";
-            alert(`✅ 行程代碼 [${code}] 已成功${actionText}！`);
+            alert(`成功：行程代碼 [${code}] 已成功${actionText}！`);
             loadPage('C-A-A-C'); 
         }
     };
