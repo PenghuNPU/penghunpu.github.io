@@ -42,7 +42,7 @@ const menuData = [
     { 
         id: 'B', 
         title: 'B. 訂單管理', 
-        icon: 'icon/b.icon',
+        icon: 'icon/b.png',
         isExpanded: false,
         children: [
             { id: 'B-A', title: 'A. 業務員訂單作業' },
@@ -64,7 +64,7 @@ const menuData = [
     { 
         id: 'C', 
         title: 'C. 商品管理', 
-        icon: 'icon/c.icon',
+        icon: 'icon/c.png',
         isExpanded: false,
         children: [
             { 
@@ -94,7 +94,7 @@ const menuData = [
     { 
         id: 'D', 
         title: 'D. 團銷管理', 
-        icon: 'icon/d.icon',
+        icon: 'icon/d.png',
         isExpanded: false,
         children: [
             { id: 'D-A', title: 'A. 團體銷售控管' },
@@ -109,7 +109,7 @@ const menuData = [
     { 
         id: 'F', 
         title: 'F. 證照管理', 
-        icon: 'icon/f.icon',
+        icon: 'icon/f.png',
         isExpanded: false, 
         children: [
             { id: 'F-A', title: 'A. 旅客辦證紀錄' },
@@ -119,14 +119,14 @@ const menuData = [
             { id: 'F-Z', title: 'Z. 證照報表列印' }
         ]
     },
-    { id: 'G', title: 'G. 網站管理', icon: 'icon/g.icon' },
-    { id: 'H', title: 'H. 系統設定', icon: 'icon/h.icon' },
-    { id: 'I', title: 'I. 電子報管理', icon: 'icon/i.icon' },
-    { id: 'K', title: 'K. 帳務管理', icon: 'icon/k.icon' },
-    { id: 'M', title: 'M. 操作手冊', icon: 'icon/m.icon' },
-    { id: 'N', title: 'N. 訊息管理', icon: 'icon/n.icon' },
-    { id: 'P', title: 'P. 商品發布管理', icon: 'icon/p.icon' },
-    { id: 'S', title: 'S. 銷售管理', icon: 'icon/s.icon' } 
+    { id: 'G', title: 'G. 網站管理', icon: 'icon/g.png' },
+    { id: 'H', title: 'H. 系統設定', icon: 'icon/h.png' },
+    { id: 'I', title: 'I. 電子報管理', icon: 'icon/i.png' },
+    { id: 'K', title: 'K. 帳務管理', icon: 'icon/k.png' },
+    { id: 'M', title: 'M. 操作手冊', icon: 'icon/m.png' },
+    { id: 'N', title: 'N. 訊息管理', icon: 'icon/n.png' },
+    { id: 'P', title: 'P. 商品發布管理', icon: 'icon/p.png' },
+    { id: 'S', title: 'S. 銷售管理', icon: 'icon/s.png' } 
 ];
 
 // 2. 初始化載入
