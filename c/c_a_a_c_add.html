@@ -12,6 +12,7 @@
     
     .hint-text { color: #e65100; font-size: 11px; margin-top: 4px; display: inline-block; }
     
+    /* 查詢按鈕專屬樣式 (淺橘底、白字) */
     .btn-query {
         background-color: #ffaa44 !important; 
         color: #ffffff !important; 
@@ -29,6 +30,7 @@
     .btn-normal { background-color: #ece9d8; border: 1px outset #fff; padding: 2px 8px; cursor: pointer; font-size: 12px; vertical-align: middle; }
     .btn-normal:active { border-style: inset; }
 
+    /* 必填標記圖示樣式 */
     .req-icon {
         display: inline-block; width: 14px; height: 14px; background-color: #ffff00; color: #ff0000;
         border: 1px solid #808080; font-size: 12px; line-height: 14px; text-align: center;
@@ -41,7 +43,7 @@
     
     .upload-area { text-align: center; color: #0000ff; font-size: 12px; line-height: 1.8; }
     
-    /* 🟢 新增圖片預覽方塊樣式 */
+    /* 圖片預覽方塊樣式 */
     .preview-box {
         width: 145px;
         height: 112px;
@@ -71,6 +73,7 @@
 <div class="page-wrapper">
     <table class="form-table">
         <tr>
+            <!-- 標題會經由 JS 動態調整為「新增」或「修改」 -->
             <td colspan="3" class="form-title" id="form_title">【 新增共用基本行程內容 】</td>
         </tr>
         <tr>
@@ -80,7 +83,7 @@
                 <span class="req-icon" title="必填">✓</span>
                 <br><span class="hint-text">&lt;可使用英文加數字，長度以8個字為限&gt;</span>
             </td>
-            <!-- 🟢 右側上傳圖片區塊，加入預覽框與事件監聽 -->
+            <!-- 右側上傳圖片區塊 -->
             <td rowspan="4" style="width: 250px; vertical-align: top; padding-top: 15px;">
                 <div class="upload-area">
                     請以瀏覽方式上傳圖檔<br>
@@ -123,15 +126,17 @@
             <td>
                 <div style="margin-bottom: 5px;">
                     <span style="color:#d84315; font-weight:bold;">飯店代碼：</span>
-                    <input type="text" id="hotel_code" class="input-box" style="width: 80px;" readonly style="background-color: #e0e0e0;">
+                    <!-- 🟢 移除 readonly 與鎖定的灰色背景，開放使用者自行輸入 -->
+                    <input type="text" id="hotel_code" class="input-box" style="width: 80px;">
                     <span class="req-icon" title="必填">✓</span>
                     &nbsp;&nbsp;&nbsp;&nbsp;
                     <input type="checkbox" id="hotel_same_level"> <span style="color:#d84315; font-weight:bold;">或同級</span>
                 </div>
-                <textarea id="hotel_name" class="textarea-box" rows="2" readonly style="background-color: #e0e0e0; cursor: default;"></textarea>
+                <!-- 🟢 移除 readonly 與鎖定的灰色背景，開放使用者自行輸入 -->
+                <textarea id="hotel_name" class="textarea-box" rows="2"></textarea>
                 <span class="req-icon" title="必填">✓</span>
                 <br>
-                <button class="btn-query" onclick="openHotelPicker()">📄?</button> <span class="hint-text" style="color: #999;">&lt;請從資料庫選取飯店&gt;</span>
+                <button class="btn-query" onclick="openHotelPicker()">📄?</button> <span class="hint-text" style="color: #999;">&lt;請從資料庫選取飯店，或直接手動輸入&gt;</span>
                 <button class="btn-normal" style="margin-left: 5px;" onclick="document.getElementById('hotel_code').value=''; document.getElementById('hotel_name').value='';">❌ 清除</button>
             </td>
         </tr>
@@ -225,7 +230,6 @@
         { code: "TGH", name: "台北圓山大飯店 (The Grand Hotel, Taipei)" }
     ];
 
-    // 🟢 圖片選取預覽處理
     window.previewImage = function(event) {
         const file = event.target.files[0];
         const preview = document.getElementById('image_preview');
@@ -272,6 +276,7 @@
         document.getElementById('hotel_modal').style.display = 'block';
     }
     window.closeHotelPicker = function() { document.getElementById('hotel_modal').style.display = 'none'; }
+    // 🟢 點擊清單項目後，自動寫入 input
     window.selectHotel = function(code, name) {
         document.getElementById('hotel_code').value = code;
         document.getElementById('hotel_name').value = name;
@@ -343,8 +348,8 @@
         if (!code) { alert("❌ 請填寫行程代碼！"); document.getElementById('trip_code').focus(); return; }
         if (!name) { alert("❌ 請填寫行程名稱！"); document.getElementById('trip_name').focus(); return; }
         if (!city) { alert("❌ 請選擇旅遊城市！"); document.getElementById('tour_city').focus(); return; }
-        if (!h_code) { alert("❌ 請點選查詢按鈕選取飯店！"); return; }
-        if (!h_name) { alert("❌ 請點選查詢按鈕選取飯店！"); return; }
+        if (!h_code) { alert("❌ 請填寫或選擇飯店代碼！"); document.getElementById('hotel_code').focus(); return; }
+        if (!h_name) { alert("❌ 請填寫或選擇住宿飯店！"); document.getElementById('hotel_name').focus(); return; }
         if (!content) { alert("❌ 請填寫行程內容！"); document.getElementById('itinerary_content').focus(); return; }
 
         let sql = "";
