@@ -42,6 +42,17 @@
     .action-row button:active { border-style: inset; }
     
     .upload-area { text-align: center; color: #0000ff; font-size: 12px; line-height: 1.8; }
+
+    /* 🟢 彈出式清單 Modal 樣式 */
+    .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.4); z-index: 999; }
+    .modal-box { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background-color: #ece9d8; border: 2px solid #000; padding: 10px; width: 400px; box-shadow: 2px 2px 10px rgba(0,0,0,0.5); }
+    .modal-header { background: linear-gradient(to right, #000080, #1084d0); color: white; padding: 4px; font-weight: bold; display: flex; justify-content: space-between; margin-bottom: 5px; }
+    .modal-close { cursor: pointer; background: #d4d0c8; color: black; border: 1px outset #fff; padding: 0 4px; }
+    .list-container { height: 250px; overflow-y: auto; background-color: white; border: 1px inset #fff; padding: 5px; }
+    .list-item { padding: 6px; cursor: pointer; border-bottom: 1px dashed #ccc; display: flex; align-items: center; }
+    .list-item:hover { background-color: #000080; color: white; }
+    .hotel-code { font-weight: bold; color: #900; width: 50px; display: inline-block; margin-right: 10px; }
+    .list-item:hover .hotel-code { color: #ffcc00; }
 </style>
 
 <div class="page-wrapper">
@@ -80,14 +91,13 @@
         <tr>
             <th>旅遊<br>城市</th>
             <td>
-                <select id="tour_city" class="input-box" style="width: 200px; margin-bottom: 5px;">
-                    <option value="">-請選擇-</option>
-                    <option value="香港">香港</option><option value="澳門">澳門</option><option value="東京">東京</option>
-                </select>
+                <!-- 🟢 改為 input 以支援手動輸入或從彈窗選取 -->
+                <input type="text" id="tour_city" class="input-box" style="width: 200px; margin-bottom: 5px;" placeholder="手動輸入或清單選取">
                 <span class="req-icon" title="必填">✓</span>
                 <br>
-                <button class="btn-query">📄?</button> <span class="hint-text" style="color: #d84315;">&lt;請從資料庫中選取&gt;</span>
-                <button class="btn-normal" style="margin-left: 10px;">❌ 清除</button>
+                <button class="btn-query" onclick="openCityPicker()">📄?</button> <span class="hint-text" style="color: #d84315;">&lt;請從資料庫中選取&gt;</span>
+                <!-- 綁定清除功能 -->
+                <button class="btn-normal" style="margin-left: 10px;" onclick="document.getElementById('tour_city').value=''">❌ 清除</button>
             </td>
         </tr>
         <tr>
@@ -103,9 +113,10 @@
                 <textarea id="hotel_name" class="textarea-box" rows="2"></textarea>
                 <span class="req-icon" title="必填">✓</span>
                 <br>
-                <button class="btn-query">📄?</button> <span class="hint-text" style="color: #999;">&lt;請從資料庫選取飯店&gt;</span>
-                <button class="btn-normal" style="margin-left: 5px;">✍手動輸入</button>
-                <button class="btn-normal">❌ 清除</button>
+                <!-- 🟢 綁定彈窗、對焦與清除功能 -->
+                <button class="btn-query" onclick="openHotelPicker()">📄?</button> <span class="hint-text" style="color: #999;">&lt;請從資料庫選取飯店&gt;</span>
+                <button class="btn-normal" style="margin-left: 5px;" onclick="document.getElementById('hotel_code').focus()">✍手動輸入</button>
+                <button class="btn-normal" onclick="document.getElementById('hotel_code').value=''; document.getElementById('hotel_name').value='';">❌ 清除</button>
             </td>
         </tr>
         
@@ -150,7 +161,92 @@
     </div>
 </div>
 
+<!-- 🟢 旅遊城市選擇視窗 -->
+<div id="city_modal" class="modal-overlay">
+    <div class="modal-box">
+        <div class="modal-header">
+            <span>🏙️ 選擇旅遊城市</span>
+            <span class="modal-close" onclick="closeCityPicker()">Ｘ</span>
+        </div>
+        <div class="list-container" id="city_list"></div>
+    </div>
+</div>
+
+<!-- 🟢 住宿飯店選擇視窗 -->
+<div id="hotel_modal" class="modal-overlay">
+    <div class="modal-box" style="width: 450px;">
+        <div class="modal-header">
+            <span>🏨 選擇住宿飯店</span>
+            <span class="modal-close" onclick="closeHotelPicker()">Ｘ</span>
+        </div>
+        <div class="list-container" id="hotel_list"></div>
+    </div>
+</div>
+
 <script>
+    // 🟢 城市與飯店清單資料
+    const cityOptions = [
+        "台北市", "新北市", "桃園市", "台中市", "台南市", "高雄市", "基隆市", "新竹市", "嘉義市", "新竹縣", "苗栗縣", "彰化縣", "南投縣", "雲林縣", "嘉義縣", "屏東縣", "宜蘭縣", "花蓮縣", "台東縣", "澎湖縣", "金門縣", "連江縣",
+        "東京 (Tokyo)", "大阪 (Osaka)", "京都 (Kyoto)", "札幌 (Sapporo)", "首爾 (Seoul)", "釜山 (Busan)", "曼谷 (Bangkok)", "清邁 (Chiang Mai)", "新加坡 (Singapore)", "吉隆坡 (Kuala Lumpur)", "胡志明市 (Ho Chi Minh City)", "河內 (Hanoi)", "馬尼拉 (Manila)", "雅加達 (Jakarta)", "峇里島 (Bali)"
+    ];
+
+    const hotelOptions = [
+        { code: "BAA", name: "帆船飯店 (Burj Al Arab, Dubai)" },
+        { code: "MBS", name: "濱海灣金沙酒店 (Marina Bay Sands, Singapore)" },
+        { code: "PHK", name: "半島酒店 (The Peninsula, Hong Kong)" },
+        { code: "RCT", name: "麗茲卡爾頓酒店 (The Ritz-Carlton, Tokyo)" },
+        { code: "PNY", name: "紐約廣場飯店 (The Plaza, New York)" },
+        { code: "SLD", name: "倫敦薩伏依酒店 (The Savoy, London)" },
+        { code: "RPA", name: "巴黎麗茲酒店 (Ritz Paris)" },
+        { code: "AHD", name: "杜拜阿瑪尼酒店 (Armani Hotel, Dubai)" },
+        { code: "MOB", name: "曼谷文華東方酒店 (Mandarin Oriental, Bangkok)" },
+        { code: "HDV", name: "威尼斯達涅利酒店 (Hotel Danieli, Venice)" },
+        { code: "RHS", name: "新加坡萊佛士酒店 (Raffles Hotel, Singapore)" },
+        { code: "IHT", name: "東京帝國飯店 (Imperial Hotel, Tokyo)" },
+        { code: "TVM", name: "澳門威尼斯人 (The Venetian Macao)" },
+        { code: "BLV", name: "拉斯維加斯百樂宮 (Bellagio, Las Vegas)" },
+        { code: "TMP", name: "印度泰姬陵宮酒店 (Taj Mahal Palace, Mumbai)" },
+        { code: "BHH", name: "貝弗利山酒店 (The Beverly Hills Hotel, LA)" },
+        { code: "CMI", name: "馬爾地夫康萊德酒店 (Conrad Maldives)" },
+        { code: "FSS", name: "雪梨四季酒店 (Four Seasons, Sydney)" },
+        { code: "HRO", name: "羅馬哈斯勒酒店 (Hassler Roma)" },
+        { code: "TGH", name: "台北圓山大飯店 (The Grand Hotel, Taipei)" }
+    ];
+
+    // 🟢 開啟與關閉城市選擇視窗
+    window.openCityPicker = function() {
+        let html = '';
+        cityOptions.forEach(city => {
+            html += `<div class="list-item" onclick="selectCity('${city}')">${city}</div>`;
+        });
+        document.getElementById('city_list').innerHTML = html;
+        document.getElementById('city_modal').style.display = 'block';
+    }
+    window.closeCityPicker = function() { document.getElementById('city_modal').style.display = 'none'; }
+    window.selectCity = function(city) {
+        document.getElementById('tour_city').value = city;
+        closeCityPicker();
+    }
+
+    // 🟢 開啟與關閉飯店選擇視窗
+    window.openHotelPicker = function() {
+        let html = '';
+        hotelOptions.forEach(h => {
+            html += `<div class="list-item" onclick="selectHotel('${h.code}', '${h.name}')">
+                        <span class="hotel-code">[${h.code}]</span>
+                        <span>${h.name}</span>
+                     </div>`;
+        });
+        document.getElementById('hotel_list').innerHTML = html;
+        document.getElementById('hotel_modal').style.display = 'block';
+    }
+    window.closeHotelPicker = function() { document.getElementById('hotel_modal').style.display = 'none'; }
+    window.selectHotel = function(code, name) {
+        document.getElementById('hotel_code').value = code;
+        document.getElementById('hotel_name').value = name;
+        closeHotelPicker();
+    }
+
     // 初始化表單：判斷是否為修改模式
     (function initForm() {
         if (!window.db) return;
