@@ -3,7 +3,6 @@
     .header-section { display: flex; justify-content: space-between; margin-bottom: 10px; align-items: flex-start; }
     .info-text { color: #333; line-height: 1.6; text-align: left; flex-grow: 1; margin-left: 20px;}
     
-    /* 自訂新增按鈕樣式 */
     .btn-add { background-color: #d4d0c8; border: 2px outset #fff; cursor: pointer; display: flex; align-items: center; padding: 2px 10px; font-weight: bold; font-size: 13px; letter-spacing: 2px; height: 30px; }
     .btn-add:active { border-style: inset; }
     .btn-add span.icon { font-size: 16px; margin-right: 5px; font-weight: normal; color: #555; }
@@ -15,7 +14,7 @@
     .data-table { width: 100%; border-collapse: collapse; border: 1px solid #777; background-color: #fff; }
     .data-table th { background-color: #d4d0c8; border: 1px solid #777; padding: 6px; font-weight: bold; text-align: center; }
     .data-table td { border: 1px solid #777; padding: 6px; text-align: center; vertical-align: middle; }
-    .data-table tr:nth-child(even) { background-color: #e2dfd3; } /* 斑馬紋 */
+    .data-table tr:nth-child(even) { background-color: #e2dfd3; }
     
     .action-icons span { cursor: pointer; margin: 0 3px; font-size: 15px; }
     .icon-disabled { cursor: default !important; opacity: 0.4; }
@@ -25,16 +24,13 @@
     <div class="header-section">
         <div class="info-text">
             建議您建立共用基本行程，以利後續行程組裝的便利性。<br>
-            <!-- 🟢 更新了提示文字，移除無法刪除的字眼 -->
             P.S.建立後可透過右側管理項目進行修改或刪除。
         </div>
-        <!-- 🟢 確保點擊新增時，清空修改狀態並跳轉至 C-A-A-C-ADD -->
         <button class="btn-add" onclick="window.currentEditTripCode = null; loadPage('C-A-A-C-ADD');">
             <span class="icon">📝➕</span> 新 增
         </button>
     </div>
 
-    <!-- 靜態分頁示意列 -->
     <div class="pagination-bar">
         頁次：1 / 1 &nbsp;|&nbsp; 
         <a>第一頁</a> &nbsp;|&nbsp; <a>上一頁</a> &nbsp;|&nbsp; <a>下一頁</a> &nbsp;|&nbsp; <a>最後一頁</a> &nbsp;|&nbsp; 
@@ -59,75 +55,68 @@
 
 <script>
     (function renderTable() {
-        // 進入列表頁時，強制清空修改變數
         window.currentEditTripCode = null;
 
         if (!window.db) { alert("資料庫未綁定！"); return; }
         
-        window.db.exec(`
-            CREATE TABLE IF NOT EXISTS CommonItineraries (
-                trip_code TEXT PRIMARY KEY CHECK(length(trip_code) <= 8), trip_name TEXT NOT NULL CHECK(length(trip_name) <= 80),
-                tour_city TEXT NOT NULL, hotel_code TEXT NOT NULL, hotel_same_level INTEGER DEFAULT 0, hotel_name TEXT NOT NULL,
-                meal_features TEXT, bf_checked INTEGER DEFAULT 0, bf_desc TEXT, lun_checked INTEGER DEFAULT 0, lun_desc TEXT,
-                din_checked INTEGER DEFAULT 0, din_desc TEXT, itinerary_content TEXT NOT NULL
-            );
-        `);
+        window.db.exec(
+            "CREATE TABLE IF NOT EXISTS CommonItineraries (" +
+                "trip_code TEXT PRIMARY KEY CHECK(length(trip_code) <= 8), trip_name TEXT NOT NULL CHECK(length(trip_name) <= 80), " +
+                "tour_city TEXT NOT NULL, hotel_code TEXT NOT NULL, hotel_same_level INTEGER DEFAULT 0, hotel_name TEXT NOT NULL, " +
+                "meal_features TEXT, bf_checked INTEGER DEFAULT 0, bf_desc TEXT, lun_checked INTEGER DEFAULT 0, lun_desc TEXT, " +
+                "din_checked INTEGER DEFAULT 0, din_desc TEXT, itinerary_content TEXT NOT NULL" +
+            ");"
+        );
 
         try {
-            const res = window.db.exec("SELECT trip_code, trip_name, tour_city, hotel_name FROM CommonItineraries ORDER BY trip_code ASC");
-            const tbody = document.getElementById('trip_list_body');
+            var res = window.db.exec("SELECT trip_code, trip_name, tour_city, hotel_name FROM CommonItineraries ORDER BY trip_code ASC");
+            var tbody = document.getElementById('trip_list_body');
             
             if (res.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="5" style="color:red; font-weight:bold;">目前尚無資料，請點擊右上角新增。</td></tr>`;
+                tbody.innerHTML = '<tr><td colspan="5" style="color:red; font-weight:bold;">目前尚無資料，請點擊右上角新增。</td></tr>';
                 return;
             }
 
-            let html = '';
-            res[0].values.forEach(row => {
-                const code = row[0] || '';
-                const name = row[1] || '';
-                const city = row[2] || '';
-                const hotel = row[3] || '';
+            var html = '';
+            res[0].values.forEach(function(row) {
+                var code = row[0] || '';
+                var name = row[1] || '';
+                var city = row[2] || '';
+                var hotel = row[3] || '';
 
-                html += `
-                    <tr>
-                        <td style="font-weight:bold; color:#0000ff;">${code}</td>
-                        <td style="text-align:left;">${name}</td>
-                        <td>${city}</td>
-                        <td>${hotel}</td>
-                        <td class="action-icons">
-                            <!-- 修改圖示 -->
-                            <span title="修改此筆資料" onclick="window.currentEditTripCode = '${code}'; loadPage('C-A-A-C-ADD');">📝</span>
-                            <!-- 🟢 新增的刪除圖示與綁定事件 -->
-                            <span title="刪除此筆資料" onclick="window.deleteTrip('${code}')">🗑️</span>
-                        </td>
-                    </tr>
-                `;
+                html += '<tr>' +
+                            '<td style="font-weight:bold; color:#0000ff;">' + code + '</td>' +
+                            '<td style="text-align:left;">' + name + '</td>' +
+                            '<td>' + city + '</td>' +
+                            '<td>' + hotel + '</td>' +
+                            '<td class="action-icons">' +
+                                '<span title="修改此筆資料" onclick="window.currentEditTripCode = \'' + code + '\'; loadPage(\'C-A-A-C-ADD\');">📝</span>' +
+                                '<span title="刪除此筆資料" onclick="window.deleteTrip(\'' + code + '\')">🗑️</span>' +
+                            '</td>' +
+                        '</tr>';
             });
             tbody.innerHTML = html;
         } catch (e) {
             console.error(e);
-            document.getElementById('trip_list_body').innerHTML = `<tr><td colspan="5">讀取失敗</td></tr>`;
+            document.getElementById('trip_list_body').innerHTML = '<tr><td colspan="5">讀取失敗</td></tr>';
         }
     })();
 
-    // 🟢 實作刪除功能，包含原生的確認視窗與刪除語法
     window.deleteTrip = async function(code) {
-        if (confirm("⚠️ 確定要刪除行程代碼 [" + code + "] 嗎？\\n刪除後將無法恢復！")) {
+        var confirmMessage = "【 旅遊資訊管理系統 】\n\n⚠️ 確定要刪除行程代碼 [" + code + "] 嗎？\n刪除後將無法恢復！";
+        if (confirm(confirmMessage)) {
             var sql = "DELETE FROM CommonItineraries WHERE trip_code = '" + code + "'";
             
-            // 呼叫主頁面提供的 executeAndSave 方法來確保資料寫入實體檔案
             if (window.executeAndSave) {
                 var isSuccess = await window.executeAndSave(sql);
                 if (isSuccess) {
-                    alert("✅ 行程 [" + code + "] 已成功刪除！");
-                    loadPage('C-A-A-C'); // 重新整理列表
+                    alert("【 旅遊資訊管理系統 】\n\n✅ 行程 [" + code + "] 已成功刪除！");
+                    loadPage('C-A-A-C'); 
                 }
             } else {
-                // 備用方案 (若 executeAndSave 未定義)
                 try {
                     window.db.exec(sql);
-                    alert("✅ 行程 [" + code + "] 已成功刪除！");
+                    alert("【 旅遊資訊管理系統 】\n\n✅ 行程 [" + code + "] 已成功刪除！");
                     loadPage('C-A-A-C'); 
                 } catch(e) {
                     alert("刪除失敗：" + e.message);
