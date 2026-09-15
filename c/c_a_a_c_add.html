@@ -12,7 +12,6 @@
     
     .hint-text { color: #e65100; font-size: 11px; margin-top: 4px; display: inline-block; }
     
-    /* 查詢按鈕專屬樣式 (淺橘底、白字) */
     .btn-query {
         background-color: #ffaa44 !important; 
         color: #ffffff !important; 
@@ -30,7 +29,6 @@
     .btn-normal { background-color: #ece9d8; border: 1px outset #fff; padding: 2px 8px; cursor: pointer; font-size: 12px; vertical-align: middle; }
     .btn-normal:active { border-style: inset; }
 
-    /* 必填標記圖示樣式 */
     .req-icon {
         display: inline-block; width: 14px; height: 14px; background-color: #ffff00; color: #ff0000;
         border: 1px solid #808080; font-size: 12px; line-height: 14px; text-align: center;
@@ -42,8 +40,23 @@
     .action-row button:active { border-style: inset; }
     
     .upload-area { text-align: center; color: #0000ff; font-size: 12px; line-height: 1.8; }
+    
+    /* 🟢 新增圖片預覽方塊樣式 */
+    .preview-box {
+        width: 145px;
+        height: 112px;
+        background-color: #d4d0c8;
+        border: 2px inset #fff;
+        margin: 0 auto 10px auto;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #777;
+        font-size: 12px;
+        overflow: hidden;
+    }
+    .preview-box img { max-width: 100%; max-height: 100%; display: none; }
 
-    /* 🟢 彈出式清單 Modal 樣式 */
     .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.4); z-index: 999; }
     .modal-box { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background-color: #ece9d8; border: 2px solid #000; padding: 10px; width: 400px; box-shadow: 2px 2px 10px rgba(0,0,0,0.5); }
     .modal-header { background: linear-gradient(to right, #000080, #1084d0); color: white; padding: 4px; font-weight: bold; display: flex; justify-content: space-between; margin-bottom: 5px; }
@@ -58,7 +71,6 @@
 <div class="page-wrapper">
     <table class="form-table">
         <tr>
-            <!-- 標題會經由 JS 動態調整為「新增」或「修改」 -->
             <td colspan="3" class="form-title" id="form_title">【 新增共用基本行程內容 】</td>
         </tr>
         <tr>
@@ -68,15 +80,23 @@
                 <span class="req-icon" title="必填">✓</span>
                 <br><span class="hint-text">&lt;可使用英文加數字，長度以8個字為限&gt;</span>
             </td>
-            <!-- 右側上傳圖片區塊 (跨 4 列) -->
-            <td rowspan="4" style="width: 250px; vertical-align: bottom; padding-bottom: 20px;">
+            <!-- 🟢 右側上傳圖片區塊，加入預覽框與事件監聽 -->
+            <td rowspan="4" style="width: 250px; vertical-align: top; padding-top: 15px;">
                 <div class="upload-area">
                     請以瀏覽方式上傳圖檔<br>
                     檔案大小建議為30k以內<br>
                     檔案格式為jpg、jpeg或gif<br>
                     檔案寬度建議：145pixels<br>
                     高度建議：112pixels<br><br>
-                    <input type="file" style="width: 160px; font-size: 11px;">
+                    
+                    <!-- 預覽方塊 -->
+                    <div class="preview-box">
+                        <span id="preview_text">照片預覽區</span>
+                        <img id="image_preview" alt="行程圖片預覽">
+                    </div>
+                    
+                    <!-- 檔案選擇器 -->
+                    <input type="file" id="image_upload" accept="image/jpeg, image/gif, image/png" style="width: 160px; font-size: 11px;" onchange="window.previewImage(event)">
                 </div>
             </td>
         </tr>
@@ -91,12 +111,10 @@
         <tr>
             <th>旅遊<br>城市</th>
             <td>
-                <!-- 🟢 改為 input 以支援手動輸入或從彈窗選取 -->
                 <input type="text" id="tour_city" class="input-box" style="width: 200px; margin-bottom: 5px;" placeholder="手動輸入或清單選取">
                 <span class="req-icon" title="必填">✓</span>
                 <br>
                 <button class="btn-query" onclick="openCityPicker()">📄?</button> <span class="hint-text" style="color: #d84315;">&lt;請從資料庫中選取&gt;</span>
-                <!-- 綁定清除功能 -->
                 <button class="btn-normal" style="margin-left: 10px;" onclick="document.getElementById('tour_city').value=''">❌ 清除</button>
             </td>
         </tr>
@@ -105,22 +123,19 @@
             <td>
                 <div style="margin-bottom: 5px;">
                     <span style="color:#d84315; font-weight:bold;">飯店代碼：</span>
-                    <input type="text" id="hotel_code" class="input-box" style="width: 80px;">
+                    <input type="text" id="hotel_code" class="input-box" style="width: 80px;" readonly style="background-color: #e0e0e0;">
                     <span class="req-icon" title="必填">✓</span>
                     &nbsp;&nbsp;&nbsp;&nbsp;
                     <input type="checkbox" id="hotel_same_level"> <span style="color:#d84315; font-weight:bold;">或同級</span>
                 </div>
-                <textarea id="hotel_name" class="textarea-box" rows="2"></textarea>
+                <textarea id="hotel_name" class="textarea-box" rows="2" readonly style="background-color: #e0e0e0; cursor: default;"></textarea>
                 <span class="req-icon" title="必填">✓</span>
                 <br>
-                <!-- 🟢 綁定彈窗、對焦與清除功能 -->
                 <button class="btn-query" onclick="openHotelPicker()">📄?</button> <span class="hint-text" style="color: #999;">&lt;請從資料庫選取飯店&gt;</span>
-                <button class="btn-normal" style="margin-left: 5px;" onclick="document.getElementById('hotel_code').focus()">✍手動輸入</button>
-                <button class="btn-normal" onclick="document.getElementById('hotel_code').value=''; document.getElementById('hotel_name').value='';">❌ 清除</button>
+                <button class="btn-normal" style="margin-left: 5px;" onclick="document.getElementById('hotel_code').value=''; document.getElementById('hotel_name').value='';">❌ 清除</button>
             </td>
         </tr>
         
-        <!-- 餐食與行程區塊 (跨兩欄) -->
         <tr>
             <th>餐食<br>特色</th>
             <td colspan="2">
@@ -161,7 +176,6 @@
     </div>
 </div>
 
-<!-- 🟢 旅遊城市選擇視窗 -->
 <div id="city_modal" class="modal-overlay">
     <div class="modal-box">
         <div class="modal-header">
@@ -172,7 +186,6 @@
     </div>
 </div>
 
-<!-- 🟢 住宿飯店選擇視窗 -->
 <div id="hotel_modal" class="modal-overlay">
     <div class="modal-box" style="width: 450px;">
         <div class="modal-header">
@@ -184,7 +197,6 @@
 </div>
 
 <script>
-    // 🟢 城市與飯店清單資料
     const cityOptions = [
         "台北市", "新北市", "桃園市", "台中市", "台南市", "高雄市", "基隆市", "新竹市", "嘉義市", "新竹縣", "苗栗縣", "彰化縣", "南投縣", "雲林縣", "嘉義縣", "屏東縣", "宜蘭縣", "花蓮縣", "台東縣", "澎湖縣", "金門縣", "連江縣",
         "東京 (Tokyo)", "大阪 (Osaka)", "京都 (Kyoto)", "札幌 (Sapporo)", "首爾 (Seoul)", "釜山 (Busan)", "曼谷 (Bangkok)", "清邁 (Chiang Mai)", "新加坡 (Singapore)", "吉隆坡 (Kuala Lumpur)", "胡志明市 (Ho Chi Minh City)", "河內 (Hanoi)", "馬尼拉 (Manila)", "雅加達 (Jakarta)", "峇里島 (Bali)"
@@ -213,7 +225,27 @@
         { code: "TGH", name: "台北圓山大飯店 (The Grand Hotel, Taipei)" }
     ];
 
-    // 🟢 開啟與關閉城市選擇視窗
+    // 🟢 圖片選取預覽處理
+    window.previewImage = function(event) {
+        const file = event.target.files[0];
+        const preview = document.getElementById('image_preview');
+        const text = document.getElementById('preview_text');
+
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                preview.src = e.target.result;
+                preview.style.display = 'block';
+                text.style.display = 'none';
+            }
+            reader.readAsDataURL(file);
+        } else {
+            preview.src = '';
+            preview.style.display = 'none';
+            text.style.display = 'block';
+        }
+    };
+
     window.openCityPicker = function() {
         let html = '';
         cityOptions.forEach(city => {
@@ -228,7 +260,6 @@
         closeCityPicker();
     }
 
-    // 🟢 開啟與關閉飯店選擇視窗
     window.openHotelPicker = function() {
         let html = '';
         hotelOptions.forEach(h => {
@@ -247,7 +278,6 @@
         closeHotelPicker();
     }
 
-    // 初始化表單：判斷是否為修改模式
     (function initForm() {
         if (!window.db) return;
         
@@ -288,7 +318,6 @@
         }
     })();
 
-    // 防止 SQL 隱碼與字串干擾的跳脫字元處理
     function escapeSql(str) {
         return str.replace(/'/g, "''");
     }
@@ -311,18 +340,16 @@
         
         const content = document.getElementById('itinerary_content').value.trim();
 
-        // 必填驗證 (不包含餐食)
         if (!code) { alert("❌ 請填寫行程代碼！"); document.getElementById('trip_code').focus(); return; }
         if (!name) { alert("❌ 請填寫行程名稱！"); document.getElementById('trip_name').focus(); return; }
         if (!city) { alert("❌ 請選擇旅遊城市！"); document.getElementById('tour_city').focus(); return; }
-        if (!h_code) { alert("❌ 請填寫飯店代碼！"); document.getElementById('hotel_code').focus(); return; }
-        if (!h_name) { alert("❌ 請填寫住宿飯店！"); document.getElementById('hotel_name').focus(); return; }
+        if (!h_code) { alert("❌ 請點選查詢按鈕選取飯店！"); return; }
+        if (!h_name) { alert("❌ 請點選查詢按鈕選取飯店！"); return; }
         if (!content) { alert("❌ 請填寫行程內容！"); document.getElementById('itinerary_content').focus(); return; }
 
         let sql = "";
 
         if (window.currentEditTripCode) {
-            // 修改 UPDATE
             sql = `
                 UPDATE CommonItineraries SET 
                     trip_name = '${escapeSql(name)}', tour_city = '${escapeSql(city)}', hotel_code = '${escapeSql(h_code)}',
@@ -332,7 +359,6 @@
                 WHERE trip_code = '${code}';
             `;
         } else {
-            // 新增 INSERT - 檢查防呆
             const checkRes = window.db.exec(`SELECT trip_code FROM CommonItineraries WHERE trip_code = '${code}'`);
             if (checkRes.length > 0) {
                 alert("❌ 錯誤：行程代碼不能重複！");
@@ -354,7 +380,7 @@
         if (isSuccess) {
             const actionText = window.currentEditTripCode ? "修改" : "新增";
             alert(`✅ 行程代碼 [${code}] 已成功${actionText}！`);
-            loadPage('C-A-A-C'); // 返回列表頁
+            loadPage('C-A-A-C'); 
         }
     };
 </script>
