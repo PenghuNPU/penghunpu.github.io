@@ -196,6 +196,7 @@
 </div>
 
 <script>
+    // 🟢 修正：全域變數改為 var
     var cityOptions = [
         "台北市", "新北市", "桃園市", "台中市", "台南市", "高雄市", "基隆市", "新竹市", "嘉義市", "新竹縣", "苗栗縣", "彰化縣", "南投縣", "雲林縣", "嘉義縣", "屏東縣", "宜蘭縣", "花蓮縣", "台東縣", "澎湖縣", "金門縣", "連江縣",
         "東京 (Tokyo)", "大阪 (Osaka)", "京都 (Kyoto)", "札幌 (Sapporo)", "首爾 (Seoul)", "釜山 (Busan)", "曼谷 (Bangkok)", "清邁 (Chiang Mai)", "新加坡 (Singapore)", "吉隆坡 (Kuala Lumpur)", "胡志明市 (Ho Chi Minh City)", "河內 (Hanoi)", "馬尼拉 (Manila)", "雅加達 (Jakarta)", "峇里島 (Bali)"
@@ -225,12 +226,12 @@
     ];
 
     window.previewImage = function(event) {
-        const file = event.target.files[0];
-        const preview = document.getElementById('image_preview');
-        const text = document.getElementById('preview_text');
+        var file = event.target.files[0];
+        var preview = document.getElementById('image_preview');
+        var text = document.getElementById('preview_text');
 
         if (file) {
-            const reader = new FileReader();
+            var reader = new FileReader();
             reader.onload = function(e) {
                 preview.src = e.target.result;
                 preview.style.display = 'block';
@@ -244,10 +245,12 @@
         }
     };
 
+    // 🟢 修正：字串拼接避免報錯
     window.openCityPicker = function() {
-        let html = '';
-        cityOptions.forEach(city => {
-            html += `<div class="list-item" onclick="selectCity('${city.replace(/'/g, "\\'")}')">${city}</div>`;
+        var html = '';
+        cityOptions.forEach(function(city) {
+            var safeCity = city.replace(/'/g, "\\'");
+            html += '<div class="list-item" onclick="selectCity(\'' + safeCity + '\')">' + city + '</div>';
         });
         document.getElementById('city_list').innerHTML = html;
         document.getElementById('city_modal').style.display = 'block';
@@ -262,18 +265,20 @@
         closeCityPicker();
     }
 
+    // 🟢 修正：字串拼接並同時綁定 onclick 到內部標籤 (span)，徹底解決點擊文字沒反應的問題
     window.openHotelPicker = function() {
-        let html = '';
-        hotelOptions.forEach(h => {
-            // 🟢 將 onclick 事件直接綁定在整個 list-item 區塊，並使用乾淨的參數傳遞
-            const safeCode = h.code.replace(/'/g, "\\'");
-            const safeName = h.name.replace(/'/g, "\\'");
-            html += `
-                <div class="list-item" onclick="selectHotel('${safeCode}', '${safeName}')">
-                    <span class="hotel-code">[${h.code}]</span>
-                    <span>${h.name}</span>
-                </div>
-            `;
+        var html = '';
+        hotelOptions.forEach(function(h) {
+            var safeCode = h.code.replace(/'/g, "\\'");
+            var safeName = h.name.replace(/'/g, "\\'");
+            
+            // 組合 onclick 事件
+            var clickAction = "selectHotel('" + safeCode + "', '" + safeName + "')";
+            
+            html += '<div class="list-item" onclick="' + clickAction + '">' +
+                        '<span class="hotel-code" onclick="' + clickAction + '">[' + h.code + ']</span>' +
+                        '<span onclick="' + clickAction + '">' + h.name + '</span>' +
+                    '</div>';
         });
         document.getElementById('hotel_list').innerHTML = html;
         document.getElementById('hotel_modal').style.display = 'block';
@@ -283,7 +288,6 @@
         document.getElementById('hotel_modal').style.display = 'none'; 
     }
     
-    // 🟢 確保這裡能正常將收到的值賦予 input 欄位並關閉視窗
     window.selectHotel = function(code, name) {
         document.getElementById('hotel_code').value = code;
         document.getElementById('hotel_name').value = name;
@@ -297,15 +301,15 @@
             document.getElementById('form_title').innerText = "【 修改共用基本行程內容 】";
             document.getElementById('btn_save').innerText = "修 改";
             
-            const codeInput = document.getElementById('trip_code');
+            var codeInput = document.getElementById('trip_code');
             codeInput.readOnly = true;
             codeInput.style.backgroundColor = '#e0e0e0';
 
             try {
-                const res = window.db.exec(`SELECT * FROM CommonItineraries WHERE trip_code = '${window.currentEditTripCode}'`);
+                var res = window.db.exec(`SELECT * FROM CommonItineraries WHERE trip_code = '${window.currentEditTripCode}'`);
                 if (res.length > 0) {
-                    const data = res[0].values[0];
-                    const cleanStr = (val) => val === null ? '' : val;
+                    var data = res[0].values[0];
+                    var cleanStr = function(val) { return val === null ? '' : val; };
 
                     document.getElementById('trip_code').value = cleanStr(data[0]);
                     document.getElementById('trip_name').value = cleanStr(data[1]);
@@ -335,22 +339,22 @@
     }
 
     window.saveItinerary = async function() {
-        const code = document.getElementById('trip_code').value.trim().toUpperCase();
-        const name = document.getElementById('trip_name').value.trim();
-        const city = document.getElementById('tour_city').value.trim();
-        const h_code = document.getElementById('hotel_code').value.trim();
-        const h_same = document.getElementById('hotel_same_level').checked ? 1 : 0;
-        const h_name = document.getElementById('hotel_name').value.trim();
+        var code = document.getElementById('trip_code').value.trim().toUpperCase();
+        var name = document.getElementById('trip_name').value.trim();
+        var city = document.getElementById('tour_city').value.trim();
+        var h_code = document.getElementById('hotel_code').value.trim();
+        var h_same = document.getElementById('hotel_same_level').checked ? 1 : 0;
+        var h_name = document.getElementById('hotel_name').value.trim();
         
-        const m_feat = document.getElementById('meal_features').value.trim();
-        const bf_chk = document.getElementById('bf_chk').checked ? 1 : 0;
-        const bf_desc = document.getElementById('bf_desc').value.trim();
-        const lun_chk = document.getElementById('lun_chk').checked ? 1 : 0;
-        const lun_desc = document.getElementById('lun_desc').value.trim();
-        const din_chk = document.getElementById('din_chk').checked ? 1 : 0;
-        const din_desc = document.getElementById('din_desc').value.trim();
+        var m_feat = document.getElementById('meal_features').value.trim();
+        var bf_chk = document.getElementById('bf_chk').checked ? 1 : 0;
+        var bf_desc = document.getElementById('bf_desc').value.trim();
+        var lun_chk = document.getElementById('lun_chk').checked ? 1 : 0;
+        var lun_desc = document.getElementById('lun_desc').value.trim();
+        var din_chk = document.getElementById('din_chk').checked ? 1 : 0;
+        var din_desc = document.getElementById('din_desc').value.trim();
         
-        const content = document.getElementById('itinerary_content').value.trim();
+        var content = document.getElementById('itinerary_content').value.trim();
 
         if (!code) { alert("錯誤：請填寫行程代碼！"); document.getElementById('trip_code').focus(); return; }
         if (!name) { alert("錯誤：請填寫行程名稱！"); document.getElementById('trip_name').focus(); return; }
@@ -359,7 +363,7 @@
         if (!h_name) { alert("錯誤：請填寫或選擇住宿飯店！"); document.getElementById('hotel_name').focus(); return; }
         if (!content) { alert("錯誤：請填寫行程內容！"); document.getElementById('itinerary_content').focus(); return; }
 
-        let sql = "";
+        var sql = "";
 
         if (window.currentEditTripCode) {
             sql = `
@@ -371,7 +375,7 @@
                 WHERE trip_code = '${code}';
             `;
         } else {
-            const checkRes = window.db.exec(`SELECT trip_code FROM CommonItineraries WHERE trip_code = '${code}'`);
+            var checkRes = window.db.exec(`SELECT trip_code FROM CommonItineraries WHERE trip_code = '${code}'`);
             if (checkRes.length > 0) {
                 alert("錯誤：行程代碼不能重複！");
                 document.getElementById('trip_code').focus();
@@ -388,9 +392,9 @@
             `;
         }
 
-        const isSuccess = await window.executeAndSave(sql);
+        var isSuccess = await window.executeAndSave(sql);
         if (isSuccess) {
-            const actionText = window.currentEditTripCode ? "修改" : "新增";
+            var actionText = window.currentEditTripCode ? "修改" : "新增";
             alert(`成功：行程代碼 [${code}] 已成功${actionText}！`);
             loadPage('C-A-A-C'); 
         }
