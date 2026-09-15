@@ -194,7 +194,7 @@
 
 <script>
     var cityOptions = [
-        "台北市", "新北市", "桃園市", "台中市", "台南市", "高雄市", "基隆市", "新竹市", "嘉義市", "新竹縣", "苗栗縣", "彰化縣", "南投縣", "雲林縣", "嘉義縣", "屏東縣", "宜蘭縣", "花蓮縣", "台東縣", "澎湖縣", "金門縣", "連江縣",
+        "台北市", "新北市", "桃園市", "台中市", "台南市", "高雄市", "基隆市", "新竹市", "嘉義市", "新竹縣", "苗栗縣", "彰化縣", "南投縣", "雲林縣", "嘉義縣", "屏東縣", "宜蘭縣", "花蓮縣", "台東縣", "澎湖縣", "金門縣", "連江縣","香港","澳門","北京",
         "東京 (Tokyo)", "大阪 (Osaka)", "京都 (Kyoto)", "札幌 (Sapporo)", "首爾 (Seoul)", "釜山 (Busan)", "曼谷 (Bangkok)", "清邁 (Chiang Mai)", "新加坡 (Singapore)", "吉隆坡 (Kuala Lumpur)", "胡志明市 (Ho Chi Minh City)", "河內 (Hanoi)", "馬尼拉 (Manila)", "雅加達 (Jakarta)", "峇里島 (Bali)"
     ];
 
@@ -286,51 +286,63 @@
         closeHotelPicker();
     }
 
-    (function initForm() {
+    // 🟢 關鍵修正：利用 setTimeout 確保 HTML 畫面上所有的輸入框都已經準備好後，才去填入資料
+    setTimeout(function() {
         if (!window.db) return;
         
         if (window.currentEditTripCode) {
-            document.getElementById('form_title').innerText = "【 修改共用基本行程內容 】";
-            document.getElementById('btn_save').innerText = "修 改";
-            
+            var formTitle = document.getElementById('form_title');
+            var btnSave = document.getElementById('btn_save');
             var codeInput = document.getElementById('trip_code');
-            codeInput.readOnly = true;
-            codeInput.style.backgroundColor = '#e0e0e0';
 
-            try {
-                var sql = "SELECT * FROM CommonItineraries WHERE trip_code = '" + window.currentEditTripCode + "'";
-                var res = window.db.exec(sql);
+            // 確保元素確實存在才執行，避免拋出錯誤中斷執行
+            if (formTitle && btnSave && codeInput) {
+                formTitle.innerText = "【 修改共用基本行程內容 】";
+                btnSave.innerText = "修 改";
                 
-                if (res.length > 0) {
-                    var data = res[0].values[0];
-                    var cleanStr = function(val) { return val === null ? '' : val; };
+                codeInput.readOnly = true;
+                codeInput.style.backgroundColor = '#e0e0e0';
 
-                    document.getElementById('trip_code').value = cleanStr(data[0]);
-                    document.getElementById('trip_name').value = cleanStr(data[1]);
-                    document.getElementById('tour_city').value = cleanStr(data[2]);
-                    document.getElementById('hotel_code').value = cleanStr(data[3]);
-                    document.getElementById('hotel_same_level').checked = (data[4] === 1);
-                    document.getElementById('hotel_name').value = cleanStr(data[5]);
+                try {
+                    var sql = "SELECT * FROM CommonItineraries WHERE trip_code = '" + window.currentEditTripCode + "'";
+                    var res = window.db.exec(sql);
                     
-                    document.getElementById('meal_features').value = cleanStr(data[6]);
-                    document.getElementById('bf_chk').checked = (data[7] === 1);
-                    document.getElementById('bf_desc').value = cleanStr(data[8]);
-                    document.getElementById('lun_chk').checked = (data[9] === 1);
-                    document.getElementById('lun_desc').value = cleanStr(data[10]);
-                    document.getElementById('din_chk').checked = (data[11] === 1);
-                    document.getElementById('din_desc').value = cleanStr(data[12]);
-                    
-                    document.getElementById('itinerary_content').value = cleanStr(data[13]);
+                    if (res.length > 0) {
+                        var data = res[0].values[0];
+                        // 防止 null 或 undefined 的值破壞畫面
+                        var cleanStr = function(val) { return (val === null || val === undefined) ? '' : val; };
+
+                        codeInput.value = cleanStr(data[0]);
+                        document.getElementById('trip_name').value = cleanStr(data[1]);
+                        document.getElementById('tour_city').value = cleanStr(data[2]);
+                        document.getElementById('hotel_code').value = cleanStr(data[3]);
+                        
+                        // 🟢 放寬判斷標準 (== 1) 確保不管回傳文字或數字都能打勾
+                        document.getElementById('hotel_same_level').checked = (data[4] == 1);
+                        document.getElementById('hotel_name').value = cleanStr(data[5]);
+                        
+                        document.getElementById('meal_features').value = cleanStr(data[6]);
+                        document.getElementById('bf_chk').checked = (data[7] == 1);
+                        document.getElementById('bf_desc').value = cleanStr(data[8]);
+                        document.getElementById('lun_chk').checked = (data[9] == 1);
+                        document.getElementById('lun_desc').value = cleanStr(data[10]);
+                        document.getElementById('din_chk').checked = (data[11] == 1);
+                        document.getElementById('din_desc').value = cleanStr(data[12]);
+                        
+                        document.getElementById('itinerary_content').value = cleanStr(data[13]);
+                    }
+                } catch (e) {
+                    console.error("載入修改資料失敗", e);
                 }
-            } catch (e) {
-                console.error("載入修改資料失敗", e);
             }
         }
-    })();
+    }, 150); // 延遲 0.15 秒執行
 
-    function escapeSql(str) {
+    // 🟢 改綁定在 window 上，確保跨頁面呼叫時不會報錯
+    window.escapeSql = function(str) {
+        if (!str) return "";
         return str.replace(/'/g, "''");
-    }
+    };
 
     window.saveItinerary = async function() {
         var code = document.getElementById('trip_code').value.trim().toUpperCase();
@@ -361,10 +373,10 @@
 
         if (window.currentEditTripCode) {
             sql = "UPDATE CommonItineraries SET " +
-                  "trip_name = '" + escapeSql(name) + "', tour_city = '" + escapeSql(city) + "', hotel_code = '" + escapeSql(h_code) + "', " +
-                  "hotel_same_level = " + h_same + ", hotel_name = '" + escapeSql(h_name) + "', meal_features = '" + escapeSql(m_feat) + "', " +
-                  "bf_checked = " + bf_chk + ", bf_desc = '" + escapeSql(bf_desc) + "', lun_checked = " + lun_chk + ", lun_desc = '" + escapeSql(lun_desc) + "', " +
-                  "din_checked = " + din_chk + ", din_desc = '" + escapeSql(din_desc) + "', itinerary_content = '" + escapeSql(content) + "' " +
+                  "trip_name = '" + window.escapeSql(name) + "', tour_city = '" + window.escapeSql(city) + "', hotel_code = '" + window.escapeSql(h_code) + "', " +
+                  "hotel_same_level = " + h_same + ", hotel_name = '" + window.escapeSql(h_name) + "', meal_features = '" + window.escapeSql(m_feat) + "', " +
+                  "bf_checked = " + bf_chk + ", bf_desc = '" + window.escapeSql(bf_desc) + "', lun_checked = " + lun_chk + ", lun_desc = '" + window.escapeSql(lun_desc) + "', " +
+                  "din_checked = " + din_chk + ", din_desc = '" + window.escapeSql(din_desc) + "', itinerary_content = '" + window.escapeSql(content) + "' " +
                   "WHERE trip_code = '" + code + "'";
         } else {
             var checkSql = "SELECT trip_code FROM CommonItineraries WHERE trip_code = '" + code + "'";
@@ -378,8 +390,8 @@
                   "trip_code, trip_name, tour_city, hotel_code, hotel_same_level, hotel_name, " +
                   "meal_features, bf_checked, bf_desc, lun_checked, lun_desc, din_checked, din_desc, itinerary_content" +
                   ") VALUES (" +
-                  "'" + code + "', '" + escapeSql(name) + "', '" + escapeSql(city) + "', '" + escapeSql(h_code) + "', " + h_same + ", '" + escapeSql(h_name) + "', " +
-                  "'" + escapeSql(m_feat) + "', " + bf_chk + ", '" + escapeSql(bf_desc) + "', " + lun_chk + ", '" + escapeSql(lun_desc) + "', " + din_chk + ", '" + escapeSql(din_desc) + "', '" + escapeSql(content) + "'" +
+                  "'" + code + "', '" + window.escapeSql(name) + "', '" + window.escapeSql(city) + "', '" + window.escapeSql(h_code) + "', " + h_same + ", '" + window.escapeSql(h_name) + "', " +
+                  "'" + window.escapeSql(m_feat) + "', " + bf_chk + ", '" + window.escapeSql(bf_desc) + "', " + lun_chk + ", '" + window.escapeSql(lun_desc) + "', " + din_chk + ", '" + window.escapeSql(din_desc) + "', '" + window.escapeSql(content) + "'" +
                   ")";
         }
 
