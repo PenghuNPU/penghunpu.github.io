@@ -82,7 +82,6 @@
                 <span class="req-icon" title="必填">V</span>
                 <br><span class="hint-text">&lt;可使用英文加數字，長度以8個字為限&gt;</span>
             </td>
-            <!-- 右側上傳圖片區塊 -->
             <td rowspan="4" style="width: 250px; vertical-align: top; padding-top: 15px;">
                 <div class="upload-area">
                     請以瀏覽方式上傳圖檔<br>
@@ -91,13 +90,11 @@
                     檔案寬度建議：145pixels<br>
                     高度建議：112pixels<br><br>
                     
-                    <!-- 預覽方塊 -->
                     <div class="preview-box">
                         <span id="preview_text">照片預覽區</span>
                         <img id="image_preview" alt="行程圖片預覽">
                     </div>
                     
-                    <!-- 檔案選擇器 -->
                     <input type="file" id="image_upload" accept="image/jpeg, image/gif, image/png" style="width: 160px; font-size: 11px;" onchange="window.previewImage(event)">
                 </div>
             </td>
@@ -133,7 +130,6 @@
                 <textarea id="hotel_name" class="textarea-box" rows="2"></textarea>
                 <span class="req-icon" title="必填">V</span>
                 <br>
-                <!-- 🟢 明確指定 type="button" 防止觸發其他表單預設行為 -->
                 <button class="btn-query" type="button" onclick="openHotelPicker()">?</button> <span class="hint-text" style="color: #999;">&lt;請從資料庫選取飯店，或直接手動輸入&gt;</span>
                 <button class="btn-normal" type="button" style="margin-left: 5px;" onclick="document.getElementById('hotel_code').value=''; document.getElementById('hotel_name').value='';">清除</button>
             </td>
@@ -269,13 +265,15 @@
     window.openHotelPicker = function() {
         let html = '';
         hotelOptions.forEach(h => {
-            // 🟢 在這裡確保字串安全的傳遞 (處理跳脫字元)
+            // 🟢 將 onclick 事件直接綁定在整個 list-item 區塊，並使用乾淨的參數傳遞
             const safeCode = h.code.replace(/'/g, "\\'");
             const safeName = h.name.replace(/'/g, "\\'");
-            html += `<div class="list-item" onclick="selectHotel('${safeCode}', '${safeName}')">
-                        <span class="hotel-code">[${h.code}]</span>
-                        <span>${h.name}</span>
-                     </div>`;
+            html += `
+                <div class="list-item" onclick="selectHotel('${safeCode}', '${safeName}')">
+                    <span class="hotel-code">[${h.code}]</span>
+                    <span>${h.name}</span>
+                </div>
+            `;
         });
         document.getElementById('hotel_list').innerHTML = html;
         document.getElementById('hotel_modal').style.display = 'block';
@@ -285,6 +283,7 @@
         document.getElementById('hotel_modal').style.display = 'none'; 
     }
     
+    // 🟢 確保這裡能正常將收到的值賦予 input 欄位並關閉視窗
     window.selectHotel = function(code, name) {
         document.getElementById('hotel_code').value = code;
         document.getElementById('hotel_name').value = name;
