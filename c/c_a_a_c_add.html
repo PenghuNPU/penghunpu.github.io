@@ -116,8 +116,8 @@
                 <input type="text" id="tour_city" class="input-box" style="width: 200px; margin-bottom: 5px;" placeholder="手動輸入或清單選取">
                 <span class="req-icon" title="必填">V</span>
                 <br>
-                <button class="btn-query" onclick="openCityPicker()">?</button> <span class="hint-text" style="color: #d84315;">&lt;請從資料庫中選取&gt;</span>
-                <button class="btn-normal" style="margin-left: 10px;" onclick="document.getElementById('tour_city').value=''">清除</button>
+                <button class="btn-query" type="button" onclick="openCityPicker()">?</button> <span class="hint-text" style="color: #d84315;">&lt;請從資料庫中選取&gt;</span>
+                <button class="btn-normal" type="button" style="margin-left: 10px;" onclick="document.getElementById('tour_city').value=''">清除</button>
             </td>
         </tr>
         <tr>
@@ -133,8 +133,9 @@
                 <textarea id="hotel_name" class="textarea-box" rows="2"></textarea>
                 <span class="req-icon" title="必填">V</span>
                 <br>
-                <button class="btn-query" onclick="openHotelPicker()">?</button> <span class="hint-text" style="color: #999;">&lt;請從資料庫選取飯店，或直接手動輸入&gt;</span>
-                <button class="btn-normal" style="margin-left: 5px;" onclick="document.getElementById('hotel_code').value=''; document.getElementById('hotel_name').value='';">清除</button>
+                <!-- 🟢 明確指定 type="button" 防止觸發其他表單預設行為 -->
+                <button class="btn-query" type="button" onclick="openHotelPicker()">?</button> <span class="hint-text" style="color: #999;">&lt;請從資料庫選取飯店，或直接手動輸入&gt;</span>
+                <button class="btn-normal" type="button" style="margin-left: 5px;" onclick="document.getElementById('hotel_code').value=''; document.getElementById('hotel_name').value='';">清除</button>
             </td>
         </tr>
         
@@ -165,8 +166,8 @@
                 <textarea id="itinerary_content" class="textarea-box" rows="5" style="margin-bottom: 5px;"></textarea>
                 <span class="req-icon" title="必填">V</span>
                 <div style="text-align: center; margin-top: 5px;">
-                    <button class="btn-normal" style="padding: 4px 15px; font-weight:bold; background-color:#d4d0c8;">使用編輯器</button>
-                    <button class="btn-normal" style="padding: 4px 15px; font-weight:bold; background-color:#d4d0c8;">預覽畫面</button>
+                    <button class="btn-normal" type="button" style="padding: 4px 15px; font-weight:bold; background-color:#d4d0c8;">使用編輯器</button>
+                    <button class="btn-normal" type="button" style="padding: 4px 15px; font-weight:bold; background-color:#d4d0c8;">預覽畫面</button>
                 </div>
             </td>
         </tr>
@@ -250,12 +251,16 @@
     window.openCityPicker = function() {
         let html = '';
         cityOptions.forEach(city => {
-            html += `<div class="list-item" onclick="selectCity('${city}')">${city}</div>`;
+            html += `<div class="list-item" onclick="selectCity('${city.replace(/'/g, "\\'")}')">${city}</div>`;
         });
         document.getElementById('city_list').innerHTML = html;
         document.getElementById('city_modal').style.display = 'block';
     }
-    window.closeCityPicker = function() { document.getElementById('city_modal').style.display = 'none'; }
+    
+    window.closeCityPicker = function() { 
+        document.getElementById('city_modal').style.display = 'none'; 
+    }
+    
     window.selectCity = function(city) {
         document.getElementById('tour_city').value = city;
         closeCityPicker();
@@ -264,7 +269,10 @@
     window.openHotelPicker = function() {
         let html = '';
         hotelOptions.forEach(h => {
-            html += `<div class="list-item" onclick="selectHotel('${h.code}', '${h.name}')">
+            // 🟢 在這裡確保字串安全的傳遞 (處理跳脫字元)
+            const safeCode = h.code.replace(/'/g, "\\'");
+            const safeName = h.name.replace(/'/g, "\\'");
+            html += `<div class="list-item" onclick="selectHotel('${safeCode}', '${safeName}')">
                         <span class="hotel-code">[${h.code}]</span>
                         <span>${h.name}</span>
                      </div>`;
@@ -272,7 +280,11 @@
         document.getElementById('hotel_list').innerHTML = html;
         document.getElementById('hotel_modal').style.display = 'block';
     }
-    window.closeHotelPicker = function() { document.getElementById('hotel_modal').style.display = 'none'; }
+    
+    window.closeHotelPicker = function() { 
+        document.getElementById('hotel_modal').style.display = 'none'; 
+    }
+    
     window.selectHotel = function(code, name) {
         document.getElementById('hotel_code').value = code;
         document.getElementById('hotel_name').value = name;
@@ -344,8 +356,8 @@
         if (!code) { alert("錯誤：請填寫行程代碼！"); document.getElementById('trip_code').focus(); return; }
         if (!name) { alert("錯誤：請填寫行程名稱！"); document.getElementById('trip_name').focus(); return; }
         if (!city) { alert("錯誤：請選擇旅遊城市！"); document.getElementById('tour_city').focus(); return; }
-        if (!h_code) { alert("錯誤：請點選查詢按鈕選取飯店！"); return; }
-        if (!h_name) { alert("錯誤：請點選查詢按鈕選取飯店！"); return; }
+        if (!h_code) { alert("錯誤：請填寫或選擇飯店代碼！"); document.getElementById('hotel_code').focus(); return; }
+        if (!h_name) { alert("錯誤：請填寫或選擇住宿飯店！"); document.getElementById('hotel_name').focus(); return; }
         if (!content) { alert("錯誤：請填寫行程內容！"); document.getElementById('itinerary_content').focus(); return; }
 
         let sql = "";
