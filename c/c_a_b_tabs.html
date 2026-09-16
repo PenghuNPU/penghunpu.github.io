@@ -2,11 +2,13 @@
     .tab-container { padding: 10px; background-color: #ece9d8; height: 100%; box-sizing: border-box; }
     .tabs-header { display: flex; border-bottom: 2px solid #fff; position: relative; }
     .tabs-header::after { content: ""; position: absolute; bottom: -2px; left: 0; right: 0; border-bottom: 1px solid #999; z-index: 1; }
+    
     .tab-btn {
         padding: 6px 12px; border: 1px solid #999; border-bottom: none; background-color: #d6d3ce; margin-right: 2px; border-radius: 4px 4px 0 0; cursor: pointer; font-size: 13px; position: relative; z-index: 0;
     }
-    .tab-btn.active { background-color: #ece9d8; border-top: 3px solid #ff9800; border-left: 1px solid #fff; font-weight: bold; z-index: 2; padding-bottom: 7px; margin-bottom: -1px; }
+    .tab-btn.active { background-color: #ece9d8; border-top: 3px solid #ffaa44; border-left: 1px solid #fff; font-weight: bold; z-index: 2; padding-bottom: 7px; margin-bottom: -1px; }
     .tab-btn:hover:not(.active) { background-color: #e2dfd3; }
+    
     .tab-content-box { border: 1px solid #999; border-top: none; border-right: 2px solid #fff; border-bottom: 2px solid #fff; background-color: #ece9d8; padding: 15px; min-height: 450px; overflow-y: auto; }
 </style>
 
@@ -39,13 +41,14 @@
         tabs.forEach(tab => tab.classList.remove('active'));
         if (element) element.classList.add('active');
 
-        // 🟢 組合檔名，如 c_a_b_1.html
+        // 🟢 如果您的檔案放在不同的資料夾下 (例如 c 資料夾)，請修改這裡的路徑，例如：`c/c_a_b_${tabIndex}.html`
+        // 這裡預設檔案與 index 在同一層
         const subFilePath = `c_a_b_${tabIndex}.html`;
         const contentBox = document.getElementById('sub-tab-content');
 
         fetch(subFilePath)
             .then(response => {
-                if (!response.ok) throw new Error('檔案讀取失敗');
+                if (!response.ok) throw new Error(`HTTP Error: ${response.status}`);
                 return response.text();
             })
             .then(html => {
@@ -59,7 +62,8 @@
                 });
             })
             .catch(error => {
-                contentBox.innerHTML = `<div style="color:red; font-weight:bold; padding:20px;">⚠️ 無法載入檔案：${subFilePath}</div>`;
+                contentBox.innerHTML = `<div style="color:red; font-weight:bold; padding:20px;">⚠️ 無法載入檔案：${subFilePath} <br>原因：${error.message} <br>請確認檔案是否確實存在，或檢查網頁伺服器設定。</div>`;
+                console.error("載入分頁失敗", error);
             });
     };
 
