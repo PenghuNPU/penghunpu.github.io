@@ -1,0 +1,221 @@
+<style>
+    .form-table { width: 100%; border-collapse: collapse; border: 1px solid #777; margin-bottom: 15px; background-color: #fff; }
+    .form-table th, .form-table td { border: 1px solid #777; padding: 6px; }
+    .form-title { background-color: #ffcc99; font-weight: bold; text-align: center; font-size: 14px; padding: 8px !important; letter-spacing: 2px; }
+    .info-header th { background-color: #f0f0f0; width: 100px; text-align: left; padding-left: 10px; }
+    .info-header td { color: #333; font-weight: bold; color: blue; }
+    
+    /* 矩陣表格樣式 */
+    .matrix-table { width: 100%; border-collapse: collapse; text-align: center; margin: 10px 0; border: 1px solid #777; }
+    .matrix-table th { background-color: #cceeff; padding: 6px; border: 1px solid #777; font-weight: normal; }
+    .matrix-table td { background-color: #ffffe0; padding: 4px; border: 1px solid #777; font-weight: bold;}
+    .matrix-table td.row-header { background-color: #fff; font-weight: normal; }
+    
+    .input-box { border: 1px inset #fff; padding: 3px; font-size: 13px; width: 80px; text-align: right; font-weight: normal; }
+    .checkbox-box { margin: 0; padding: 0; vertical-align: middle; cursor: pointer; }
+
+    .action-row { text-align: center; margin-top: 15px; padding: 10px; background-color: #808080; border: 1px solid #777; }
+    .action-row button { background-color: #ece9d8; border: 2px outset #fff; padding: 4px 20px; font-weight: bold; letter-spacing: 2px; margin: 0 10px; cursor: pointer; }
+    .action-row button:active { border-style: inset; }
+</style>
+
+<table class="form-table">
+    <tr>
+        <td colspan="2" class="form-title">【 編輯各項費用表 】</td>
+    </tr>
+    <tr class="info-header">
+        <th>團型代碼</th>
+        <td id="display_code">載入中...</td>
+    </tr>
+    <tr class="info-header">
+        <th>團型名稱</th>
+        <td id="display_name" style="color: black; font-weight: normal;">載入中...</td>
+    </tr>
+    <tr>
+        <td colspan="2" style="padding: 15px;">
+            
+            <!-- 表格 1：旅客類別價格表 -->
+            <table class="matrix-table" id="table_prices">
+                <tr>
+                    <th style="width: 12%;">旅客類別</th>
+                    <th>NET</th>
+                    <th>直客價</th>
+                    <th>同業價</th>
+                    <th>網路會員價</th>
+                    <th>價格分級名稱 4</th>
+                    <th>價格分級名稱 5</th>
+                </tr>
+                <!-- 資料列將由 JS 動態產生以精簡 HTML -->
+            </table>
+
+            <br>
+            
+            <!-- 表格 2：加價費用表 -->
+            <table class="matrix-table" id="table_surcharges" style="width: 60%;">
+                <tr>
+                    <th style="width: 25%;">名稱</th>
+                    <th style="width: 25%;">費用</th>
+                    <th style="width: 25%;">必須購買</th>
+                    <th style="width: 25%;">與訂金同繳</th>
+                </tr>
+                <!-- 資料列將由 JS 動態產生以精簡 HTML -->
+            </table>
+
+        </td>
+    </tr>
+</table>
+
+<div class="action-row">
+    <button onclick="window.saveFees()">確 定</button>
+    <button onclick="window.resetFeesForm()">重 填</button>
+    <button onclick="if(typeof loadPage === 'function') loadPage('C-A-B');">放 棄</button>
+</div>
+
+<script>
+    // 參數定義陣列 (用以動態產生欄位與 SQL)
+    const passengerTypes = [
+        { id: 'adult', label: '大人' },
+        { id: 'child_bed', label: '小孩佔床' },
+        { id: 'child_nobed', label: '小孩不佔床' },
+        { id: 'extra_bed', label: '加床' },
+        { id: 'quad_child', label: '四人房(小孩)' },
+        { id: 'quad_adult', label: '四人房(大人)' },
+        { id: 'infant', label: '嬰兒' }
+    ];
+    const priceCols = ['net', 'direct', 'b2b', 'member', 'tier4', 'tier5'];
+    
+    const cabinSurcharges = [
+        { id: 'ed', label: 'ED艙加價' },
+        { id: 'c', label: 'C艙加價' },
+        { id: 'f', label: 'F艙加價' }
+    ];
+
+    // 動態繪製表格 HTML
+    (function renderTables() {
+        const tPrices = document.getElementById('table_prices');
+        passengerTypes.forEach(pt => {
+            let tr = document.createElement('tr');
+            let tdHeader = `<td class="row-header">${pt.label}</td>`;
+            let tdInputs = priceCols.map(col => `<td><input type="number" id="${pt.id}_${col}" class="input-box" min="0"></td>`).join('');
+            tr.innerHTML = tdHeader + tdInputs;
+            tPrices.appendChild(tr);
+        });
+
+        const tSurcharges = document.getElementById('table_surcharges');
+        cabinSurcharges.forEach(cab => {
+            let tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td class="row-header">${cab.label}</td>
+                <td><input type="number" id="${cab.id}_fee" class="input-box" min="0"></td>
+                <td><input type="checkbox" id="${cab.id}_mandatory" class="checkbox-box"></td>
+                <td><input type="checkbox" id="${cab.id}_with_deposit" class="checkbox-box"></td>
+            `;
+            tSurcharges.appendChild(tr);
+        });
+    })();
+
+    // 初始化與資料載入
+    (function initFees() {
+        let tCode = window.currentEditTourCode || localStorage.getItem('editTourCode');
+        let tName = window.currentEditTourName || localStorage.getItem('editTourName');
+        
+        if (tCode === 'null' || tCode === 'undefined' || tCode === '') tCode = null;
+
+        if (!tCode) {
+            alert("系統遺失團型代碼，請重新選擇！");
+            if(typeof loadPage === 'function') loadPage('C-A-B');
+            return;
+        }
+
+        document.getElementById('display_code').innerText = tCode;
+        document.getElementById('display_name').innerText = tName || '';
+
+        if (!window.db) return;
+
+        // 建立費用資料表
+        window.db.exec(`
+            CREATE TABLE IF NOT EXISTS TourFees (
+                tour_code TEXT PRIMARY KEY,
+                adult_net INTEGER DEFAULT 0, adult_direct INTEGER DEFAULT 0, adult_b2b INTEGER DEFAULT 0, adult_member INTEGER DEFAULT 0, adult_tier4 INTEGER DEFAULT 0, adult_tier5 INTEGER DEFAULT 0,
+                child_bed_net INTEGER DEFAULT 0, child_bed_direct INTEGER DEFAULT 0, child_bed_b2b INTEGER DEFAULT 0, child_bed_member INTEGER DEFAULT 0, child_bed_tier4 INTEGER DEFAULT 0, child_bed_tier5 INTEGER DEFAULT 0,
+                child_nobed_net INTEGER DEFAULT 0, child_nobed_direct INTEGER DEFAULT 0, child_nobed_b2b INTEGER DEFAULT 0, child_nobed_member INTEGER DEFAULT 0, child_nobed_tier4 INTEGER DEFAULT 0, child_nobed_tier5 INTEGER DEFAULT 0,
+                extra_bed_net INTEGER DEFAULT 0, extra_bed_direct INTEGER DEFAULT 0, extra_bed_b2b INTEGER DEFAULT 0, extra_bed_member INTEGER DEFAULT 0, extra_bed_tier4 INTEGER DEFAULT 0, extra_bed_tier5 INTEGER DEFAULT 0,
+                quad_child_net INTEGER DEFAULT 0, quad_child_direct INTEGER DEFAULT 0, quad_child_b2b INTEGER DEFAULT 0, quad_child_member INTEGER DEFAULT 0, quad_child_tier4 INTEGER DEFAULT 0, quad_child_tier5 INTEGER DEFAULT 0,
+                quad_adult_net INTEGER DEFAULT 0, quad_adult_direct INTEGER DEFAULT 0, quad_adult_b2b INTEGER DEFAULT 0, quad_adult_member INTEGER DEFAULT 0, quad_adult_tier4 INTEGER DEFAULT 0, quad_adult_tier5 INTEGER DEFAULT 0,
+                infant_net INTEGER DEFAULT 0, infant_direct INTEGER DEFAULT 0, infant_b2b INTEGER DEFAULT 0, infant_member INTEGER DEFAULT 0, infant_tier4 INTEGER DEFAULT 0, infant_tier5 INTEGER DEFAULT 0,
+                ed_fee INTEGER DEFAULT 0, ed_mandatory INTEGER DEFAULT 0, ed_with_deposit INTEGER DEFAULT 0,
+                c_fee INTEGER DEFAULT 0, c_mandatory INTEGER DEFAULT 0, c_with_deposit INTEGER DEFAULT 0,
+                f_fee INTEGER DEFAULT 0, f_mandatory INTEGER DEFAULT 0, f_with_deposit INTEGER DEFAULT 0
+            );
+        `);
+
+        try {
+            const res = window.db.exec(`SELECT * FROM TourFees WHERE tour_code = '${tCode}'`);
+            if (res.length > 0) {
+                const data = res[0].values[0];
+                const cols = res[0].columns;
+                
+                // 動態配對欄位與畫面元素
+                cols.forEach((colName, index) => {
+                    if (colName === 'tour_code') return;
+                    const el = document.getElementById(colName);
+                    if (el) {
+                        if (el.type === 'checkbox') {
+                            el.checked = data[index] === 1;
+                        } else {
+                            el.value = data[index] === 0 ? '' : data[index];
+                        }
+                    }
+                });
+            }
+        } catch (e) { console.error("載入費用資料失敗", e); }
+    })();
+
+    // 重填表單
+    window.resetFeesForm = function() {
+        document.querySelectorAll('#table_prices input[type="number"], #table_surcharges input[type="number"]').forEach(input => input.value = '');
+        document.querySelectorAll('#table_surcharges input[type="checkbox"]').forEach(input => input.checked = false);
+    };
+
+    // 儲存資料
+    window.saveFees = async function() {
+        let tCode = window.currentEditTourCode || localStorage.getItem('editTourCode');
+        if (tCode === 'null' || tCode === 'undefined' || tCode === '') tCode = null;
+        if (!tCode) return;
+
+        let fields = ['tour_code'];
+        let values = [`'${tCode}'`];
+
+        // 1. 抓取價格表資料
+        passengerTypes.forEach(pt => {
+            priceCols.forEach(col => {
+                const elId = `${pt.id}_${col}`;
+                const val = parseInt(document.getElementById(elId).value) || 0;
+                fields.push(elId);
+                values.push(val);
+            });
+        });
+
+        // 2. 抓取加價表資料
+        cabinSurcharges.forEach(cab => {
+            const feeVal = parseInt(document.getElementById(`${cab.id}_fee`).value) || 0;
+            const isMandatory = document.getElementById(`${cab.id}_mandatory`).checked ? 1 : 0;
+            const isWithDeposit = document.getElementById(`${cab.id}_with_deposit`).checked ? 1 : 0;
+            
+            fields.push(`${cab.id}_fee`, `${cab.id}_mandatory`, `${cab.id}_with_deposit`);
+            values.push(feeVal, isMandatory, isWithDeposit);
+        });
+
+        const sql = `REPLACE INTO TourFees (${fields.join(', ')}) VALUES (${values.join(', ')});`;
+
+        if (window.executeAndSave) {
+            try {
+                const isSuccess = await window.executeAndSave(sql);
+                if (isSuccess) alert("各項費用表已成功儲存！");
+            } catch(e) { alert("儲存失敗：" + e.message); }
+        } else if (window.db) {
+            window.db.exec(sql);
+            alert("各項費用表已成功儲存！");
+        }
+    };
+</script>
