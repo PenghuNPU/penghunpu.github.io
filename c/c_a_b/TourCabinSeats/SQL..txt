@@ -1,0 +1,11 @@
+CREATE TABLE IF NOT EXISTS TourCabinSeats (
+    tour_code TEXT PRIMARY KEY,
+    /* Y艙 (經濟艙) */
+    y_total INTEGER DEFAULT 0, y_leader INTEGER DEFAULT 0, y_guide INTEGER DEFAULT 0, y_other INTEGER DEFAULT 0, y_fit INTEGER DEFAULT 0,
+    /* ED艙 (豪華經濟艙) */
+    ed_total INTEGER DEFAULT 0, ed_leader INTEGER DEFAULT 0, ed_guide INTEGER DEFAULT 0, ed_other INTEGER DEFAULT 0, ed_fit INTEGER DEFAULT 0,
+    /* C艙 (商務艙) */
+    c_total INTEGER DEFAULT 0, c_leader INTEGER DEFAULT 0, c_guide INTEGER DEFAULT 0, c_other INTEGER DEFAULT 0, c_fit INTEGER DEFAULT 0,
+    /* F艙 (頭等艙) */
+    f_total INTEGER DEFAULT 0, f_leader INTEGER DEFAULT 0, f_guide INTEGER DEFAULT 0, f_other INTEGER DEFAULT 0, f_fit INTEGER DEFAULT 0
+);

@@ -1,0 +1,67 @@
+<style>
+    .page-wrapper { font-family: "MS Sans Serif", "細明體", sans-serif; font-size: 13px; padding: 15px; background-color: #ece9d8; height: 100%; box-sizing: border-box; display: flex; flex-direction: column; }
+    
+    /* 頁籤導覽列樣式 */
+    .tabs-nav { display: flex; border-bottom: 2px solid #999; margin-bottom: 0; padding-left: 10px; }
+    .tab-btn { 
+        background-color: #d4d0c8; 
+        border: 1px solid #999; 
+        border-bottom: none; 
+        padding: 6px 20px; 
+        margin-right: 3px; 
+        cursor: pointer; 
+        border-radius: 5px 5px 0 0; 
+        font-weight: bold; 
+        color: #555;
+    }
+    .tab-btn.active { 
+        background-color: #fff; 
+        color: #000; 
+        border-top: 3px solid #ffaa44; 
+    }
+    .tab-btn:hover:not(.active) { background-color: #e2dfd3; }
+    
+    /* iframe 內容區塊 */
+    .tab-content { 
+        flex-grow: 1; 
+        background-color: #fff; 
+        border: 1px solid #999; 
+        border-top: none; 
+        padding: 0; 
+        overflow: hidden; 
+    }
+    .tab-content iframe { width: 100%; height: 100%; border: none; }
+</style>
+
+<div class="page-wrapper">
+    <div class="tabs-nav">
+        <div class="tab-btn active" onclick="switchTab(1, this)">艙等機位數</div>
+        <div class="tab-btn" onclick="switchTab(2, this)">航班資料</div>
+        <div class="tab-btn" onclick="switchTab(3, this)">行程內容</div>
+        <div class="tab-btn" onclick="switchTab(4, this)">各項費用表</div>
+    </div>
+    <div class="tab-content">
+        <!-- 預設載入 c_a_b_1.html -->
+        <iframe id="sub_frame" src="c_a_b_1.html"></iframe>
+    </div>
+</div>
+
+<script>
+    // 切換頁籤的函式
+    function switchTab(tabIndex, element) {
+        // 更新按鈕樣式
+        document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+        element.classList.add('active');
+        
+        // 切換 iframe 網址
+        document.getElementById('sub_frame').src = 'c_a_b_' + tabIndex + '.html';
+    }
+
+    // 檢查是否有正確接收到團型代碼
+    (function checkContext() {
+        if (!window.currentEditTourCode) {
+            alert("錯誤：未指定團型代碼！即將返回列表頁。");
+            loadPage('C-A-B');
+        }
+    })();
+</script>
