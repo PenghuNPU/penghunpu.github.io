@@ -18,7 +18,6 @@
     .action-icons span { cursor: pointer; margin: 0 4px; font-size: 15px; display: inline-block; }
     .action-icons span:hover { transform: scale(1.1); }
     
-    /* 🟢 新增：團型代碼專屬連結樣式 */
     .link-code { color: #0000ff; font-weight: bold; cursor: pointer; text-decoration: underline; }
     .link-code:hover { color: #ff0000; }
 </style>
@@ -29,7 +28,8 @@
             點選團型代碼，可進一步編修基本團型資料。<br>
             P.S.一旦建立可隨時修改與刪除。
         </div>
-        <button class="btn-add" onclick="window.currentEditTourCode = null; loadPage('C-A-B-ADD');">
+        <!-- 🟢 呼叫獨立的新增 Function -->
+        <button class="btn-add" onclick="window.openAddTour()">
             [+] 新 增
         </button>
     </div>
@@ -58,71 +58,24 @@
 </div>
 
 <script>
-    (function renderTable() {
-        // 清空可能殘留的全域變數
-        window.currentEditTourCode = null;
+    // 🟢 建立與 AAA 相同的操作 Function
+    window.openAddTour = function() {
+        window.currentEditTourCode = null; 
         window.currentEditTourName = null;
+        loadPage('C-A-B-ADD'); 
+    };
 
-        if (!window.db) { alert("資料庫未綁定！"); return; }
-        
-        window.db.exec(`
-            CREATE TABLE IF NOT EXISTS BasicTours (
-                tour_code TEXT PRIMARY KEY CHECK(length(tour_code) <= 12), tour_category TEXT, line_name TEXT, series_name TEXT,
-                tour_name TEXT NOT NULL CHECK(length(tour_name) <= 30), foreign_tour_no TEXT, product_name TEXT,
-                tour_days INTEGER, tour_nights INTEGER, tour_area TEXT, tour_country TEXT, departure_airport TEXT,
-                dev_features TEXT, itinerary_features TEXT, special_arrange TEXT, sales_features TEXT,
-                ticket_desc TEXT, departure_notes TEXT, b2b_notes TEXT, included_items TEXT, excluded_items TEXT
-            );
-        `);
+    window.goToTourTabs = function(code, name) {
+        window.currentEditTourCode = code;
+        window.currentEditTourName = name;
+        loadPage('C-A-B-TABS');
+    };
 
-        window.loadTourList = function() {
-            try {
-                const res = window.db.exec("SELECT tour_code, tour_name, line_name, series_name, tour_days FROM BasicTours ORDER BY tour_code ASC");
-                const tbody = document.getElementById('tour_list_body');
-                
-                if (res.length === 0) {
-                    tbody.innerHTML = `<tr><td colspan="6" style="color:red; font-weight:bold;">目前尚無資料，請點擊右上角新增。</td></tr>`;
-                    return;
-                }
-
-                let html = '';
-                res[0].values.forEach(row => {
-                    const code = row[0] || '';
-                    const name = row[1] || '';
-                    const line = row[2] || '';
-                    const series = row[3] || '';
-                    const days = row[4] || '0';
-                    
-                    // 為了避免單引號破壞 onclick 事件，將名稱內的單引號做跳脫處理
-                    const safeName = name.replace(/'/g, "\\'");
-
-                    html += `
-                        <tr>
-                            <!-- 🟢 將團型代碼設為點擊連結，寫入變數並跳轉至 TABS 頁面 -->
-                            <td class="link-code" title="點擊進入分頁設定" 
-                                onclick="window.currentEditTourCode = '${code}'; window.currentEditTourName = '${safeName}'; loadPage('C-A-B-TABS');">
-                                ${code}
-                            </td>
-                            <td style="text-align:left;">${name}</td>
-                            <td>${line}</td>
-                            <td>${series}</td>
-                            <td>${days}</td>
-                            <td class="action-icons">
-                                <span title="修改基本資料" onclick="window.currentEditTourCode = '${code}'; loadPage('C-A-B-ADD');">&#128221;</span>
-                                <span title="刪除此筆資料" onclick="deleteTour('${code}')">&#10060;</span>
-                            </td>
-                        </tr>
-                    `;
-                });
-                tbody.innerHTML = html;
-            } catch (e) {
-                console.error(e);
-                document.getElementById('tour_list_body').innerHTML = `<tr><td colspan="6">讀取失敗</td></tr>`;
-            }
-        };
-
-        window.loadTourList();
-    })();
+    window.editTourBase = function(code, name) {
+        window.currentEditTourCode = code;
+        window.currentEditTourName = name;
+        loadPage('C-A-B-ADD');
+    };
 
     window.deleteTour = async function(code) {
         if(confirm(`警告：確定要刪除團型資料 [${code}] 嗎？此動作無法復原！`)) {
@@ -134,4 +87,62 @@
             }
         }
     };
+
+    // 載入表格清單
+    window.loadTourList = function() {
+        if (!window.db) { alert("資料庫未綁定！"); return; }
+
+        window.db.exec(`
+            CREATE TABLE IF NOT EXISTS BasicTours (
+                tour_code TEXT PRIMARY KEY CHECK(length(tour_code) <= 12), tour_category TEXT, line_name TEXT, series_name TEXT,
+                tour_name TEXT NOT NULL CHECK(length(tour_name) <= 30), foreign_tour_no TEXT, product_name TEXT,
+                tour_days INTEGER, tour_nights INTEGER, tour_area TEXT, tour_country TEXT, departure_airport TEXT,
+                dev_features TEXT, itinerary_features TEXT, special_arrange TEXT, sales_features TEXT,
+                ticket_desc TEXT, departure_notes TEXT, b2b_notes TEXT, included_items TEXT, excluded_items TEXT
+            );
+        `);
+
+        try {
+            const res = window.db.exec("SELECT tour_code, tour_name, line_name, series_name, tour_days FROM BasicTours ORDER BY tour_code ASC");
+            const tbody = document.getElementById('tour_list_body');
+            
+            if (res.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="6" style="color:red; font-weight:bold;">目前尚無資料，請點擊右上角新增。</td></tr>`;
+                return;
+            }
+
+            let html = '';
+            res[0].values.forEach(row => {
+                const code = row[0] || '';
+                const name = row[1] || '';
+                const line = row[2] || '';
+                const series = row[3] || '';
+                const days = row[4] || '0';
+                const safeName = name.replace(/'/g, "\\'");
+
+                html += `
+                    <tr>
+                        <td class="link-code" title="點擊進入分頁設定" onclick="window.goToTourTabs('${code}', '${safeName}')">
+                            ${code}
+                        </td>
+                        <td style="text-align:left;">${name}</td>
+                        <td>${line}</td>
+                        <td>${series}</td>
+                        <td>${days}</td>
+                        <td class="action-icons">
+                            <span title="修改基本資料" onclick="window.editTourBase('${code}', '${safeName}')">&#128221;</span>
+                            <span title="刪除此筆資料" onclick="window.deleteTour('${code}')">&#10060;</span>
+                        </td>
+                    </tr>
+                `;
+            });
+            tbody.innerHTML = html;
+        } catch (e) {
+            console.error(e);
+            document.getElementById('tour_list_body').innerHTML = `<tr><td colspan="6">讀取失敗</td></tr>`;
+        }
+    };
+
+    // 執行載入
+    window.loadTourList();
 </script>
