@@ -1,0 +1,93 @@
+<style>
+    .page-wrapper { font-family: "MS Sans Serif", "細明體", sans-serif; font-size: 13px; padding: 15px; background-color: #ece9d8; height: 100%; box-sizing: border-box; display: flex; flex-direction: column; }
+    
+    /* 頁籤導覽列樣式 */
+    .tabs-nav { display: flex; border-bottom: 2px solid #999; margin-bottom: 0; padding-left: 10px; }
+    .tab-btn { 
+        background-color: #d4d0c8; 
+        border: 1px solid #999; 
+        border-bottom: none; 
+        padding: 6px 20px; 
+        margin-right: 3px; 
+        cursor: pointer; 
+        border-radius: 5px 5px 0 0; 
+        font-weight: bold; 
+        color: #555;
+    }
+    .tab-btn.active { 
+        background-color: #fff; 
+        color: #000; 
+        border-top: 3px solid #ffaa44; 
+    }
+    .tab-btn:hover:not(.active) { background-color: #e2dfd3; }
+    
+    /* 內容區塊 */
+    .tab-content { 
+        flex-grow: 1; 
+        background-color: #fff; 
+        border: 1px solid #999; 
+        border-top: none; 
+        padding: 10px; 
+        overflow-y: auto; 
+    }
+</style>
+
+<div class="page-wrapper">
+    <div class="tabs-nav">
+        <!-- 傳入對應的檔案名稱 -->
+        <div class="tab-btn active" onclick="switchTab('c_a_b_1.html', this)">艙等機位數</div>
+        <div class="tab-btn" onclick="switchTab('c_a_b_2.html', this)">航班資料</div>
+        <div class="tab-btn" onclick="switchTab('c_a_b_3.html', this)">行程內容</div>
+        <div class="tab-btn" onclick="switchTab('c_a_b_4.html', this)">各項費用表</div>
+    </div>
+    
+    <!-- 取代 iframe，直接將 HTML 內容塞入此 div 中 -->
+    <div class="tab-content" id="tab_container">
+        載入中...
+    </div>
+</div>
+
+<script>
+    // 檢查是否有正確接收到團型代碼
+    (function checkContext() {
+        if (!window.currentEditTourCode) {
+            alert("錯誤：未指定團型代碼！即將返回列表頁。");
+            loadPage('C-A-B');
+            return;
+        }
+        // 預設載入第一個頁籤
+        switchTab('c_a_b_1.html', document.querySelector('.tab-btn.active'));
+    })();
+
+    // 透過 fetch 動態載入 HTML 內容並執行內部的 script
+    function switchTab(pageName, element) {
+        // 更新按鈕樣式
+        document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+        element.classList.add('active');
+        
+        const container = document.getElementById('tab_container');
+        container.innerHTML = "載入中...";
+
+        fetch(pageName)
+            .then(response => {
+                if (!response.ok) throw new Error('找不到檔案');
+                return response.text();
+            })
+            .then(html => {
+                container.innerHTML = html;
+                
+                // 必須手動觸發載入的 HTML 內的 script 才會執行
+                const scripts = container.querySelectorAll('script');
+                scripts.forEach(oldScript => {
+                    const newScript = document.createElement('script');
+                    Array.from(oldScript.attributes).forEach(attr => newScript.setAttribute(attr.name, attr.value));
+                    newScript.appendChild(document.createTextNode(oldScript.innerHTML));
+                    oldScript.parentNode.replaceChild(newScript, oldScript);
+                });
+            })
+            .catch(error => {
+                console.error('載入分頁失敗:', error);
+                container.innerHTML = `<div style="color:red; text-align:center; padding:20px;">無法載入 ${pageName}，請確認檔案是否存在於正確路徑。</div>`;
+            });
+    }
+</script>
