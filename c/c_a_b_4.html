@@ -5,7 +5,6 @@
     .info-header th { background-color: #f0f0f0; width: 100px; text-align: left; padding-left: 10px; }
     .info-header td { color: #333; font-weight: bold; color: blue; }
     
-    /* 矩陣表格樣式 */
     .matrix-table { width: 100%; border-collapse: collapse; text-align: center; margin: 10px 0; border: 1px solid #777; }
     .matrix-table th { background-color: #cceeff; padding: 6px; border: 1px solid #777; font-weight: normal; }
     .matrix-table td { background-color: #ffffe0; padding: 4px; border: 1px solid #777; font-weight: bold;}
@@ -34,7 +33,6 @@
     <tr>
         <td colspan="2" style="padding: 15px;">
             
-            <!-- 表格 1：旅客類別價格表 -->
             <table class="matrix-table" id="table_prices">
                 <tr>
                     <th style="width: 12%;">旅客類別</th>
@@ -45,12 +43,10 @@
                     <th>價格分級名稱 4</th>
                     <th>價格分級名稱 5</th>
                 </tr>
-                <!-- 資料列將由 JS 動態產生以精簡 HTML -->
             </table>
 
             <br>
             
-            <!-- 表格 2：加價費用表 -->
             <table class="matrix-table" id="table_surcharges" style="width: 60%;">
                 <tr>
                     <th style="width: 25%;">名稱</th>
@@ -58,7 +54,6 @@
                     <th style="width: 25%;">必須購買</th>
                     <th style="width: 25%;">與訂金同繳</th>
                 </tr>
-                <!-- 資料列將由 JS 動態產生以精簡 HTML -->
             </table>
 
         </td>
@@ -72,8 +67,8 @@
 </div>
 
 <script>
-    // 參數定義陣列 (用以動態產生欄位與 SQL)
-    const passengerTypes = [
+    // 🟢 替換 const 為 var，避免 SPA 架構下重複載入腳本引發語法錯誤
+    var passengerTypes = [
         { id: 'adult', label: '大人' },
         { id: 'child_bed', label: '小孩佔床' },
         { id: 'child_nobed', label: '小孩不佔床' },
@@ -82,45 +77,47 @@
         { id: 'quad_adult', label: '四人房(大人)' },
         { id: 'infant', label: '嬰兒' }
     ];
-    const priceCols = ['net', 'direct', 'b2b', 'member', 'tier4', 'tier5'];
+    var priceCols = ['net', 'direct', 'b2b', 'member', 'tier4', 'tier5'];
     
-    const cabinSurcharges = [
+    var cabinSurcharges = [
         { id: 'ed', label: 'ED艙加價' },
         { id: 'c', label: 'C艙加價' },
         { id: 'f', label: 'F艙加價' }
     ];
 
-    // 動態繪製表格 HTML
-    (function renderTables() {
-        const tPrices = document.getElementById('table_prices');
-        passengerTypes.forEach(pt => {
-            let tr = document.createElement('tr');
-            let tdHeader = `<td class="row-header">${pt.label}</td>`;
-            let tdInputs = priceCols.map(col => `<td><input type="number" id="${pt.id}_${col}" class="input-box" min="0"></td>`).join('');
-            tr.innerHTML = tdHeader + tdInputs;
-            tPrices.appendChild(tr);
-        });
+    window.renderFeesTables = function() {
+        var tPrices = document.getElementById('table_prices');
+        // 避免重複生成
+        if (tPrices.rows.length <= 1) {
+            passengerTypes.forEach(pt => {
+                var tr = document.createElement('tr');
+                var tdHeader = `<td class="row-header">${pt.label}</td>`;
+                var tdInputs = priceCols.map(col => `<td><input type="number" id="${pt.id}_${col}" class="input-box" min="0"></td>`).join('');
+                tr.innerHTML = tdHeader + tdInputs;
+                tPrices.appendChild(tr);
+            });
+        }
 
-        const tSurcharges = document.getElementById('table_surcharges');
-        cabinSurcharges.forEach(cab => {
-            let tr = document.createElement('tr');
-            tr.innerHTML = `
-                <td class="row-header">${cab.label}</td>
-                <td><input type="number" id="${cab.id}_fee" class="input-box" min="0"></td>
-                <td><input type="checkbox" id="${cab.id}_mandatory" class="checkbox-box"></td>
-                <td><input type="checkbox" id="${cab.id}_with_deposit" class="checkbox-box"></td>
-            `;
-            tSurcharges.appendChild(tr);
-        });
-    })();
+        var tSurcharges = document.getElementById('table_surcharges');
+        if (tSurcharges.rows.length <= 1) {
+            cabinSurcharges.forEach(cab => {
+                var tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td class="row-header">${cab.label}</td>
+                    <td><input type="number" id="${cab.id}_fee" class="input-box" min="0"></td>
+                    <td><input type="checkbox" id="${cab.id}_mandatory" class="checkbox-box"></td>
+                    <td><input type="checkbox" id="${cab.id}_with_deposit" class="checkbox-box"></td>
+                `;
+                tSurcharges.appendChild(tr);
+            });
+        }
+    };
 
-    // 初始化與資料載入
-    (function initFees() {
-        let tCode = window.currentEditTourCode || localStorage.getItem('editTourCode');
-        let tName = window.currentEditTourName || localStorage.getItem('editTourName');
+    window.initFees = function() {
+        // 🟢 優先讀取 window 全域變數，確保參數穩定
+        var tCode = window.currentEditTourCode;
+        var tName = window.currentEditTourName;
         
-        if (tCode === 'null' || tCode === 'undefined' || tCode === '') tCode = null;
-
         if (!tCode) {
             alert("系統遺失團型代碼，請重新選擇！");
             if(typeof loadPage === 'function') loadPage('C-A-B');
@@ -130,9 +127,10 @@
         document.getElementById('display_code').innerText = tCode;
         document.getElementById('display_name').innerText = tName || '';
 
+        window.renderFeesTables();
+
         if (!window.db) return;
 
-        // 建立費用資料表
         window.db.exec(`
             CREATE TABLE IF NOT EXISTS TourFees (
                 tour_code TEXT PRIMARY KEY,
@@ -150,15 +148,14 @@
         `);
 
         try {
-            const res = window.db.exec(`SELECT * FROM TourFees WHERE tour_code = '${tCode}'`);
+            var res = window.db.exec(`SELECT * FROM TourFees WHERE tour_code = '${tCode}'`);
             if (res.length > 0) {
-                const data = res[0].values[0];
-                const cols = res[0].columns;
+                var data = res[0].values[0];
+                var cols = res[0].columns;
                 
-                // 動態配對欄位與畫面元素
                 cols.forEach((colName, index) => {
                     if (colName === 'tour_code') return;
-                    const el = document.getElementById(colName);
+                    var el = document.getElementById(colName);
                     if (el) {
                         if (el.type === 'checkbox') {
                             el.checked = data[index] === 1;
@@ -169,48 +166,43 @@
                 });
             }
         } catch (e) { console.error("載入費用資料失敗", e); }
-    })();
+    };
 
-    // 重填表單
     window.resetFeesForm = function() {
         document.querySelectorAll('#table_prices input[type="number"], #table_surcharges input[type="number"]').forEach(input => input.value = '');
         document.querySelectorAll('#table_surcharges input[type="checkbox"]').forEach(input => input.checked = false);
     };
 
-    // 儲存資料
     window.saveFees = async function() {
-        let tCode = window.currentEditTourCode || localStorage.getItem('editTourCode');
-        if (tCode === 'null' || tCode === 'undefined' || tCode === '') tCode = null;
+        var tCode = window.currentEditTourCode;
         if (!tCode) return;
 
-        let fields = ['tour_code'];
-        let values = [`'${tCode}'`];
+        var fields = ['tour_code'];
+        var values = [`'${tCode}'`];
 
-        // 1. 抓取價格表資料
         passengerTypes.forEach(pt => {
             priceCols.forEach(col => {
-                const elId = `${pt.id}_${col}`;
-                const val = parseInt(document.getElementById(elId).value) || 0;
+                var elId = `${pt.id}_${col}`;
+                var val = parseInt(document.getElementById(elId).value) || 0;
                 fields.push(elId);
                 values.push(val);
             });
         });
 
-        // 2. 抓取加價表資料
         cabinSurcharges.forEach(cab => {
-            const feeVal = parseInt(document.getElementById(`${cab.id}_fee`).value) || 0;
-            const isMandatory = document.getElementById(`${cab.id}_mandatory`).checked ? 1 : 0;
-            const isWithDeposit = document.getElementById(`${cab.id}_with_deposit`).checked ? 1 : 0;
+            var feeVal = parseInt(document.getElementById(`${cab.id}_fee`).value) || 0;
+            var isMandatory = document.getElementById(`${cab.id}_mandatory`).checked ? 1 : 0;
+            var isWithDeposit = document.getElementById(`${cab.id}_with_deposit`).checked ? 1 : 0;
             
             fields.push(`${cab.id}_fee`, `${cab.id}_mandatory`, `${cab.id}_with_deposit`);
             values.push(feeVal, isMandatory, isWithDeposit);
         });
 
-        const sql = `REPLACE INTO TourFees (${fields.join(', ')}) VALUES (${values.join(', ')});`;
+        var sql = `REPLACE INTO TourFees (${fields.join(', ')}) VALUES (${values.join(', ')});`;
 
         if (window.executeAndSave) {
             try {
-                const isSuccess = await window.executeAndSave(sql);
+                var isSuccess = await window.executeAndSave(sql);
                 if (isSuccess) alert("各項費用表已成功儲存！");
             } catch(e) { alert("儲存失敗：" + e.message); }
         } else if (window.db) {
@@ -218,4 +210,7 @@
             alert("各項費用表已成功儲存！");
         }
     };
+
+    // 🟢 執行初始化
+    window.initFees();
 </script>
