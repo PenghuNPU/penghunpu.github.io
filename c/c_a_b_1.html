@@ -1,6 +1,5 @@
 <style>
-    body { font-family: "MS Sans Serif", "細明體", sans-serif; font-size: 13px; background-color: #fff; margin: 15px; }
-    .form-table { width: 100%; border-collapse: collapse; border: 1px solid #777; margin-bottom: 15px; }
+    .form-table { width: 100%; border-collapse: collapse; border: 1px solid #777; margin-bottom: 15px; background-color: #fff; }
     .form-table th, .form-table td { border: 1px solid #777; padding: 6px; }
     .form-title { background-color: #ffcc99; font-weight: bold; text-align: center; font-size: 14px; padding: 8px !important; letter-spacing: 2px; }
     .info-header th { background-color: #f0f0f0; width: 100px; text-align: left; padding-left: 10px; }
@@ -23,11 +22,11 @@
     </tr>
     <tr class="info-header">
         <th>團型代碼</th>
-        <td id="display_code">資料讀取中...</td>
+        <td id="display_code">載入中...</td>
     </tr>
     <tr class="info-header">
         <th>團型名稱</th>
-        <td id="display_name" style="color: black; font-weight: normal;">資料讀取中...</td>
+        <td id="display_name" style="color: black; font-weight: normal;">載入中...</td>
     </tr>
     <tr class="matrix-wrapper">
         <th>機位數</th>
@@ -95,19 +94,54 @@
 </table>
 
 <div class="action-row">
-    <button onclick="saveCabinSeats()">確 定</button>
-    <button onclick="resetForm()">重 填</button>
-    <!-- 放棄時呼叫最外層視窗的 loadPage 返回列表頁 -->
-    <button onclick="if(window.top && window.top.loadPage) window.top.loadPage('C-A-B'); else alert('無法返回主列表');">放 棄</button>
+    <button onclick="window.saveCabinSeats()">確 定</button>
+    <button onclick="window.resetForm()">重 填</button>
+    <button onclick="if(typeof loadPage === 'function') loadPage('C-A-B');">放 棄</button>
 </div>
 
 <script>
-    // 🟢 因為這個檔案是在 iframe 內執行，直接主動向瀏覽器的 localStorage 拿變數
-    let tourCode = localStorage.getItem('editTourCode') || '';
-    let tourName = localStorage.getItem('editTourName') || '';
-    
-    // 從最外層視窗取得資料庫物件
-    const db = window.top.db || window.parent.db;
+    (function initCabinSeats() {
+        // 🟢 直接讀取全域變數 (因為現在我們跟主網頁共用同一個 window 了！)
+        const tCode = window.currentEditTourCode;
+        const tName = window.currentEditTourName;
+        
+        if (!tCode) {
+            document.getElementById('display_code').innerText = '錯誤：未指定團型代碼';
+            document.getElementById('display_code').style.color = 'red';
+            document.getElementById('display_name').innerText = '請返回上一頁重新點選';
+            return;
+        }
+
+        document.getElementById('display_code').innerText = tCode;
+        document.getElementById('display_name').innerText = tName || '無名稱';
+
+        if (!window.db) return;
+
+        window.db.exec(`
+            CREATE TABLE IF NOT EXISTS TourCabinSeats (
+                tour_code TEXT PRIMARY KEY,
+                y_get INTEGER DEFAULT 0, y_leader INTEGER DEFAULT 0, y_guide INTEGER DEFAULT 0, y_other INTEGER DEFAULT 0, y_fit INTEGER DEFAULT 0,
+                ed_get INTEGER DEFAULT 0, ed_leader INTEGER DEFAULT 0, ed_guide INTEGER DEFAULT 0, ed_other INTEGER DEFAULT 0, ed_fit INTEGER DEFAULT 0,
+                c_get INTEGER DEFAULT 0, c_leader INTEGER DEFAULT 0, c_guide INTEGER DEFAULT 0, c_other INTEGER DEFAULT 0, c_fit INTEGER DEFAULT 0,
+                f_get INTEGER DEFAULT 0, f_leader INTEGER DEFAULT 0, f_guide INTEGER DEFAULT 0, f_other INTEGER DEFAULT 0, f_fit INTEGER DEFAULT 0
+            );
+        `);
+
+        try {
+            const res = window.db.exec(`SELECT * FROM TourCabinSeats WHERE tour_code = '${tCode}'`);
+            if (res.length > 0) {
+                const data = res[0].values[0];
+                ['y', 'ed', 'c', 'f'].forEach((t, typeIdx) => {
+                    ['get', 'leader', 'guide', 'other', 'fit'].forEach((r, rowIdx) => {
+                        const val = data[1 + typeIdx * 5 + rowIdx];
+                        document.getElementById(`${t}_${r}`).value = val === 0 ? '' : val;
+                    });
+                });
+            }
+        } catch (e) { console.error("載入機位資料失敗", e); }
+        
+        window.calcSeats();
+    })();
 
     window.calcSeats = function() {
         const types = ['y', 'ed', 'c', 'f'];
@@ -136,54 +170,12 @@
 
     window.resetForm = function() {
         document.querySelectorAll('.input-box').forEach(input => input.value = '');
-        calcSeats();
-    };
-
-    window.onload = function init() {
-        // 寫入畫面
-        if (!tourCode) {
-            document.getElementById('display_code').innerText = '錯誤：未指定團型代碼';
-            document.getElementById('display_code').style.color = 'red';
-            document.getElementById('display_name').innerText = '請返回上一頁重新點選';
-            return;
-        }
-
-        document.getElementById('display_code').innerText = tourCode;
-        document.getElementById('display_name').innerText = tourName;
-
-        if (!db) {
-            console.warn("無法取得資料庫連線 (window.top.db 遺失)。");
-            return;
-        }
-
-        db.exec(`
-            CREATE TABLE IF NOT EXISTS TourCabinSeats (
-                tour_code TEXT PRIMARY KEY,
-                y_get INTEGER DEFAULT 0, y_leader INTEGER DEFAULT 0, y_guide INTEGER DEFAULT 0, y_other INTEGER DEFAULT 0, y_fit INTEGER DEFAULT 0,
-                ed_get INTEGER DEFAULT 0, ed_leader INTEGER DEFAULT 0, ed_guide INTEGER DEFAULT 0, ed_other INTEGER DEFAULT 0, ed_fit INTEGER DEFAULT 0,
-                c_get INTEGER DEFAULT 0, c_leader INTEGER DEFAULT 0, c_guide INTEGER DEFAULT 0, c_other INTEGER DEFAULT 0, c_fit INTEGER DEFAULT 0,
-                f_get INTEGER DEFAULT 0, f_leader INTEGER DEFAULT 0, f_guide INTEGER DEFAULT 0, f_other INTEGER DEFAULT 0, f_fit INTEGER DEFAULT 0
-            );
-        `);
-
-        try {
-            const res = db.exec(`SELECT * FROM TourCabinSeats WHERE tour_code = '${tourCode}'`);
-            if (res.length > 0) {
-                const data = res[0].values[0];
-                ['y', 'ed', 'c', 'f'].forEach((t, typeIdx) => {
-                    ['get', 'leader', 'guide', 'other', 'fit'].forEach((r, rowIdx) => {
-                        const val = data[1 + typeIdx * 5 + rowIdx];
-                        document.getElementById(`${t}_${r}`).value = val === 0 ? '' : val;
-                    });
-                });
-            }
-        } catch (e) { console.error("載入機位資料失敗", e); }
-        
-        calcSeats();
+        window.calcSeats();
     };
 
     window.saveCabinSeats = async function() {
-        if (!tourCode) { alert("無效的團型代碼，無法儲存！"); return; }
+        const tCode = window.currentEditTourCode;
+        if (!tCode) { alert("無效的團型代碼，無法儲存！"); return; }
         
         const getVal = (id) => parseInt(document.getElementById(id).value) || 0;
         
@@ -195,7 +187,7 @@
                 c_get, c_leader, c_guide, c_other, c_fit,
                 f_get, f_leader, f_guide, f_other, f_fit
             ) VALUES (
-                '${tourCode}',
+                '${tCode}',
                 ${getVal('y_get')}, ${getVal('y_leader')}, ${getVal('y_guide')}, ${getVal('y_other')}, ${getVal('y_fit')},
                 ${getVal('ed_get')}, ${getVal('ed_leader')}, ${getVal('ed_guide')}, ${getVal('ed_other')}, ${getVal('ed_fit')},
                 ${getVal('c_get')}, ${getVal('c_leader')}, ${getVal('c_guide')}, ${getVal('c_other')}, ${getVal('c_fit')},
@@ -208,15 +200,12 @@
                 f_get=excluded.f_get, f_leader=excluded.f_leader, f_guide=excluded.f_guide, f_other=excluded.f_other, f_fit=excluded.f_fit;
         `;
 
-        const executeFn = window.top.executeAndSave || window.parent.executeAndSave;
-        if (executeFn) {
-            const isSuccess = await executeFn(sql);
+        if (window.executeAndSave) {
+            const isSuccess = await window.executeAndSave(sql);
             if (isSuccess) alert("機位資料已成功儲存！");
-        } else if (db) {
-            db.exec(sql);
+        } else if (window.db) {
+            window.db.exec(sql);
             alert("機位資料已成功儲存！");
-        } else {
-            alert("資料庫錯誤，儲存失敗。");
         }
     };
 </script>
