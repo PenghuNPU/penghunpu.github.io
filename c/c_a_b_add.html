@@ -151,8 +151,7 @@
 </div>
 
 <script>
-    // 🟢 同步判斷 window 與 localStorage 的狀態，防止錯誤判定
-    const isEditMode = window.currentEditTourCode || localStorage.getItem('editTourCode');
+    const editTargetCode = localStorage.getItem('editTourCode') || null;
 
     window.previewImage = function(event) {
         const file = event.target.files[0];
@@ -167,12 +166,24 @@
         }
     };
 
+    // 🟢 載入線別資料：若 ProductSeries 表不存在，會在此自動建立，避免報錯
     window.loadLinesData = function(selectedLine = '') {
         const sel = document.getElementById('line_name');
         sel.innerHTML = '<option value="">-請選擇-</option>';
         if (!window.db) return;
+
+        // 防呆：建立商品系列設定檔
+        window.db.exec(`
+            CREATE TABLE IF NOT EXISTS ProductSeries (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                line_name TEXT,
+                series_name TEXT,
+                is_active INTEGER DEFAULT 1
+            );
+        `);
+
         try {
-            const res = window.db.exec("SELECT DISTINCT line_name FROM ProductSeries ORDER BY line_name");
+            const res = window.db.exec("SELECT DISTINCT line_name FROM ProductSeries WHERE line_name IS NOT NULL ORDER BY line_name");
             if (res.length > 0) {
                 res[0].values.forEach(row => {
                     if(!row[0]) return;
@@ -189,7 +200,7 @@
         sel.innerHTML = '<option value="">-請先選擇線別-</option>';
         if (line && window.db) {
             try {
-                const res = window.db.exec(`SELECT DISTINCT series_name FROM ProductSeries WHERE line_name = '${line}' ORDER BY series_name`);
+                const res = window.db.exec(`SELECT DISTINCT series_name FROM ProductSeries WHERE line_name = '${line}' AND series_name IS NOT NULL ORDER BY series_name`);
                 if (res.length > 0) {
                     res[0].values.forEach(row => {
                         if(!row[0]) return;
@@ -204,7 +215,7 @@
     (function initForm() {
         if (!window.db) return;
         
-        if (isEditMode) {
+        if (editTargetCode) {
             document.getElementById('form_title').innerText = "【 修改團型基本內容 】";
             document.getElementById('btn_save').innerText = "修 改";
             
@@ -213,7 +224,7 @@
             codeInput.style.backgroundColor = '#e0e0e0';
 
             try {
-                const res = window.db.exec(`SELECT * FROM BasicTours WHERE tour_code = '${isEditMode}'`);
+                const res = window.db.exec(`SELECT * FROM BasicTours WHERE tour_code = '${editTargetCode}'`);
                 if (res.length > 0) {
                     const data = res[0].values[0];
                     const cleanStr = (val) => val === null ? '' : val;
@@ -283,7 +294,7 @@
 
         let sql = "";
 
-        if (isEditMode) {
+        if (editTargetCode) {
             sql = `
                 UPDATE BasicTours SET 
                     tour_category='${escapeSql(cat)}', line_name='${escapeSql(line)}', series_name='${escapeSql(series)}',
