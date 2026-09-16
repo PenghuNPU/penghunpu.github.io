@@ -15,14 +15,15 @@
     .data-table td { border: 1px solid #777; padding: 6px; text-align: center; vertical-align: middle; }
     .data-table tr:nth-child(even) { background-color: #e2dfd3; }
     
-    .action-btn { cursor: pointer; margin: 0 5px; font-size: 13px; color: #0000ff; text-decoration: underline; background: none; border: none; padding: 0; }
-    .action-btn.delete { color: #cc0000; }
+    /* 🟢 改用與 c_a_a_c 相同的圖示區塊樣式 */
+    .action-icons span { cursor: pointer; margin: 0 4px; font-size: 15px; display: inline-block; }
+    .action-icons span:hover { transform: scale(1.1); }
 </style>
 
 <div class="page-wrapper">
     <div class="header-section">
         <div class="info-text">
-            建議您建立共用團型基本內容，以利後續開團作業的便利性。<br>
+            點選團型代碼，可進一步編修基本團型資料。<br>
             P.S.一旦建立可隨時修改與刪除。
         </div>
         <button class="btn-add" onclick="window.currentEditTourCode = null; loadPage('C-A-B-ADD');">
@@ -94,9 +95,10 @@
                             <td>${line}</td>
                             <td>${series}</td>
                             <td>${days}</td>
-                            <td>
-                                <button class="action-btn" onclick="window.currentEditTourCode = '${code}'; loadPage('C-A-B-ADD');">[修改]</button>
-                                <button class="action-btn delete" onclick="deleteTour('${code}')">[刪除]</button>
+                            <!-- 🟢 將文字按鈕改為圖示 (使用 HTML 實體避免編碼錯誤) -->
+                            <td class="action-icons">
+                                <span title="修改此筆資料" onclick="window.currentEditTourCode = '${code}'; loadPage('C-A-B-ADD');">&#128221;</span>
+                                <span title="刪除此筆資料" onclick="deleteTour('${code}')">&#10060;</span>
                             </td>
                         </tr>
                     `;
