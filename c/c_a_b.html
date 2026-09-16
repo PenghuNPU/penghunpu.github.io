@@ -28,7 +28,6 @@
             點選團型代碼，可進一步編修基本團型資料。<br>
             P.S.一旦建立可隨時修改與刪除。
         </div>
-        <!-- 🟢 呼叫獨立的新增 Function -->
         <button class="btn-add" onclick="window.openAddTour()">
             [+] 新 增
         </button>
@@ -58,22 +57,29 @@
 </div>
 
 <script>
-    // 🟢 建立與 AAA 相同的操作 Function
+    // 🟢 修正：徹底清空雙重變數，確保進入乾淨的新增模式
     window.openAddTour = function() {
         window.currentEditTourCode = null; 
         window.currentEditTourName = null;
+        localStorage.removeItem('editTourCode');
+        localStorage.removeItem('editTourName');
         loadPage('C-A-B-ADD'); 
     };
 
+    // 寫入修改/分頁需要的雙重變數
     window.goToTourTabs = function(code, name) {
         window.currentEditTourCode = code;
         window.currentEditTourName = name;
+        localStorage.setItem('editTourCode', code);
+        localStorage.setItem('editTourName', name);
         loadPage('C-A-B-TABS');
     };
 
     window.editTourBase = function(code, name) {
         window.currentEditTourCode = code;
         window.currentEditTourName = name;
+        localStorage.setItem('editTourCode', code);
+        localStorage.setItem('editTourName', name);
         loadPage('C-A-B-ADD');
     };
 
@@ -143,6 +149,5 @@
         }
     };
 
-    // 執行載入
     window.loadTourList();
 </script>
