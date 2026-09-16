@@ -31,7 +31,7 @@
     // 檢查是否有傳遞 currentEditTourCode 過來
     if (!window.currentEditTourCode) {
         alert("⚠️ 系統遺失團型代碼，請重新從查詢清單點選！");
-        loadPage('C-A-B');
+        if(typeof loadPage === 'function') loadPage('C-A-B');
     } else {
         document.getElementById('header_tour_code').innerText = window.currentEditTourCode;
     }
@@ -41,9 +41,9 @@
         tabs.forEach(tab => tab.classList.remove('active'));
         if (element) element.classList.add('active');
 
-        // 🟢 如果您的檔案放在不同的資料夾下 (例如 c 資料夾)，請修改這裡的路徑，例如：`c/c_a_b_${tabIndex}.html`
-        // 這裡預設檔案與 index 在同一層
-        const subFilePath = `c_a_b_${tabIndex}.html`;
+        // 🟢 關鍵修正：在這裡補上您系統專屬的資料夾路徑
+        // 依照 a_a_a 的邏輯，這裡設定為 c/ 目錄。若您的資料夾名稱不同 (例如 c_a_b/)，請修改下面這一行。
+        const subFilePath = `c/c_a_b_${tabIndex}.html`;
         const contentBox = document.getElementById('sub-tab-content');
 
         fetch(subFilePath)
@@ -62,7 +62,7 @@
                 });
             })
             .catch(error => {
-                contentBox.innerHTML = `<div style="color:red; font-weight:bold; padding:20px;">⚠️ 無法載入檔案：${subFilePath} <br>原因：${error.message} <br>請確認檔案是否確實存在，或檢查網頁伺服器設定。</div>`;
+                contentBox.innerHTML = `<div style="color:red; font-weight:bold; padding:20px;">⚠️ 無法載入檔案：${subFilePath} <br>原因：${error.message} <br>※請檢查檔案是否真的放在 c/ 資料夾下！</div>`;
                 console.error("載入分頁失敗", error);
             });
     };
