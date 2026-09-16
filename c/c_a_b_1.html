@@ -7,7 +7,7 @@
     .form-title { background-color: #ffcc99; font-weight: bold; text-align: center; font-size: 14px; padding: 8px !important; letter-spacing: 2px; }
     
     .info-header th { background-color: #f0f0f0; width: 100px; text-align: left; padding-left: 10px; }
-    .info-header td { color: #333; }
+    .info-header td { color: #333; font-weight: bold; color: blue; }
     
     .matrix-wrapper th { background-color: #f0f0f0; text-align: center; width: 100px; }
     
@@ -32,11 +32,11 @@
     </tr>
     <tr class="info-header">
         <th>團型代碼</th>
-        <td id="display_code"></td>
+        <td id="display_code">載入中...</td>
     </tr>
     <tr class="info-header">
         <th>團型名稱</th>
-        <td id="display_name"></td>
+        <td id="display_name" style="color: black; font-weight: normal;">載入中...</td>
     </tr>
     <tr class="matrix-wrapper">
         <th>機位數</th>
@@ -106,22 +106,23 @@
 <div class="action-row">
     <button onclick="saveCabinSeats()">確 定</button>
     <button onclick="resetForm()">重 填</button>
-    <!-- 放棄時呼叫父視窗的 loadPage 返回列表頁 -->
-    <button onclick="window.parent.loadPage('C-A-B')">放 棄</button>
+    <!-- 放棄時呼叫父層的 loadPage -->
+    <button onclick="if(window.parent && window.parent.loadPage) window.parent.loadPage('C-A-B');">放 棄</button>
 </div>
 
 <script>
-    // 跨 iframe 讀取全域變數與資料庫
-    const db = window.db || window.parent.db;
-    const tourCode = window.currentEditTourCode || window.parent.currentEditTourCode;
-    const tourName = window.currentEditTourName || window.parent.currentEditTourName;
+    // 🟢 透過解析網址列的參數 (URL Parameters) 來抓取代碼與名稱，100% 避開 iframe 安全性阻擋
+    const urlParams = new URLSearchParams(window.location.search);
+    const tourCode = urlParams.get('code') || window.currentEditTourCode || (window.parent && window.parent.currentEditTourCode);
+    const tourName = urlParams.get('name') || window.currentEditTourName || (window.parent && window.parent.currentEditTourName);
+    
+    // 資料庫連線一樣從父層取得 (這部分通常不受阻擋，若有報錯請告知)
+    const db = window.db || (window.parent && window.parent.db);
 
-    // 即時計算小計與可售機位
     window.calcSeats = function() {
         const types = ['y', 'ed', 'c', 'f'];
         const rows = ['get', 'leader', 'guide', 'other', 'fit'];
 
-        // 1. 計算各橫列的「小計」
         rows.forEach(r => {
             let sum = 0;
             types.forEach(t => {
@@ -131,7 +132,6 @@
             document.getElementById(`sub_${r}`).value = sum;
         });
 
-        // 2. 計算各直行的「可售機位」 (取得 - 領隊 - 導遊 - 其他 - 自由行)
         types.forEach(t => {
             let getVal = parseInt(document.getElementById(`${t}_get`).value) || 0;
             let leaderVal = parseInt(document.getElementById(`${t}_leader`).value) || 0;
@@ -144,20 +144,21 @@
         });
     };
 
-    // 清空重填
     window.resetForm = function() {
         document.querySelectorAll('.input-box').forEach(input => input.value = '');
         calcSeats();
     };
 
-    // 初始化載入
     (function init() {
-        if (!db) return;
-        
+        // 將網址帶來的變數寫入畫面上
         document.getElementById('display_code').innerText = tourCode || '尚未指定';
         document.getElementById('display_name').innerText = tourName || '尚未指定';
 
-        // 建立 SQLite 資料表 (採扁平化設計 4艙等 x 5狀態)
+        if (!db) {
+            console.warn("未連線到資料庫，請確認父層 window.db 是否存在。");
+            return;
+        }
+
         db.exec(`
             CREATE TABLE IF NOT EXISTS TourCabinSeats (
                 tour_code TEXT PRIMARY KEY,
@@ -173,10 +174,8 @@
                 const res = db.exec(`SELECT * FROM TourCabinSeats WHERE tour_code = '${tourCode}'`);
                 if (res.length > 0) {
                     const data = res[0].values[0];
-                    // 對應欄位回填
                     ['y', 'ed', 'c', 'f'].forEach((t, typeIdx) => {
                         ['get', 'leader', 'guide', 'other', 'fit'].forEach((r, rowIdx) => {
-                            // index: 1 是 y_get, 依序遞增 (1 + typeIdx*5 + rowIdx)
                             const val = data[1 + typeIdx * 5 + rowIdx];
                             document.getElementById(`${t}_${r}`).value = val === 0 ? '' : val;
                         });
@@ -187,14 +186,11 @@
         calcSeats();
     })();
 
-    // 儲存至資料庫
     window.saveCabinSeats = async function() {
         if (!tourCode) { alert("無效的團型代碼，無法儲存！"); return; }
         
-        // 抓取所有值，若空白則轉為 0
         const getVal = (id) => parseInt(document.getElementById(id).value) || 0;
         
-        // 因為採用 UPSERT 語法 (如果存在就更新，不存在就新增)，這是 SQLite 很實用的特性
         const sql = `
             INSERT INTO TourCabinSeats (
                 tour_code,
@@ -216,14 +212,15 @@
                 f_get=excluded.f_get, f_leader=excluded.f_leader, f_guide=excluded.f_guide, f_other=excluded.f_other, f_fit=excluded.f_fit;
         `;
 
-        // 使用父層定義的儲存函式
-        const executeFn = window.executeAndSave || window.parent.executeAndSave;
+        const executeFn = window.executeAndSave || (window.parent && window.parent.executeAndSave);
         if (executeFn) {
             const isSuccess = await executeFn(sql);
             if (isSuccess) alert("機位資料已成功儲存！");
-        } else {
-            db.exec(sql); // 備用方案
+        } else if (db) {
+            db.exec(sql);
             alert("機位資料已成功儲存！");
+        } else {
+            alert("資料庫錯誤，儲存失敗。");
         }
     };
 </script>
