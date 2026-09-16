@@ -15,7 +15,6 @@
     .matrix-table th { background-color: #ccccff; padding: 6px; border: none; border-bottom: 2px solid #fff; border-right: 2px solid #fff; }
     .matrix-table td { background-color: #ffffe0; padding: 6px; border: none; border-bottom: 2px solid #fff; border-right: 2px solid #fff; font-weight: bold;}
     
-    /* 可售機位行 (底色不同) */
     .matrix-table tr.avail-row td { background-color: #ccccff; }
     
     .input-box { border: 1px inset #fff; padding: 3px; font-size: 13px; width: 40px; text-align: left; font-weight: normal; }
@@ -111,12 +110,12 @@
 </div>
 
 <script>
-    // 🟢 透過解析網址列的參數 (URL Parameters) 來抓取代碼與名稱，100% 避開 iframe 安全性阻擋
+    // 🟢 雙重保險：優先抓網址參數 (來自 tabs)，如果沒有再抓 localStorage
     const urlParams = new URLSearchParams(window.location.search);
-    const tourCode = urlParams.get('code') || window.currentEditTourCode || (window.parent && window.parent.currentEditTourCode);
-    const tourName = urlParams.get('name') || window.currentEditTourName || (window.parent && window.parent.currentEditTourName);
+    const tourCode = urlParams.get('code') || localStorage.getItem('editTourCode') || '';
+    const tourName = urlParams.get('name') || localStorage.getItem('editTourName') || '';
     
-    // 資料庫連線一樣從父層取得 (這部分通常不受阻擋，若有報錯請告知)
+    // 資料庫物件從父層 iframe 或全域取得
     const db = window.db || (window.parent && window.parent.db);
 
     window.calcSeats = function() {
@@ -150,7 +149,7 @@
     };
 
     (function init() {
-        // 將網址帶來的變數寫入畫面上
+        // 🟢 將變數印到畫面上
         document.getElementById('display_code').innerText = tourCode || '尚未指定';
         document.getElementById('display_name').innerText = tourName || '尚未指定';
 
