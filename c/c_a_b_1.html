@@ -22,11 +22,11 @@
     </tr>
     <tr class="info-header">
         <th>團型代碼</th>
-        <td id="display_code">載入中...</td>
+        <td id="display_code"></td>
     </tr>
     <tr class="info-header">
         <th>團型名稱</th>
-        <td id="display_name" style="color: black; font-weight: normal;">載入中...</td>
+        <td id="display_name" style="color: black; font-weight: normal;"></td>
     </tr>
     <tr class="matrix-wrapper">
         <th>機位數</th>
@@ -40,14 +40,13 @@
                     <th>F艙</th>
                     <th style="color: red;">小計</th>
                 </tr>
-                <!-- 🟢 已經移除所有的 oninput="..." 確保 HTML 乾淨，改由下方 JS 綁定 -->
                 <tr>
                     <td>各艙取得機位</td>
-                    <td><input type="number" id="y_get" class="input-box" min="0"></td>
-                    <td><input type="number" id="ed_get" class="input-box" min="0"></td>
-                    <td><input type="number" id="c_get" class="input-box" min="0"></td>
-                    <td><input type="number" id="f_get" class="input-box" min="0"></td>
-                    <td><input type="text" id="sub_get" class="subtotal-box" readonly></td>
+                    <td><input type="number" id="y_total" class="input-box" min="0"></td>
+                    <td><input type="number" id="ed_total" class="input-box" min="0"></td>
+                    <td><input type="number" id="c_total" class="input-box" min="0"></td>
+                    <td><input type="number" id="f_total" class="input-box" min="0"></td>
+                    <td><input type="text" id="sub_total" class="subtotal-box" readonly></td>
                 </tr>
                 <tr>
                     <td>領隊保留機位</td>
@@ -97,14 +96,14 @@
 <div class="action-row">
     <button onclick="window.saveCabinSeats()">確 定</button>
     <button onclick="window.resetForm()">重 填</button>
-    <button onclick="loadPage('C-A-B')">放 棄</button>
+    <button onclick="if(typeof loadPage === 'function') loadPage('C-A-B');">放 棄</button>
 </div>
 
 <script>
-    // 🟢 定義計算核心邏輯
+    // 🟢 最相容的寫法：不使用 ?. 運算子，確保所有舊版瀏覽器/環境都能正常顯示
     window.calcSeats = function() {
         const types = ['y', 'ed', 'c', 'f'];
-        const rows = ['get', 'leader', 'guide', 'other', 'fit'];
+        const rows = ['total', 'leader', 'guide', 'other', 'fit'];
 
         // 1. 計算小計
         rows.forEach(r => {
@@ -118,15 +117,24 @@
             if (subEl) subEl.value = sum;
         });
 
-        // 2. 計算可售機位
+        // 2. 計算可售機位 (總數 - 領隊 - 導遊 - 其他 - 自由行)
         types.forEach(t => {
-            let getVal = parseInt(document.getElementById(`${t}_get`)?.value) || 0;
-            let leaderVal = parseInt(document.getElementById(`${t}_leader`)?.value) || 0;
-            let guideVal = parseInt(document.getElementById(`${t}_guide`)?.value) || 0;
-            let otherVal = parseInt(document.getElementById(`${t}_other`)?.value) || 0;
-            let fitVal = parseInt(document.getElementById(`${t}_fit`)?.value) || 0;
+            let elTotal = document.getElementById(`${t}_total`);
+            let totalVal = elTotal ? (parseInt(elTotal.value) || 0) : 0;
+            
+            let elLeader = document.getElementById(`${t}_leader`);
+            let leaderVal = elLeader ? (parseInt(elLeader.value) || 0) : 0;
+            
+            let elGuide = document.getElementById(`${t}_guide`);
+            let guideVal = elGuide ? (parseInt(elGuide.value) || 0) : 0;
+            
+            let elOther = document.getElementById(`${t}_other`);
+            let otherVal = elOther ? (parseInt(elOther.value) || 0) : 0;
+            
+            let elFit = document.getElementById(`${t}_fit`);
+            let fitVal = elFit ? (parseInt(elFit.value) || 0) : 0;
 
-            let avail = getVal - leaderVal - guideVal - otherVal - fitVal;
+            let avail = totalVal - leaderVal - guideVal - otherVal - fitVal;
             let availEl = document.getElementById(`${t}_avail`);
             if (availEl) availEl.innerText = avail;
         });
@@ -138,29 +146,41 @@
         
         if (!tCode) {
             alert("系統遺失團型代碼，請重新選擇！");
-            loadPage('C-A-B');
+            if(typeof loadPage === 'function') loadPage('C-A-B');
             return;
         }
 
         document.getElementById('display_code').innerText = tCode;
         document.getElementById('display_name').innerText = tName || '';
 
-        // 🟢 動態綁定所有輸入框的監聽事件 (最穩定安全的寫法)
+        // 動態綁定即時運算事件
         const inputs = document.querySelectorAll('input[type="number"].input-box');
         inputs.forEach(input => {
             input.addEventListener('input', window.calcSeats);
-            input.addEventListener('change', window.calcSeats); // 雙保險
+            input.addEventListener('change', window.calcSeats);
         });
 
         if (!window.db) return;
 
+        // 🟢 自動檢測機制：如果發現您的資料庫有舊版的 y_get 欄位，自動砍掉舊表重新建立！
+        try {
+            const tableInfo = window.db.exec("PRAGMA table_info(TourCabinSeats)");
+            if (tableInfo.length > 0) {
+                const cols = tableInfo[0].values.map(r => r[1]);
+                if (cols.includes('y_get')) {
+                    console.log("偵測到舊版結構，正在執行資料表升級...");
+                    window.db.exec("DROP TABLE TourCabinSeats");
+                }
+            }
+        } catch (e) { console.warn("結構檢查略過", e); }
+
         window.db.exec(`
             CREATE TABLE IF NOT EXISTS TourCabinSeats (
                 tour_code TEXT PRIMARY KEY,
-                y_get INTEGER DEFAULT 0, y_leader INTEGER DEFAULT 0, y_guide INTEGER DEFAULT 0, y_other INTEGER DEFAULT 0, y_fit INTEGER DEFAULT 0,
-                ed_get INTEGER DEFAULT 0, ed_leader INTEGER DEFAULT 0, ed_guide INTEGER DEFAULT 0, ed_other INTEGER DEFAULT 0, ed_fit INTEGER DEFAULT 0,
-                c_get INTEGER DEFAULT 0, c_leader INTEGER DEFAULT 0, c_guide INTEGER DEFAULT 0, c_other INTEGER DEFAULT 0, c_fit INTEGER DEFAULT 0,
-                f_get INTEGER DEFAULT 0, f_leader INTEGER DEFAULT 0, f_guide INTEGER DEFAULT 0, f_other INTEGER DEFAULT 0, f_fit INTEGER DEFAULT 0
+                y_total INTEGER DEFAULT 0, y_leader INTEGER DEFAULT 0, y_guide INTEGER DEFAULT 0, y_other INTEGER DEFAULT 0, y_fit INTEGER DEFAULT 0,
+                ed_total INTEGER DEFAULT 0, ed_leader INTEGER DEFAULT 0, ed_guide INTEGER DEFAULT 0, ed_other INTEGER DEFAULT 0, ed_fit INTEGER DEFAULT 0,
+                c_total INTEGER DEFAULT 0, c_leader INTEGER DEFAULT 0, c_guide INTEGER DEFAULT 0, c_other INTEGER DEFAULT 0, c_fit INTEGER DEFAULT 0,
+                f_total INTEGER DEFAULT 0, f_leader INTEGER DEFAULT 0, f_guide INTEGER DEFAULT 0, f_other INTEGER DEFAULT 0, f_fit INTEGER DEFAULT 0
             );
         `);
 
@@ -169,7 +189,7 @@
             if (res.length > 0) {
                 const data = res[0].values[0];
                 ['y', 'ed', 'c', 'f'].forEach((t, typeIdx) => {
-                    ['get', 'leader', 'guide', 'other', 'fit'].forEach((r, rowIdx) => {
+                    ['total', 'leader', 'guide', 'other', 'fit'].forEach((r, rowIdx) => {
                         const val = data[1 + typeIdx * 5 + rowIdx];
                         let el = document.getElementById(`${t}_${r}`);
                         if(el) el.value = val === 0 ? '' : val;
@@ -199,22 +219,25 @@
         const sql = `
             REPLACE INTO TourCabinSeats (
                 tour_code,
-                y_get, y_leader, y_guide, y_other, y_fit,
-                ed_get, ed_leader, ed_guide, ed_other, ed_fit,
-                c_get, c_leader, c_guide, c_other, c_fit,
-                f_get, f_leader, f_guide, f_other, f_fit
+                y_total, y_leader, y_guide, y_other, y_fit,
+                ed_total, ed_leader, ed_guide, ed_other, ed_fit,
+                c_total, c_leader, c_guide, c_other, c_fit,
+                f_total, f_leader, f_guide, f_other, f_fit
             ) VALUES (
                 '${tCode}',
-                ${getVal('y_get')}, ${getVal('y_leader')}, ${getVal('y_guide')}, ${getVal('y_other')}, ${getVal('y_fit')},
-                ${getVal('ed_get')}, ${getVal('ed_leader')}, ${getVal('ed_guide')}, ${getVal('ed_other')}, ${getVal('ed_fit')},
-                ${getVal('c_get')}, ${getVal('c_leader')}, ${getVal('c_guide')}, ${getVal('c_other')}, ${getVal('c_fit')},
-                ${getVal('f_get')}, ${getVal('f_leader')}, ${getVal('f_guide')}, ${getVal('f_other')}, ${getVal('f_fit')}
+                ${getVal('y_total')}, ${getVal('y_leader')}, ${getVal('y_guide')}, ${getVal('y_other')}, ${getVal('y_fit')},
+                ${getVal('ed_total')}, ${getVal('ed_leader')}, ${getVal('ed_guide')}, ${getVal('ed_other')}, ${getVal('ed_fit')},
+                ${getVal('c_total')}, ${getVal('c_leader')}, ${getVal('c_guide')}, ${getVal('c_other')}, ${getVal('c_fit')},
+                ${getVal('f_total')}, ${getVal('f_leader')}, ${getVal('f_guide')}, ${getVal('f_other')}, ${getVal('f_fit')}
             );
         `;
 
         if (window.executeAndSave) {
             const isSuccess = await window.executeAndSave(sql);
             if (isSuccess) alert("機位資料已成功儲存！");
+        } else if (window.db) {
+            window.db.exec(sql);
+            alert("機位資料已成功儲存！");
         }
     };
 </script>

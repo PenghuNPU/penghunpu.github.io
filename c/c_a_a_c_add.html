@@ -286,34 +286,33 @@
         closeHotelPicker();
     }
 
-    function initForm() {
+    // 🟢 使用 setTimeout 自動執行，確保畫面渲染完成，並清除了所有的隱形空白
+    setTimeout(function() {
         if (!window.db) return;
         
         if (window.currentEditTripCode) {
             var formTitle = document.getElementById('form_title');
             var btnSave = document.getElementById('btn_save');
             var codeInput = document.getElementById('trip_code');
-            
+
             if (formTitle && btnSave && codeInput) {
                 formTitle.innerText = "【 修改共用基本行程內容 】";
                 btnSave.innerText = "修 改";
+                
                 codeInput.readOnly = true;
                 codeInput.style.backgroundColor = '#e0e0e0';
 
                 try {
-                    // 🟢 關鍵修正：將 SELECT * 改為完整的欄位名稱，徹底防堵資料錯位當機的問題
-                    var sql = "SELECT trip_code, trip_name, tour_city, hotel_code, hotel_same_level, hotel_name, meal_features, bf_checked, bf_desc, lun_checked, lun_desc, din_checked, din_desc, itinerary_content FROM CommonItineraries WHERE trip_code = '" + window.currentEditTripCode + "'";
+                    var sql = "SELECT * FROM CommonItineraries WHERE trip_code = '" + window.currentEditTripCode + "'";
                     var res = window.db.exec(sql);
                     
-                    if (res && res.length > 0 && res[0].values.length > 0) {
+                    if (res.length > 0) {
                         var data = res[0].values[0];
                         var cleanStr = function(val) { return (val === null || val === undefined) ? '' : val; };
 
                         codeInput.value = cleanStr(data[0]);
                         document.getElementById('trip_name').value = cleanStr(data[1]);
                         document.getElementById('tour_city').value = cleanStr(data[2]);
-                        
-                        // 資料庫欄位強制對齊，解決跑到這裡時崩潰的問題
                         document.getElementById('hotel_code').value = cleanStr(data[3]);
                         document.getElementById('hotel_same_level').checked = (data[4] == 1);
                         document.getElementById('hotel_name').value = cleanStr(data[5]);
@@ -330,14 +329,10 @@
                     }
                 } catch (e) {
                     console.error("載入修改資料失敗", e);
-                    alert("載入修改資料發生錯誤：" + e.message);
                 }
             }
         }
-    }
-    
-    // 🟢 確保函式無論在任何框架下，都能成功啟動執行
-    setTimeout(initForm, 100);
+    }, 150);
 
     window.escapeSql = function(str) {
         if (!str) return "";
