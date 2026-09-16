@@ -143,18 +143,21 @@
     </div>
 
     <div class="action-row">
-        <button id="btn_save" onclick="saveBasicTour()">確定新增</button>
+        <button id="btn_save" onclick="window.saveBasicTour()">確定新增</button>
         <button type="button" onclick="document.querySelectorAll('input[type=text], textarea').forEach(el=>el.value='')">重 填</button>
         <button onclick="if(typeof loadPage === 'function') loadPage('C-A-B');">放 棄</button>
     </div>
 </div>
 
 <script>
-    // 🟢 嚴格判定：過濾掉 'null' 字串
-    let editTargetCode = localStorage.getItem('editTourCode');
-    if (editTargetCode === 'null' || editTargetCode === 'undefined' || editTargetCode === '') {
-        editTargetCode = null;
-    }
+    // 🟢 關鍵修復：將所有邏輯綁定在 window 上，避免 SPA 重複載入造成 let/const 重複宣告當機！
+    window.getEditTargetCode = function() {
+        let code = localStorage.getItem('editTourCode');
+        if (code === 'null' || code === 'undefined' || code === '') {
+            return null;
+        }
+        return code;
+    };
 
     window.previewImage = function(event) {
         const file = event.target.files[0];
@@ -169,6 +172,7 @@
         }
     };
 
+    // 載入線別資料：若 ProductSeries 表不存在，會在此自動建立，避免報錯
     window.loadLinesData = function(selectedLine = '') {
         const sel = document.getElementById('line_name');
         sel.innerHTML = '<option value="">-請選擇-</option>';
@@ -213,7 +217,11 @@
         }
     };
 
-    (function initForm() {
+    window.escapeSql = function(str) {
+        return str.replace(/'/g, "''");
+    };
+
+    window.initTourForm = function() {
         if (!window.db) return;
         
         // 防呆：確保主表存在
@@ -227,7 +235,10 @@
             );
         `);
         
+        const editTargetCode = window.getEditTargetCode();
+        
         if (editTargetCode) {
+            // 進入修改模式
             document.getElementById('form_title').innerText = "【 修改團型基本內容 】";
             document.getElementById('btn_save').innerText = "修 改";
             
@@ -269,16 +280,14 @@
                 console.error("載入修改資料失敗", e);
             }
         } else {
-            // 新增模式
+            // 進入新增模式
             window.loadLinesData();
         }
-    })();
-
-    function escapeSql(str) {
-        return str.replace(/'/g, "''");
-    }
+    };
 
     window.saveBasicTour = async function() {
+        const editTargetCode = window.getEditTargetCode();
+        
         const code = document.getElementById('tour_code').value.trim().toUpperCase();
         const cat = document.getElementById('tour_category').value;
         const line = document.getElementById('line_name').value;
@@ -309,12 +318,12 @@
         if (editTargetCode) {
             sql = `
                 UPDATE BasicTours SET 
-                    tour_category='${escapeSql(cat)}', line_name='${escapeSql(line)}', series_name='${escapeSql(series)}',
-                    tour_name='${escapeSql(name)}', foreign_tour_no='${escapeSql(f_no)}', product_name='${escapeSql(p_name)}',
-                    tour_days=${days}, tour_nights=${nights}, tour_area='${escapeSql(area)}', tour_country='${escapeSql(country)}',
-                    departure_airport='${escapeSql(airport)}', dev_features='${escapeSql(dev_f)}', itinerary_features='${escapeSql(iti_f)}',
-                    special_arrange='${escapeSql(spec_a)}', sales_features='${escapeSql(sales_f)}', ticket_desc='${escapeSql(tkt_d)}',
-                    departure_notes='${escapeSql(dep_n)}', b2b_notes='${escapeSql(b2b_n)}', included_items='${escapeSql(inc_i)}', excluded_items='${escapeSql(exc_i)}'
+                    tour_category='${window.escapeSql(cat)}', line_name='${window.escapeSql(line)}', series_name='${window.escapeSql(series)}',
+                    tour_name='${window.escapeSql(name)}', foreign_tour_no='${window.escapeSql(f_no)}', product_name='${window.escapeSql(p_name)}',
+                    tour_days=${days}, tour_nights=${nights}, tour_area='${window.escapeSql(area)}', tour_country='${window.escapeSql(country)}',
+                    departure_airport='${window.escapeSql(airport)}', dev_features='${window.escapeSql(dev_f)}', itinerary_features='${window.escapeSql(iti_f)}',
+                    special_arrange='${window.escapeSql(spec_a)}', sales_features='${window.escapeSql(sales_f)}', ticket_desc='${window.escapeSql(tkt_d)}',
+                    departure_notes='${window.escapeSql(dep_n)}', b2b_notes='${window.escapeSql(b2b_n)}', included_items='${window.escapeSql(inc_i)}', excluded_items='${window.escapeSql(exc_i)}'
                 WHERE tour_code = '${code}';
             `;
         } else {
@@ -330,14 +339,13 @@
                     tour_days, tour_nights, tour_area, tour_country, departure_airport, dev_features, itinerary_features,
                     special_arrange, sales_features, ticket_desc, departure_notes, b2b_notes, included_items, excluded_items
                 ) VALUES (
-                    '${code}', '${escapeSql(cat)}', '${escapeSql(line)}', '${escapeSql(series)}', '${escapeSql(name)}', '${escapeSql(f_no)}', '${escapeSql(p_name)}',
-                    ${days}, ${nights}, '${escapeSql(area)}', '${escapeSql(country)}', '${escapeSql(airport)}', '${escapeSql(dev_f)}', '${escapeSql(iti_f)}',
-                    '${escapeSql(spec_a)}', '${escapeSql(sales_f)}', '${escapeSql(tkt_d)}', '${escapeSql(dep_n)}', '${escapeSql(b2b_n)}', '${escapeSql(inc_i)}', '${escapeSql(exc_i)}'
+                    '${code}', '${window.escapeSql(cat)}', '${window.escapeSql(line)}', '${window.escapeSql(series)}', '${window.escapeSql(name)}', '${window.escapeSql(f_no)}', '${window.escapeSql(p_name)}',
+                    ${days}, ${nights}, '${window.escapeSql(area)}', '${window.escapeSql(country)}', '${window.escapeSql(airport)}', '${window.escapeSql(dev_f)}', '${window.escapeSql(iti_f)}',
+                    '${window.escapeSql(spec_a)}', '${window.escapeSql(sales_f)}', '${window.escapeSql(tkt_d)}', '${window.escapeSql(dep_n)}', '${window.escapeSql(b2b_n)}', '${window.escapeSql(inc_i)}', '${window.escapeSql(exc_i)}'
                 );
             `;
         }
 
-        // 🟢 完美的 Fallback 備援機制，保證寫入成功
         if (window.executeAndSave) {
             try {
                 const isSuccess = await window.executeAndSave(sql);
@@ -357,8 +365,9 @@
                 alert("儲存寫入失敗：" + e.message);
                 console.error(e);
             }
-        } else {
-            alert("找不到資料庫連線，無法儲存！");
         }
     };
+
+    // 🟢 執行初始化
+    window.initTourForm();
 </script>
