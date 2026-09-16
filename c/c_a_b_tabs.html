@@ -12,6 +12,7 @@
 
 <div class="page-wrapper">
     <div class="tabs-nav">
+        <!-- 點擊直接切換 iframe src -->
         <div class="tab-btn active" onclick="switchTab('c_a_b_1.html', this)">艙等機位數</div>
         <div class="tab-btn" onclick="switchTab('c_a_b_2.html', this)">航班資料</div>
         <div class="tab-btn" onclick="switchTab('c_a_b_3.html', this)">行程內容</div>
@@ -19,33 +20,16 @@
     </div>
     
     <div class="tab-content">
-        <iframe id="sub_frame"></iframe>
+        <!-- 🟢 確保一開始就有畫面，不再依賴外部 JS 寫入 src -->
+        <iframe id="sub_frame" src="c_a_b_1.html"></iframe>
     </div>
 </div>
 
 <script>
-    // 🟢 從 localStorage 獲取變數
-    const tourCode = localStorage.getItem('editTourCode') || '';
-    const tourName = localStorage.getItem('editTourName') || '';
-
-    (function initTabs() {
-        if (!tourCode) {
-            alert("錯誤：未指定團型代碼！即將返回列表頁。");
-            if(typeof loadPage === 'function') loadPage('C-A-B');
-            return;
-        }
-        
-        // 組合網址參數並載入第一頁 iframe
-        const targetUrl = `c_a_b_1.html?code=${encodeURIComponent(tourCode)}&name=${encodeURIComponent(tourName)}`;
-        document.getElementById('sub_frame').src = targetUrl;
-    })();
-
+    // 單純用來切換頁籤，不再處理變數傳遞
     window.switchTab = function(pageName, element) {
         document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
         if(element) element.classList.add('active');
-        
-        // 切換頁籤時，一樣把變數透過網址傳給子網頁
-        const targetUrl = `${pageName}?code=${encodeURIComponent(tourCode)}&name=${encodeURIComponent(tourName)}`;
-        document.getElementById('sub_frame').src = targetUrl;
+        document.getElementById('sub_frame').src = pageName;
     };
 </script>

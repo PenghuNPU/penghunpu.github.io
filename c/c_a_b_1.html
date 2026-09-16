@@ -1,25 +1,17 @@
 <style>
     body { font-family: "MS Sans Serif", "細明體", sans-serif; font-size: 13px; background-color: #fff; margin: 15px; }
-    
     .form-table { width: 100%; border-collapse: collapse; border: 1px solid #777; margin-bottom: 15px; }
     .form-table th, .form-table td { border: 1px solid #777; padding: 6px; }
-    
     .form-title { background-color: #ffcc99; font-weight: bold; text-align: center; font-size: 14px; padding: 8px !important; letter-spacing: 2px; }
-    
     .info-header th { background-color: #f0f0f0; width: 100px; text-align: left; padding-left: 10px; }
     .info-header td { color: #333; font-weight: bold; color: blue; }
-    
     .matrix-wrapper th { background-color: #f0f0f0; text-align: center; width: 100px; }
-    
     .matrix-table { width: 100%; border-collapse: collapse; text-align: center; margin: 10px 0; }
     .matrix-table th { background-color: #ccccff; padding: 6px; border: none; border-bottom: 2px solid #fff; border-right: 2px solid #fff; }
     .matrix-table td { background-color: #ffffe0; padding: 6px; border: none; border-bottom: 2px solid #fff; border-right: 2px solid #fff; font-weight: bold;}
-    
     .matrix-table tr.avail-row td { background-color: #ccccff; }
-    
     .input-box { border: 1px inset #fff; padding: 3px; font-size: 13px; width: 40px; text-align: left; font-weight: normal; }
     .subtotal-box { border: 1px inset #fff; padding: 3px; font-size: 13px; width: 40px; text-align: left; background-color: #e0e0e0; font-weight: normal; cursor: default; }
-
     .action-row { text-align: center; margin-top: 15px; padding: 10px; background-color: #d4d0c8; border: 1px solid #777; }
     .action-row button { background-color: #ece9d8; border: 2px outset #fff; padding: 4px 20px; font-weight: bold; letter-spacing: 2px; margin: 0 10px; cursor: pointer; }
     .action-row button:active { border-style: inset; }
@@ -31,11 +23,11 @@
     </tr>
     <tr class="info-header">
         <th>團型代碼</th>
-        <td id="display_code">載入中...</td>
+        <td id="display_code">資料讀取中...</td>
     </tr>
     <tr class="info-header">
         <th>團型名稱</th>
-        <td id="display_name" style="color: black; font-weight: normal;">載入中...</td>
+        <td id="display_name" style="color: black; font-weight: normal;">資料讀取中...</td>
     </tr>
     <tr class="matrix-wrapper">
         <th>機位數</th>
@@ -105,18 +97,17 @@
 <div class="action-row">
     <button onclick="saveCabinSeats()">確 定</button>
     <button onclick="resetForm()">重 填</button>
-    <!-- 放棄時呼叫父層的 loadPage -->
-    <button onclick="if(window.parent && window.parent.loadPage) window.parent.loadPage('C-A-B');">放 棄</button>
+    <!-- 放棄時呼叫最外層視窗的 loadPage 返回列表頁 -->
+    <button onclick="if(window.top && window.top.loadPage) window.top.loadPage('C-A-B'); else alert('無法返回主列表');">放 棄</button>
 </div>
 
 <script>
-    // 🟢 雙重保險：優先抓網址參數 (來自 tabs)，如果沒有再抓 localStorage
-    const urlParams = new URLSearchParams(window.location.search);
-    const tourCode = urlParams.get('code') || localStorage.getItem('editTourCode') || '';
-    const tourName = urlParams.get('name') || localStorage.getItem('editTourName') || '';
+    // 🟢 因為這個檔案是在 iframe 內執行，直接主動向瀏覽器的 localStorage 拿變數
+    let tourCode = localStorage.getItem('editTourCode') || '';
+    let tourName = localStorage.getItem('editTourName') || '';
     
-    // 資料庫物件從父層 iframe 或全域取得
-    const db = window.db || (window.parent && window.parent.db);
+    // 從最外層視窗取得資料庫物件
+    const db = window.top.db || window.parent.db;
 
     window.calcSeats = function() {
         const types = ['y', 'ed', 'c', 'f'];
@@ -148,13 +139,20 @@
         calcSeats();
     };
 
-    (function init() {
-        // 🟢 將變數印到畫面上
-        document.getElementById('display_code').innerText = tourCode || '尚未指定';
-        document.getElementById('display_name').innerText = tourName || '尚未指定';
+    window.onload = function init() {
+        // 寫入畫面
+        if (!tourCode) {
+            document.getElementById('display_code').innerText = '錯誤：未指定團型代碼';
+            document.getElementById('display_code').style.color = 'red';
+            document.getElementById('display_name').innerText = '請返回上一頁重新點選';
+            return;
+        }
+
+        document.getElementById('display_code').innerText = tourCode;
+        document.getElementById('display_name').innerText = tourName;
 
         if (!db) {
-            console.warn("未連線到資料庫，請確認父層 window.db 是否存在。");
+            console.warn("無法取得資料庫連線 (window.top.db 遺失)。");
             return;
         }
 
@@ -168,22 +166,21 @@
             );
         `);
 
-        if (tourCode) {
-            try {
-                const res = db.exec(`SELECT * FROM TourCabinSeats WHERE tour_code = '${tourCode}'`);
-                if (res.length > 0) {
-                    const data = res[0].values[0];
-                    ['y', 'ed', 'c', 'f'].forEach((t, typeIdx) => {
-                        ['get', 'leader', 'guide', 'other', 'fit'].forEach((r, rowIdx) => {
-                            const val = data[1 + typeIdx * 5 + rowIdx];
-                            document.getElementById(`${t}_${r}`).value = val === 0 ? '' : val;
-                        });
+        try {
+            const res = db.exec(`SELECT * FROM TourCabinSeats WHERE tour_code = '${tourCode}'`);
+            if (res.length > 0) {
+                const data = res[0].values[0];
+                ['y', 'ed', 'c', 'f'].forEach((t, typeIdx) => {
+                    ['get', 'leader', 'guide', 'other', 'fit'].forEach((r, rowIdx) => {
+                        const val = data[1 + typeIdx * 5 + rowIdx];
+                        document.getElementById(`${t}_${r}`).value = val === 0 ? '' : val;
                     });
-                }
-            } catch (e) { console.error("載入機位資料失敗", e); }
-        }
+                });
+            }
+        } catch (e) { console.error("載入機位資料失敗", e); }
+        
         calcSeats();
-    })();
+    };
 
     window.saveCabinSeats = async function() {
         if (!tourCode) { alert("無效的團型代碼，無法儲存！"); return; }
@@ -211,7 +208,7 @@
                 f_get=excluded.f_get, f_leader=excluded.f_leader, f_guide=excluded.f_guide, f_other=excluded.f_other, f_fit=excluded.f_fit;
         `;
 
-        const executeFn = window.executeAndSave || (window.parent && window.parent.executeAndSave);
+        const executeFn = window.top.executeAndSave || window.parent.executeAndSave;
         if (executeFn) {
             const isSuccess = await executeFn(sql);
             if (isSuccess) alert("機位資料已成功儲存！");
