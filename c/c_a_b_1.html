@@ -22,11 +22,11 @@
     </tr>
     <tr class="info-header">
         <th>團型代碼</th>
-        <td id="display_code"></td>
+        <td id="display_code">載入中...</td>
     </tr>
     <tr class="info-header">
         <th>團型名稱</th>
-        <td id="display_name" style="color: black; font-weight: normal;"></td>
+        <td id="display_name" style="color: black; font-weight: normal;">載入中...</td>
     </tr>
     <tr class="matrix-wrapper">
         <th>機位數</th>
@@ -40,44 +40,45 @@
                     <th>F艙</th>
                     <th style="color: red;">小計</th>
                 </tr>
+                <!-- 🟢 已經移除所有的 oninput="..." 確保 HTML 乾淨，改由下方 JS 綁定 -->
                 <tr>
                     <td>各艙取得機位</td>
-                    <td><input type="number" id="y_get" class="input-box" min="0" oninput="window.calcSeats()"></td>
-                    <td><input type="number" id="ed_get" class="input-box" min="0" oninput="window.calcSeats()"></td>
-                    <td><input type="number" id="c_get" class="input-box" min="0" oninput="window.calcSeats()"></td>
-                    <td><input type="number" id="f_get" class="input-box" min="0" oninput="window.calcSeats()"></td>
+                    <td><input type="number" id="y_get" class="input-box" min="0"></td>
+                    <td><input type="number" id="ed_get" class="input-box" min="0"></td>
+                    <td><input type="number" id="c_get" class="input-box" min="0"></td>
+                    <td><input type="number" id="f_get" class="input-box" min="0"></td>
                     <td><input type="text" id="sub_get" class="subtotal-box" readonly></td>
                 </tr>
                 <tr>
                     <td>領隊保留機位</td>
-                    <td><input type="number" id="y_leader" class="input-box" min="0" oninput="window.calcSeats()"></td>
-                    <td><input type="number" id="ed_leader" class="input-box" min="0" oninput="window.calcSeats()"></td>
-                    <td><input type="number" id="c_leader" class="input-box" min="0" oninput="window.calcSeats()"></td>
-                    <td><input type="number" id="f_leader" class="input-box" min="0" oninput="window.calcSeats()"></td>
+                    <td><input type="number" id="y_leader" class="input-box" min="0"></td>
+                    <td><input type="number" id="ed_leader" class="input-box" min="0"></td>
+                    <td><input type="number" id="c_leader" class="input-box" min="0"></td>
+                    <td><input type="number" id="f_leader" class="input-box" min="0"></td>
                     <td><input type="text" id="sub_leader" class="subtotal-box" readonly></td>
                 </tr>
                 <tr>
                     <td>導遊保留機位</td>
-                    <td><input type="number" id="y_guide" class="input-box" min="0" oninput="window.calcSeats()"></td>
-                    <td><input type="number" id="ed_guide" class="input-box" min="0" oninput="window.calcSeats()"></td>
-                    <td><input type="number" id="c_guide" class="input-box" min="0" oninput="window.calcSeats()"></td>
-                    <td><input type="number" id="f_guide" class="input-box" min="0" oninput="window.calcSeats()"></td>
+                    <td><input type="number" id="y_guide" class="input-box" min="0"></td>
+                    <td><input type="number" id="ed_guide" class="input-box" min="0"></td>
+                    <td><input type="number" id="c_guide" class="input-box" min="0"></td>
+                    <td><input type="number" id="f_guide" class="input-box" min="0"></td>
                     <td><input type="text" id="sub_guide" class="subtotal-box" readonly></td>
                 </tr>
                 <tr>
                     <td>其他保留機位</td>
-                    <td><input type="number" id="y_other" class="input-box" min="0" oninput="window.calcSeats()"></td>
-                    <td><input type="number" id="ed_other" class="input-box" min="0" oninput="window.calcSeats()"></td>
-                    <td><input type="number" id="c_other" class="input-box" min="0" oninput="window.calcSeats()"></td>
-                    <td><input type="number" id="f_other" class="input-box" min="0" oninput="window.calcSeats()"></td>
+                    <td><input type="number" id="y_other" class="input-box" min="0"></td>
+                    <td><input type="number" id="ed_other" class="input-box" min="0"></td>
+                    <td><input type="number" id="c_other" class="input-box" min="0"></td>
+                    <td><input type="number" id="f_other" class="input-box" min="0"></td>
                     <td><input type="text" id="sub_other" class="subtotal-box" readonly></td>
                 </tr>
                 <tr>
                     <td>自由行保留機位</td>
-                    <td><input type="number" id="y_fit" class="input-box" min="0" oninput="window.calcSeats()"></td>
-                    <td><input type="number" id="ed_fit" class="input-box" min="0" oninput="window.calcSeats()"></td>
-                    <td><input type="number" id="c_fit" class="input-box" min="0" oninput="window.calcSeats()"></td>
-                    <td><input type="number" id="f_fit" class="input-box" min="0" oninput="window.calcSeats()"></td>
+                    <td><input type="number" id="y_fit" class="input-box" min="0"></td>
+                    <td><input type="number" id="ed_fit" class="input-box" min="0"></td>
+                    <td><input type="number" id="c_fit" class="input-box" min="0"></td>
+                    <td><input type="number" id="f_fit" class="input-box" min="0"></td>
                     <td><input type="text" id="sub_fit" class="subtotal-box" readonly></td>
                 </tr>
                 <tr class="avail-row">
@@ -100,6 +101,37 @@
 </div>
 
 <script>
+    // 🟢 定義計算核心邏輯
+    window.calcSeats = function() {
+        const types = ['y', 'ed', 'c', 'f'];
+        const rows = ['get', 'leader', 'guide', 'other', 'fit'];
+
+        // 1. 計算小計
+        rows.forEach(r => {
+            let sum = 0;
+            types.forEach(t => {
+                let el = document.getElementById(`${t}_${r}`);
+                let val = el ? (parseInt(el.value) || 0) : 0;
+                sum += val;
+            });
+            let subEl = document.getElementById(`sub_${r}`);
+            if (subEl) subEl.value = sum;
+        });
+
+        // 2. 計算可售機位
+        types.forEach(t => {
+            let getVal = parseInt(document.getElementById(`${t}_get`)?.value) || 0;
+            let leaderVal = parseInt(document.getElementById(`${t}_leader`)?.value) || 0;
+            let guideVal = parseInt(document.getElementById(`${t}_guide`)?.value) || 0;
+            let otherVal = parseInt(document.getElementById(`${t}_other`)?.value) || 0;
+            let fitVal = parseInt(document.getElementById(`${t}_fit`)?.value) || 0;
+
+            let avail = getVal - leaderVal - guideVal - otherVal - fitVal;
+            let availEl = document.getElementById(`${t}_avail`);
+            if (availEl) availEl.innerText = avail;
+        });
+    };
+
     (function initCabinSeats() {
         const tCode = window.currentEditTourCode;
         const tName = window.currentEditTourName;
@@ -112,6 +144,13 @@
 
         document.getElementById('display_code').innerText = tCode;
         document.getElementById('display_name').innerText = tName || '';
+
+        // 🟢 動態綁定所有輸入框的監聽事件 (最穩定安全的寫法)
+        const inputs = document.querySelectorAll('input[type="number"].input-box');
+        inputs.forEach(input => {
+            input.addEventListener('input', window.calcSeats);
+            input.addEventListener('change', window.calcSeats); // 雙保險
+        });
 
         if (!window.db) return;
 
@@ -132,42 +171,19 @@
                 ['y', 'ed', 'c', 'f'].forEach((t, typeIdx) => {
                     ['get', 'leader', 'guide', 'other', 'fit'].forEach((r, rowIdx) => {
                         const val = data[1 + typeIdx * 5 + rowIdx];
-                        document.getElementById(`${t}_${r}`).value = val === 0 ? '' : val;
+                        let el = document.getElementById(`${t}_${r}`);
+                        if(el) el.value = val === 0 ? '' : val;
                     });
                 });
             }
         } catch (e) { console.error("載入機位資料失敗", e); }
         
+        // 載入完畢後主動計算一次
         window.calcSeats();
     })();
 
-    window.calcSeats = function() {
-        const types = ['y', 'ed', 'c', 'f'];
-        const rows = ['get', 'leader', 'guide', 'other', 'fit'];
-
-        rows.forEach(r => {
-            let sum = 0;
-            types.forEach(t => {
-                let val = parseInt(document.getElementById(`${t}_${r}`).value) || 0;
-                sum += val;
-            });
-            document.getElementById(`sub_${r}`).value = sum;
-        });
-
-        types.forEach(t => {
-            let getVal = parseInt(document.getElementById(`${t}_get`).value) || 0;
-            let leaderVal = parseInt(document.getElementById(`${t}_leader`).value) || 0;
-            let guideVal = parseInt(document.getElementById(`${t}_guide`).value) || 0;
-            let otherVal = parseInt(document.getElementById(`${t}_other`).value) || 0;
-            let fitVal = parseInt(document.getElementById(`${t}_fit`).value) || 0;
-
-            let avail = getVal - leaderVal - guideVal - otherVal - fitVal;
-            document.getElementById(`${t}_avail`).innerText = avail;
-        });
-    };
-
     window.resetForm = function() {
-        document.querySelectorAll('.input-box').forEach(input => input.value = '');
+        document.querySelectorAll('input[type="number"].input-box').forEach(input => input.value = '');
         window.calcSeats();
     };
 
@@ -175,7 +191,10 @@
         const tCode = window.currentEditTourCode;
         if (!tCode) return;
         
-        const getVal = (id) => parseInt(document.getElementById(id).value) || 0;
+        const getVal = (id) => {
+            const el = document.getElementById(id);
+            return el ? (parseInt(el.value) || 0) : 0;
+        };
         
         const sql = `
             REPLACE INTO TourCabinSeats (
