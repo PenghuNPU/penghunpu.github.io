@@ -35,7 +35,6 @@
                     </select>
                     <span style="color:red; font-size:11px; margin-left:10px;">※特殊團不能提供對外銷售</span>
                 </td>
-                <!-- 右側上傳圖片區塊 -->
                 <td rowspan="8" style="width: 300px; vertical-align: top; padding-top: 20px; border-left: 1px solid #999;">
                     <div class="upload-area">
                         請以瀏覽方式上傳圖檔<br>檔案大小以50K為限<br>檔案格式為jpg、jpeg或gif<br>檔案寬度建議：200pixels<br>高度建議：150pixels<br><br>
@@ -146,12 +145,16 @@
     <div class="action-row">
         <button id="btn_save" onclick="saveBasicTour()">確定新增</button>
         <button type="button" onclick="document.querySelectorAll('input[type=text], textarea').forEach(el=>el.value='')">重 填</button>
-        <button onclick="loadPage('C-A-B')">放 棄</button>
+        <button onclick="if(typeof loadPage === 'function') loadPage('C-A-B');">放 棄</button>
     </div>
 </div>
 
 <script>
-    const editTargetCode = localStorage.getItem('editTourCode') || null;
+    // 🟢 嚴格判定：過濾掉 'null' 字串
+    let editTargetCode = localStorage.getItem('editTourCode');
+    if (editTargetCode === 'null' || editTargetCode === 'undefined' || editTargetCode === '') {
+        editTargetCode = null;
+    }
 
     window.previewImage = function(event) {
         const file = event.target.files[0];
@@ -166,13 +169,11 @@
         }
     };
 
-    // 🟢 載入線別資料：若 ProductSeries 表不存在，會在此自動建立，避免報錯
     window.loadLinesData = function(selectedLine = '') {
         const sel = document.getElementById('line_name');
         sel.innerHTML = '<option value="">-請選擇-</option>';
         if (!window.db) return;
 
-        // 防呆：建立商品系列設定檔
         window.db.exec(`
             CREATE TABLE IF NOT EXISTS ProductSeries (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -214,6 +215,17 @@
 
     (function initForm() {
         if (!window.db) return;
+        
+        // 防呆：確保主表存在
+        window.db.exec(`
+            CREATE TABLE IF NOT EXISTS BasicTours (
+                tour_code TEXT PRIMARY KEY CHECK(length(tour_code) <= 12), tour_category TEXT, line_name TEXT, series_name TEXT,
+                tour_name TEXT NOT NULL CHECK(length(tour_name) <= 30), foreign_tour_no TEXT, product_name TEXT,
+                tour_days INTEGER, tour_nights INTEGER, tour_area TEXT, tour_country TEXT, departure_airport TEXT,
+                dev_features TEXT, itinerary_features TEXT, special_arrange TEXT, sales_features TEXT,
+                ticket_desc TEXT, departure_notes TEXT, b2b_notes TEXT, included_items TEXT, excluded_items TEXT
+            );
+        `);
         
         if (editTargetCode) {
             document.getElementById('form_title').innerText = "【 修改團型基本內容 】";
@@ -325,10 +337,28 @@
             `;
         }
 
-        const isSuccess = await window.executeAndSave(sql);
-        if (isSuccess) {
-            alert(`成功：團型資料 [${code}] 已儲存！`);
-            loadPage('C-A-B'); 
+        // 🟢 完美的 Fallback 備援機制，保證寫入成功
+        if (window.executeAndSave) {
+            try {
+                const isSuccess = await window.executeAndSave(sql);
+                if (isSuccess) {
+                    alert(`成功：團型資料 [${code}] 已儲存！`);
+                    if(typeof loadPage === 'function') loadPage('C-A-B'); 
+                }
+            } catch (e) {
+                alert("儲存失敗：" + e.message);
+            }
+        } else if (window.db) {
+            try {
+                window.db.exec(sql);
+                alert(`成功：團型資料 [${code}] 已儲存！`);
+                if(typeof loadPage === 'function') loadPage('C-A-B'); 
+            } catch(e) {
+                alert("儲存寫入失敗：" + e.message);
+                console.error(e);
+            }
+        } else {
+            alert("找不到資料庫連線，無法儲存！");
         }
     };
 </script>
