@@ -5,7 +5,6 @@
     
     .form-title { background-color: #ffebee !important; font-weight: bold; text-align: center; font-size: 15px; padding: 10px !important; letter-spacing: 2px; }
     
-    /* 天數分頁樣式 */
     .day-tabs { display: flex; border-bottom: 2px solid #ffaa44; margin-bottom: 10px; overflow-x: auto; padding-left: 5px; }
     .day-tab-btn { background-color: #d4d0c8; border: 1px solid #999; border-bottom: none; padding: 6px 15px; cursor: pointer; margin-right: 3px; border-radius: 4px 4px 0 0; font-size: 13px; }
     .day-tab-btn.active { background-color: #ffcc99; font-weight: bold; color: #900; padding-bottom: 7px; margin-bottom: -1px; }
@@ -62,7 +61,8 @@
 <div id="day_panels_container"></div>
 
 <div class="action-row">
-    <button onclick="window.saveTourItinerary()">確 定</button>
+    <!-- 🟢 加上 this 傳遞按鈕元素，用於鎖定防連點 -->
+    <button id="btn_save" onclick="window.saveTourItinerary(this)">確 定</button>
     <button onclick="if(typeof loadPage === 'function') loadPage('C-A-B');">放 棄</button>
 </div>
 
@@ -178,12 +178,11 @@
         window.closeHotelPicker();
     };
 
-    // 🟢 解碼還原真實換行顯示於畫面上
     window.createDayPanelHTML = function(dayNum, data) {
         var d = data || {};
         var cleanStr = function(val) { 
             if (val === null || val === undefined) return ''; 
-            return String(val).replace(/\\n/g, '\n'); // 還原換行符號
+            return String(val).replace(/\\n/g, '\n'); 
         };
         
         var name = cleanStr(d.trip_name);
@@ -332,18 +331,25 @@
         window.switchDayTab(1);
     };
 
-    // 🟢 防 SQL Injection 與換行破壞工具
     window.escapeSql = function(str) { 
         if (!str) return '';
-        // 替換單引號防注入，將斷行字元替換成 \n 避免切斷 SQL 句子導致 Syntax Error
         return str.replace(/'/g, "''").replace(/\r?\n/g, "\\n"); 
     };
 
-    window.saveTourItinerary = async function() {
-        var tCode = window.currentEditTourCode || localStorage.getItem('editTourCode');
-        if (!tCode || tCode === 'null') return;
+    // 🟢 傳入按鈕元素 (btnEl) 實現防連點鎖定
+    window.saveTourItinerary = async function(btnEl) {
+        var btn = btnEl || document.getElementById('btn_save');
+        if (btn) {
+            btn.disabled = true;
+            btn.innerText = "儲存中...";
+        }
 
-        // 🟢 使用陣列收集 SQL，確保精準串接不留多餘空白
+        var tCode = window.currentEditTourCode || localStorage.getItem('editTourCode');
+        if (!tCode || tCode === 'null') {
+            if(btn) { btn.disabled = false; btn.innerText = "確 定"; }
+            return;
+        }
+
         var sqlList = [];
         sqlList.push("DELETE FROM TourItinerary WHERE tour_code = '" + tCode + "'");
 
@@ -366,7 +372,6 @@
 
             if (!name && !city && !content) continue;
 
-            // 嚴格組合為單行 INSERT，100% 杜絕 Syntax Error
             var insertSQL = "INSERT INTO TourItinerary (" +
                 "tour_code, day_num, trip_name, tour_city, hotel_code, hotel_same_level, hotel_name, " +
                 "meal_features, bf_checked, bf_desc, lun_checked, lun_desc, din_checked, din_desc, itinerary_content" +
@@ -378,19 +383,24 @@
             sqlList.push(insertSQL);
         }
 
-        var finalSql = sqlList.join(";\n") + ";";
+        // 🟢 將換行改為以「空格」串接，確保不會觸發 Sql.js 的多行解析錯誤
+        var finalSql = sqlList.join("; ") + ";";
 
-        if (window.executeAndSave) {
-            try {
+        try {
+            if (window.executeAndSave) {
                 var isSuccess = await window.executeAndSave(finalSql);
                 if (isSuccess) alert("行程內容已成功儲存！");
-            } catch(e) { alert("儲存失敗：" + e.message); }
-        } else if (window.db) {
-            try {
+            } else if (window.db) {
                 window.db.exec(finalSql);
                 alert("行程內容已成功儲存！");
-            } catch(e) {
-                alert("寫入資料庫語法錯誤：" + e.message);
+            }
+        } catch(e) {
+            alert("儲存失敗：" + e.message + "\n(如出現 DOMException，請按 F5 重新整理網頁並重新載入資料庫。)");
+        } finally {
+            // 解除防連點鎖定
+            if (btn) {
+                btn.disabled = false;
+                btn.innerText = "確 定";
             }
         }
     };
