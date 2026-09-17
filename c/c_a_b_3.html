@@ -58,10 +58,7 @@
     </tr>
 </table>
 
-<!-- 動態生成的天數頁籤 -->
 <div id="day_tabs_container" class="day-tabs"></div>
-
-<!-- 動態生成的每一天表單內容 -->
 <div id="day_panels_container"></div>
 
 <div class="action-row">
@@ -92,7 +89,6 @@
 </div>
 
 <script>
-    // 變數初始化
     var currentPickerDay = 1;
     var totalTourDays = 1;
 
@@ -109,7 +105,6 @@
         { code: "TGH", name: "台北圓山大飯店 (The Grand Hotel, Taipei)" }
     ];
 
-    // 🟢 切換天數分頁
     window.switchDayTab = function(dayNum) {
         document.querySelectorAll('.day-tab-btn').forEach(btn => btn.classList.remove('active'));
         document.querySelectorAll('.day-panel').forEach(panel => panel.classList.remove('active'));
@@ -121,7 +116,6 @@
         if (activePanel) activePanel.classList.add('active');
     };
 
-    // 🟢 圖片預覽功能
     window.previewImageDay = function(event, dayNum) {
         var file = event.target.files[0];
         var preview = document.getElementById('image_preview_' + dayNum);
@@ -142,7 +136,6 @@
         }
     };
 
-    // 🟢 Picker 彈跳視窗邏輯
     window.openCityPickerDay = function(dayNum) {
         currentPickerDay = dayNum;
         var html = '';
@@ -185,10 +178,13 @@
         window.closeHotelPicker();
     };
 
-    // 🟢 產生單一天數的表單 HTML
+    // 🟢 解碼還原真實換行顯示於畫面上
     window.createDayPanelHTML = function(dayNum, data) {
         var d = data || {};
-        var cleanStr = function(val) { return (val === null || val === undefined) ? '' : val; };
+        var cleanStr = function(val) { 
+            if (val === null || val === undefined) return ''; 
+            return String(val).replace(/\\n/g, '\n'); // 還原換行符號
+        };
         
         var name = cleanStr(d.trip_name);
         var city = cleanStr(d.tour_city);
@@ -196,7 +192,7 @@
         var hSame = (d.hotel_same_level == 1) ? 'checked' : '';
         var hName = cleanStr(d.hotel_name);
         var mealF = cleanStr(d.meal_features);
-        var bfChk = (d.bf_checked == null || d.bf_checked == 1) ? 'checked' : ''; // 預設打勾
+        var bfChk = (d.bf_checked == null || d.bf_checked == 1) ? 'checked' : '';
         var bfDesc = cleanStr(d.bf_desc);
         var lunChk = (d.lun_checked == null || d.lun_checked == 1) ? 'checked' : '';
         var lunDesc = cleanStr(d.lun_desc);
@@ -279,7 +275,6 @@
         `;
     };
 
-    // 🟢 初始化載入邏輯
     window.initItinerary = function() {
         var tCode = window.currentEditTourCode || localStorage.getItem('editTourCode');
         var tName = window.currentEditTourName || localStorage.getItem('editTourName');
@@ -295,7 +290,6 @@
 
         if (!window.db) return;
 
-        // 1. 取得該團型的總天數
         try {
             var resDays = window.db.exec(`SELECT tour_days FROM BasicTours WHERE tour_code = '${tCode}'`);
             if (resDays.length > 0 && resDays[0].values.length > 0) {
@@ -303,7 +297,6 @@
             }
         } catch(e) { console.error("無法取得天數，預設為1天", e); }
 
-        // 2. 建立行程資料庫
         window.db.exec(`
             CREATE TABLE IF NOT EXISTS TourItinerary (
                 tour_code TEXT, day_num INTEGER, trip_name TEXT, tour_city TEXT, hotel_code TEXT, hotel_same_level INTEGER, hotel_name TEXT,
@@ -312,7 +305,6 @@
             );
         `);
 
-        // 3. 讀取現有行程資料
         var existingData = {};
         try {
             var res = window.db.exec(`SELECT * FROM TourItinerary WHERE tour_code = '${tCode}' ORDER BY day_num ASC`);
@@ -327,7 +319,6 @@
             }
         } catch (e) { console.error("讀取行程資料失敗", e); }
 
-        // 4. 動態產生 UI
         var tabsHtml = '';
         var panelsHtml = '';
 
@@ -338,20 +329,23 @@
 
         document.getElementById('day_tabs_container').innerHTML = tabsHtml;
         document.getElementById('day_panels_container').innerHTML = panelsHtml;
-
-        // 預設切換到第1天
         window.switchDayTab(1);
     };
 
-    window.escapeSql = function(str) { return str ? str.replace(/'/g, "''") : ''; };
+    // 🟢 防 SQL Injection 與換行破壞工具
+    window.escapeSql = function(str) { 
+        if (!str) return '';
+        // 替換單引號防注入，將斷行字元替換成 \n 避免切斷 SQL 句子導致 Syntax Error
+        return str.replace(/'/g, "''").replace(/\r?\n/g, "\\n"); 
+    };
 
-    // 🟢 儲存所有天數的行程
     window.saveTourItinerary = async function() {
         var tCode = window.currentEditTourCode || localStorage.getItem('editTourCode');
         if (!tCode || tCode === 'null') return;
 
-        // 先刪除該團舊有的行程資料
-        var sql = `DELETE FROM TourItinerary WHERE tour_code = '${tCode}'; \n`;
+        // 🟢 使用陣列收集 SQL，確保精準串接不留多餘空白
+        var sqlList = [];
+        sqlList.push("DELETE FROM TourItinerary WHERE tour_code = '" + tCode + "'");
 
         for (var i = 1; i <= totalTourDays; i++) {
             var name = window.escapeSql(document.getElementById(`trip_name_${i}`).value.trim());
@@ -370,31 +364,36 @@
             
             var content = window.escapeSql(document.getElementById(`itinerary_content_${i}`).value.trim());
 
-            // 簡單防呆：只要有填標題就存，否則若全空就跳過
             if (!name && !city && !content) continue;
 
-            sql += `
-                INSERT INTO TourItinerary (
-                    tour_code, day_num, trip_name, tour_city, hotel_code, hotel_same_level, hotel_name,
-                    meal_features, bf_checked, bf_desc, lun_checked, lun_desc, din_checked, din_desc, itinerary_content
-                ) VALUES (
-                    '${tCode}', ${i}, '${name}', '${city}', '${hCode}', ${hSame}, '${hName}',
-                    '${mFeat}', ${bfChk}, '${bfDesc}', ${lunChk}, '${lunDesc}', ${dinChk}, '${dinDesc}', '${content}'
-                );
-            \n`;
+            // 嚴格組合為單行 INSERT，100% 杜絕 Syntax Error
+            var insertSQL = "INSERT INTO TourItinerary (" +
+                "tour_code, day_num, trip_name, tour_city, hotel_code, hotel_same_level, hotel_name, " +
+                "meal_features, bf_checked, bf_desc, lun_checked, lun_desc, din_checked, din_desc, itinerary_content" +
+            ") VALUES (" +
+                "'" + tCode + "', " + i + ", '" + name + "', '" + city + "', '" + hCode + "', " + hSame + ", '" + hName + "', " +
+                "'" + mFeat + "', " + bfChk + ", '" + bfDesc + "', " + lunChk + ", '" + lunDesc + "', " + dinChk + ", '" + dinDesc + "', '" + content + "'" +
+            ")";
+            
+            sqlList.push(insertSQL);
         }
+
+        var finalSql = sqlList.join(";\n") + ";";
 
         if (window.executeAndSave) {
             try {
-                var isSuccess = await window.executeAndSave(sql);
+                var isSuccess = await window.executeAndSave(finalSql);
                 if (isSuccess) alert("行程內容已成功儲存！");
             } catch(e) { alert("儲存失敗：" + e.message); }
         } else if (window.db) {
-            window.db.exec(sql);
-            alert("行程內容已成功儲存！");
+            try {
+                window.db.exec(finalSql);
+                alert("行程內容已成功儲存！");
+            } catch(e) {
+                alert("寫入資料庫語法錯誤：" + e.message);
+            }
         }
     };
 
-    // 啟動初始化
     window.initItinerary();
 </script>
