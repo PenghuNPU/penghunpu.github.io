@@ -61,7 +61,6 @@
 <div id="day_panels_container"></div>
 
 <div class="action-row">
-    <!-- 🟢 加上 this 傳遞按鈕元素，用於鎖定防連點 -->
     <button id="btn_save" onclick="window.saveTourItinerary(this)">確 定</button>
     <button onclick="if(typeof loadPage === 'function') loadPage('C-A-B');">放 棄</button>
 </div>
@@ -336,7 +335,6 @@
         return str.replace(/'/g, "''").replace(/\r?\n/g, "\\n"); 
     };
 
-    // 🟢 傳入按鈕元素 (btnEl) 實現防連點鎖定
     window.saveTourItinerary = async function(btnEl) {
         var btn = btnEl || document.getElementById('btn_save');
         if (btn) {
@@ -354,11 +352,55 @@
         sqlList.push("DELETE FROM TourItinerary WHERE tour_code = '" + tCode + "'");
 
         for (var i = 1; i <= totalTourDays; i++) {
-            var name = window.escapeSql(document.getElementById(`trip_name_${i}`).value.trim());
-            var city = window.escapeSql(document.getElementById(`tour_city_${i}`).value.trim());
-            var hCode = window.escapeSql(document.getElementById(`hotel_code_${i}`).value.trim());
+            var rawName = document.getElementById(`trip_name_${i}`).value.trim();
+            var rawCity = document.getElementById(`tour_city_${i}`).value.trim();
+            var rawHCode = document.getElementById(`hotel_code_${i}`).value.trim();
+            var rawHName = document.getElementById(`hotel_name_${i}`).value.trim();
+            var rawContent = document.getElementById(`itinerary_content_${i}`).value.trim();
+
+            // 🟢 必填欄位檢查機制 (檢查有 V 的欄位)
+            if (!rawName) {
+                alert(`錯誤：請填寫 第 ${i} 天 的【標題】！`);
+                window.switchDayTab(i);
+                document.getElementById(`trip_name_${i}`).focus();
+                if(btn) { btn.disabled = false; btn.innerText = "確 定"; }
+                return;
+            }
+            if (!rawCity) {
+                alert(`錯誤：請填寫或選擇 第 ${i} 天 的【旅遊城市】！`);
+                window.switchDayTab(i);
+                document.getElementById(`tour_city_${i}`).focus();
+                if(btn) { btn.disabled = false; btn.innerText = "確 定"; }
+                return;
+            }
+            if (!rawHCode) {
+                alert(`錯誤：請填寫或選擇 第 ${i} 天 的【飯店代碼】！`);
+                window.switchDayTab(i);
+                document.getElementById(`hotel_code_${i}`).focus();
+                if(btn) { btn.disabled = false; btn.innerText = "確 定"; }
+                return;
+            }
+            if (!rawHName) {
+                alert(`錯誤：請填寫或選擇 第 ${i} 天 的【住宿飯店】！`);
+                window.switchDayTab(i);
+                document.getElementById(`hotel_name_${i}`).focus();
+                if(btn) { btn.disabled = false; btn.innerText = "確 定"; }
+                return;
+            }
+            if (!rawContent) {
+                alert(`錯誤：請填寫 第 ${i} 天 的【行程內容】！`);
+                window.switchDayTab(i);
+                document.getElementById(`itinerary_content_${i}`).focus();
+                if(btn) { btn.disabled = false; btn.innerText = "確 定"; }
+                return;
+            }
+
+            // 通過檢查後，進行 SQL 轉碼
+            var name = window.escapeSql(rawName);
+            var city = window.escapeSql(rawCity);
+            var hCode = window.escapeSql(rawHCode);
             var hSame = document.getElementById(`hotel_same_level_${i}`).checked ? 1 : 0;
-            var hName = window.escapeSql(document.getElementById(`hotel_name_${i}`).value.trim());
+            var hName = window.escapeSql(rawHName);
             
             var mFeat = window.escapeSql(document.getElementById(`meal_features_${i}`).value.trim());
             var bfChk = document.getElementById(`bf_chk_${i}`).checked ? 1 : 0;
@@ -368,9 +410,7 @@
             var dinChk = document.getElementById(`din_chk_${i}`).checked ? 1 : 0;
             var dinDesc = window.escapeSql(document.getElementById(`din_desc_${i}`).value.trim());
             
-            var content = window.escapeSql(document.getElementById(`itinerary_content_${i}`).value.trim());
-
-            if (!name && !city && !content) continue;
+            var content = window.escapeSql(rawContent);
 
             var insertSQL = "INSERT INTO TourItinerary (" +
                 "tour_code, day_num, trip_name, tour_city, hotel_code, hotel_same_level, hotel_name, " +
@@ -383,7 +423,6 @@
             sqlList.push(insertSQL);
         }
 
-        // 🟢 將換行改為以「空格」串接，確保不會觸發 Sql.js 的多行解析錯誤
         var finalSql = sqlList.join("; ") + ";";
 
         try {
@@ -397,7 +436,6 @@
         } catch(e) {
             alert("儲存失敗：" + e.message + "\n(如出現 DOMException，請按 F5 重新整理網頁並重新載入資料庫。)");
         } finally {
-            // 解除防連點鎖定
             if (btn) {
                 btn.disabled = false;
                 btn.innerText = "確 定";
