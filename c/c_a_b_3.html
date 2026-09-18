@@ -10,6 +10,16 @@
     .day-tab-btn.active { background-color: #ffcc99; font-weight: bold; color: #900; padding-bottom: 7px; margin-bottom: -1px; }
     .day-tab-btn:hover:not(.active) { background-color: #e2dfd3; }
     
+    /* 🟢 獨立捲軸外框樣式：限制高度並強制顯示拉bar */
+    .panel-scroll-wrapper {
+        max-height: 400px;
+        overflow-y: auto;
+        background-color: #fcfcfc;
+        border: 1px inset #999;
+        padding: 10px 15px;
+        margin-bottom: 15px;
+    }
+    
     .day-panel { display: none; }
     .day-panel.active { display: block; }
     
@@ -24,7 +34,7 @@
 
     .req-icon { display: inline-block; width: 14px; height: 14px; background-color: #ffff00; color: #ff0000; border: 1px solid #808080; font-size: 12px; line-height: 14px; text-align: center; font-weight: bold; margin-left: 4px; vertical-align: middle; cursor: help; }
     
-    .action-row { text-align: center; margin-top: 15px; padding: 10px; background-color: #808080; border: 1px solid #777; }
+    .action-row { text-align: center; margin-top: 10px; padding: 10px; background-color: #808080; border: 1px solid #777; }
     .action-row button { background-color: #ece9d8; border: 2px outset #fff; padding: 4px 20px; font-weight: bold; letter-spacing: 2px; margin: 0 10px; cursor: pointer; }
     .action-row button:active { border-style: inset; }
     
@@ -58,8 +68,13 @@
 </table>
 
 <div id="day_tabs_container" class="day-tabs"></div>
-<div id="day_panels_container"></div>
 
+<!-- 🟢 將表單內容用卷軸容器包裝起來 -->
+<div class="panel-scroll-wrapper">
+    <div id="day_panels_container"></div>
+</div>
+
+<!-- 按鈕被排在捲軸外側，保證永遠可見 -->
 <div class="action-row">
     <button id="btn_save" onclick="window.saveTourItinerary(this)">確 定</button>
     <button onclick="if(typeof loadPage === 'function') loadPage('C-A-B');">放 棄</button>
@@ -200,7 +215,7 @@
 
         return `
         <div id="panel_day_${dayNum}" class="day-panel">
-            <table class="form-table">
+            <table class="form-table" style="margin-bottom:0;">
                 <tr>
                     <th>第 ${dayNum} 天<br>標題</th>
                     <td>
@@ -358,7 +373,6 @@
             var rawHName = document.getElementById(`hotel_name_${i}`).value.trim();
             var rawContent = document.getElementById(`itinerary_content_${i}`).value.trim();
 
-            // 🟢 必填欄位檢查機制 (檢查有 V 的欄位)
             if (!rawName) {
                 alert(`錯誤：請填寫 第 ${i} 天 的【標題】！`);
                 window.switchDayTab(i);
@@ -395,7 +409,6 @@
                 return;
             }
 
-            // 通過檢查後，進行 SQL 轉碼
             var name = window.escapeSql(rawName);
             var city = window.escapeSql(rawCity);
             var hCode = window.escapeSql(rawHCode);
