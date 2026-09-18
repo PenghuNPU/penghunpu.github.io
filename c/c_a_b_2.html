@@ -84,7 +84,7 @@
             `<option value="${c}" ${c === cabin ? 'selected' : ''}>${c}</option>`
         ).join('');
 
-        // 產生一組 2 個 <tr>，全部欄位皆可編輯
+        // 🟢 產生一組 2 個 <tr>，全部欄位皆可編輯，已移除 placeholder 提示文字
         return `
             <tr class="flight-row-main">
                 <td><select class="input-box f_day">${dayOptions}</select></td>
@@ -92,14 +92,14 @@
                 <td><input type="number" class="input-box input-center f_cap" style="width:40px;" value="${cap}"></td>
                 <td>
                     <button class="btn-query">?</button> 
-                    <input type="text" class="input-box input-center f_al" style="width:35px; text-transform:uppercase;" value="${al}" placeholder="CI"> 
-                    <input type="text" class="input-box f_no" style="width:45px;" value="${fno}" placeholder="666">
+                    <input type="text" class="input-box input-center f_al" style="width:35px; text-transform:uppercase;" value="${al}"> 
+                    <input type="text" class="input-box f_no" style="width:45px;" value="${fno}">
                 </td>
-                <td><input type="text" class="input-box input-center f_dep" style="width:50px;" value="${dep}" placeholder="08:00"></td>
-                <td><input type="text" class="input-box input-center f_arr" style="width:50px;" value="${arr}" placeholder="10:00"></td>
+                <td><input type="text" class="input-box input-center f_dep" style="width:50px;" value="${dep}"></td>
+                <td><input type="text" class="input-box input-center f_arr" style="width:50px;" value="${arr}"></td>
                 <td>
-                    <input type="text" class="input-box input-center f_from" style="width:40px; text-transform:uppercase;" value="${rFrom}" placeholder="TPE"> / 
-                    <input type="text" class="input-box input-center f_to" style="width:40px; text-transform:uppercase;" value="${rTo}" placeholder="HKG">
+                    <input type="text" class="input-box input-center f_from" style="width:40px; text-transform:uppercase;" value="${rFrom}"> / 
+                    <input type="text" class="input-box input-center f_to" style="width:40px; text-transform:uppercase;" value="${rTo}">
                 </td>
                 <td><select class="input-box f_cabin">${cabinOptions}</select></td>
                 <td><input type="checkbox" class="f_del" title="勾選後存檔即刪除"></td>
