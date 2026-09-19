@@ -8,6 +8,7 @@
     .input-box { border: 1px inset #fff; padding: 2px 4px; font-size: 13px; }
     .btn-search { background-color: #d4d0c8; border: 2px outset #fff; cursor: pointer; padding: 2px 10px; font-weight: bold; margin-left: 10px; }
     .btn-search:active { border-style: inset; }
+    .btn-query { background-color: #ffaa44; color: #fff; font-weight: bold; border: 1px outset #fff; padding: 0 4px; font-size: 12px; cursor: pointer; vertical-align: middle; border-radius: 50%; }
     
     .data-table { width: 100%; border-collapse: collapse; border: 1px solid #777; background-color: #fff; margin-top: 5px; }
     .data-table th { background-color: #ffeebb; border: 1px solid #777; padding: 6px; font-weight: normal; color: blue; }
@@ -15,6 +16,9 @@
     .data-table tr:nth-child(even) { background-color: #f9f9f9; }
     .link-open { color: blue; text-decoration: underline; cursor: pointer; font-weight: bold; }
     .link-open:hover { color: red; }
+    
+    .adv-search-table { width: 100%; border: none; font-size: 13px; }
+    .adv-search-table td { padding: 4px; }
 </style>
 
 <div class="page-wrapper">
@@ -24,18 +28,56 @@
         <div class="search-title">【請利用下列各條件搜尋您想要引用的基本團型資料】</div>
         <div class="search-row">
             <span class="search-label">➔ 快速搜尋：</span>
-            <input type="text" id="search_keyword" class="input-box" style="width: 200px;" placeholder="請輸入代碼或名稱關鍵字">
+            <input type="text" id="search_keyword" class="input-box" style="width: 250px;" placeholder="(請輸入代碼或團型名稱關鍵字)">
             <button class="btn-search" onclick="window.doSearch()">🔍 搜 尋</button>
         </div>
-        <div class="search-row" style="background-color: #e2dfd3;">
-            <span class="search-label">➔ 進階搜尋：</span>
-            <div>
-                類別：<select id="search_cat" class="input-box" style="width:100px;"><option value="">全部</option><option value="一般團">一般團</option><option value="特殊團">特殊團</option></select>
-                &nbsp;&nbsp;線別：<select id="search_line" class="input-box" style="width:120px;"><option value="">--</option></select>
-                &nbsp;&nbsp;地區：<input type="text" id="search_area" class="input-box" style="width:100px;">
-                &nbsp;&nbsp;天數：<input type="text" id="search_days" class="input-box" style="width:40px;">
-            </div>
+        
+        <!-- 🟢 重現進階搜尋排版 -->
+        <div class="search-row" style="background-color: #e2dfd3; display: block; padding: 10px;">
+            <div style="margin-bottom: 5px; color: red; font-weight: bold;">➔ 進階搜尋：</div>
+            <table class="adv-search-table">
+                <tr>
+                    <td style="text-align: right; width: 80px;">類別：</td>
+                    <td colspan="5">
+                        <select id="search_cat" class="input-box" style="width:120px;">
+                            <option value="">全部</option>
+                            <option value="一般團">一般團</option>
+                            <option value="特殊團">特殊團</option>
+                        </select>
+                    </td>
+                </tr>
+                <tr>
+                    <td style="text-align: right;">線別：</td>
+                    <td style="width: 30%;">
+                        <select id="search_line" class="input-box" style="width: 90%;" onchange="window.updateSeriesSelect()">
+                            <option value="">-- 全部 --</option>
+                        </select>
+                    </td>
+                    <td style="text-align: right; width: 80px;">系列名稱：</td>
+                    <td colspan="3">
+                        <select id="search_series" class="input-box" style="width: 90%;">
+                            <option value="">-- 全部 --</option>
+                        </select>
+                    </td>
+                </tr>
+                <tr>
+                    <td style="text-align: right;">地區：</td>
+                    <td>
+                        <input type="text" id="search_area" class="input-box" style="width: 70%;"> 
+                        <button class="btn-query" title="選擇地區">?</button>
+                    </td>
+                    <td style="text-align: right;">天數：</td>
+                    <td style="width: 15%;">
+                        <input type="text" id="search_days" class="input-box" style="width: 50px;">
+                    </td>
+                    <td style="text-align: right; width: 80px;">關鍵特色：</td>
+                    <td>
+                        <input type="text" id="search_feature" class="input-box" style="width: 90%;">
+                    </td>
+                </tr>
+            </table>
         </div>
+        
         <div class="search-row">
             <button class="btn-search" onclick="window.doSearch()">🔍 搜 尋</button>
             <button class="btn-search" onclick="window.clearSearch()">❌ 清 除</button>
@@ -52,41 +94,105 @@
             <tr>
                 <th style="width: 12%;">團型代碼</th>
                 <th style="width: 25%;">團型名稱</th>
-                <th style="width: 15%;">線別</th>
+                <th style="width: 12%;">線別</th>
                 <th style="width: 15%;">系列名稱</th>
                 <th style="width: 10%;">地區</th>
                 <th style="width: 5%;">天數</th>
-                <th style="width: 18%;">管理</th>
+                <th style="width: 10%;">關鍵特色</th>
+                <th style="width: 11%;"></th>
             </tr>
         </thead>
         <tbody id="tour_list_body">
-            <tr><td colspan="7">請設定條件後點擊搜尋</td></tr>
+            <!-- 🟢 預設顯示空白提示，不自動載入資料 -->
+            <tr><td colspan="8" style="color:#777; font-weight:bold;">請設定條件後點擊搜尋</td></tr>
         </tbody>
     </table>
 </div>
 
 <script>
+    // 🟢 載入線別資料 (從 ProductSeries 資料庫)
+    window.loadLinesData = function() {
+        var sel = document.getElementById('search_line');
+        sel.innerHTML = '<option value="">-- 全部 --</option>';
+        if (!window.db) return;
+
+        window.db.exec(`
+            CREATE TABLE IF NOT EXISTS ProductSeries (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                line_name TEXT,
+                series_name TEXT,
+                is_active INTEGER DEFAULT 1
+            );
+        `);
+
+        try {
+            var res = window.db.exec("SELECT DISTINCT line_name FROM ProductSeries WHERE line_name IS NOT NULL ORDER BY line_name");
+            if (res.length > 0) {
+                res[0].values.forEach(row => {
+                    if(row[0]) sel.innerHTML += `<option value="${row[0]}">${row[0]}</option>`;
+                });
+            }
+        } catch(e) { console.error("讀取線別失敗", e); }
+    };
+
+    // 🟢 根據選擇的線別，動態載入系列名稱
+    window.updateSeriesSelect = function() {
+        var line = document.getElementById('search_line').value;
+        var sel = document.getElementById('search_series');
+        sel.innerHTML = '<option value="">-- 全部 --</option>';
+        if (line && window.db) {
+            try {
+                var res = window.db.exec(`SELECT DISTINCT series_name FROM ProductSeries WHERE line_name = '${line}' AND series_name IS NOT NULL ORDER BY series_name`);
+                if (res.length > 0) {
+                    res[0].values.forEach(row => {
+                        if(row[0]) sel.innerHTML += `<option value="${row[0]}">${row[0]}</option>`;
+                    });
+                }
+            } catch(e) { console.error("讀取系列名稱失敗", e); }
+        }
+    };
+
     window.clearSearch = function() {
         document.getElementById('search_keyword').value = '';
         document.getElementById('search_cat').value = '';
         document.getElementById('search_line').value = '';
+        document.getElementById('search_series').value = '';
         document.getElementById('search_area').value = '';
         document.getElementById('search_days').value = '';
-        window.doSearch();
+        document.getElementById('search_feature').value = '';
+        
+        // 清除時自動重新載入線別並重設清單
+        window.loadLinesData();
+        window.updateSeriesSelect();
+        
+        document.getElementById('tour_list_body').innerHTML = '<tr><td colspan="8" style="color:#777; font-weight:bold;">請設定條件後點擊搜尋</td></tr>';
+        document.getElementById('record_count').innerText = "共 0 筆";
     };
 
     window.doSearch = function() {
-        if (!window.db) return;
+        if (!window.db) {
+            alert("資料庫未連接！");
+            return;
+        }
+
         var kw = document.getElementById('search_keyword').value.trim().replace(/'/g, "''");
         var cat = document.getElementById('search_cat').value;
+        var line = document.getElementById('search_line').value;
+        var series = document.getElementById('search_series').value;
         var area = document.getElementById('search_area').value.trim().replace(/'/g, "''");
         var days = document.getElementById('search_days').value.trim();
+        var feature = document.getElementById('search_feature').value.trim().replace(/'/g, "''");
 
-        var sql = "SELECT tour_code, tour_name, line_name, series_name, tour_area, tour_days, tour_category FROM BasicTours WHERE 1=1 ";
+        var sql = "SELECT tour_code, tour_name, line_name, series_name, tour_area, tour_days, tour_category, dev_features FROM BasicTours WHERE 1=1 ";
+        
         if (kw) sql += ` AND (tour_code LIKE '%${kw}%' OR tour_name LIKE '%${kw}%') `;
         if (cat) sql += ` AND tour_category = '${cat}' `;
+        if (line) sql += ` AND line_name = '${line}' `;
+        if (series) sql += ` AND series_name = '${series}' `;
         if (area) sql += ` AND tour_area LIKE '%${area}%' `;
         if (days) sql += ` AND tour_days = ${days} `;
+        if (feature) sql += ` AND dev_features LIKE '%${feature}%' `;
+        
         sql += " ORDER BY tour_code ASC";
 
         try {
@@ -95,7 +201,7 @@
             var countSpan = document.getElementById('record_count');
             
             if (res.length === 0 || res[0].values.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="7" style="color:red; font-weight:bold;">查無相符資料</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="8" style="color:red; font-weight:bold;">查無相符資料</td></tr>`;
                 countSpan.innerText = "共 0 筆";
                 return;
             }
@@ -103,28 +209,43 @@
             var rows = res[0].values;
             countSpan.innerText = `共 ${rows.length} 筆`;
             var html = '';
+            
             rows.forEach(r => {
-                var code = r[0]||''; var name = r[1]||''; var line = r[2]||'';
-                var series = r[3]||''; var area = r[4]||''; var day = r[5]||'0'; var category = r[6]||'';
+                var code = r[0]||''; 
+                var name = r[1]||''; 
+                var lineVal = r[2]||'';
+                var seriesVal = r[3]||''; 
+                var areaVal = r[4]||''; 
+                var dayVal = r[5]||'0'; 
+                var category = r[6]||'';
+                var featVal = r[7]||''; 
+                
+                // 簡化特色顯示長度避免版面跑掉
+                var shortFeat = featVal.length > 8 ? featVal.substring(0, 8) + '...' : featVal;
+                
                 var safeName = name.replace(/'/g, "\\'");
-                var safeSeries = series.replace(/'/g, "\\'");
+                var safeSeries = seriesVal.replace(/'/g, "\\'");
                 var clickAction = `window.enterOpenTour('${code}', '${safeName}', '${category}', '${safeSeries}')`;
 
                 html += `
                     <tr>
-                        <td>${code}</td>
+                        <td style="color:blue;">${code}</td>
                         <td style="text-align:left;">${name}</td>
-                        <td>${line}</td>
-                        <td>${series}</td>
-                        <td>${area}</td>
-                        <td>${day}</td>
+                        <td>${lineVal}</td>
+                        <td>${seriesVal}</td>
+                        <td>${areaVal}</td>
+                        <td>${dayVal}</td>
+                        <td title="${featVal}">${shortFeat}</td>
                         <td><span class="link-open" onclick="${clickAction}">✍進入開團作業</span></td>
                     </tr>
                 `;
             });
             tbody.innerHTML = html;
 
-        } catch (e) { console.error(e); }
+        } catch (e) { 
+            console.error(e); 
+            document.getElementById('tour_list_body').innerHTML = `<tr><td colspan="8" style="color:red;">查詢發生錯誤</td></tr>`;
+        }
     };
 
     window.enterOpenTour = function(code, name, category, series) {
@@ -135,16 +256,15 @@
         if(typeof loadPage === 'function') loadPage('C-A-C-ADD');
     };
 
-    // 初始化下拉與資料庫檢查
+    // 🟢 初始化下拉清單 (不自動執行搜尋)
     setTimeout(function() {
         if (!window.db) return;
         window.db.exec(`
             CREATE TABLE IF NOT EXISTS BasicTours (
                 tour_code TEXT PRIMARY KEY, tour_category TEXT, line_name TEXT, series_name TEXT,
-                tour_name TEXT, tour_days INTEGER, tour_area TEXT
+                tour_name TEXT, tour_days INTEGER, tour_area TEXT, dev_features TEXT
             );
         `);
-        // 自動列出全部
-        window.doSearch();
+        window.loadLinesData();
     }, 150);
 </script>
