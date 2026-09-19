@@ -89,12 +89,12 @@
                 <th style="width: 80px;">旅遊地區</th>
                 <td>
                     <input type="text" id="tour_area" class="input-box" style="width: 150px;"> <button class="btn-query" type="button">?</button>
-                    <br><span class="hint-text">&lt;請從資料庫中選取&gt;</span>
+                    <br><!--<span class="hint-text">&lt;請從資料庫中選取&gt;</span>-->
                 </td>
                 <th style="width: 80px;">旅遊國家</th>
                 <td>
                     <input type="text" id="tour_country" class="input-box" style="width: 150px;"> <button class="btn-query" type="button">?</button>
-                    <br><span class="hint-text">&lt;請從資料庫中選取&gt;</span>
+                    <br><!--<span class="hint-text">&lt;請從資料庫中選取&gt;</span>-->
                 </td>
             </tr>
         </table>
@@ -104,9 +104,10 @@
                 <th style="width: 80px;">出境機場</th>
                 <td>
                     <select id="departure_airport" class="input-box">
+					    <option value="松山機場">松山機場</option>
                         <option value="桃園國際機場第一航廈">桃園國際機場第一航廈</option>
                         <option value="桃園國際機場第二航廈">桃園國際機場第二航廈</option>
-                        <option value="松山機場">松山機場</option>
+                        <option value="台中機場">台中機場</option>
                         <option value="高雄小港機場">高雄小港機場</option>
                     </select>
                 </td>
@@ -115,7 +116,7 @@
                 <th>開發特色</th>
                 <td>
                     <textarea id="dev_features" class="textarea-box" rows="3"></textarea> <button class="btn-query" type="button" style="vertical-align: top; margin-top: 5px;">?</button>
-                    <br><span class="hint-text">&lt;請從資料庫中選取或可手動輸入特色，手動輸入時，請以"/"分隔&gt;</span>
+                    <br><!--<span class="hint-text">&lt;請從資料庫中選取或可手動輸入特色，手動輸入時，請以"/"分隔&gt;</span>-->
                 </td>
             </tr>
             <tr><th>行程特色</th><td><textarea id="itinerary_features" class="textarea-box" rows="2"></textarea></td></tr>
