@@ -22,6 +22,17 @@
     /* 確保兩行一組的視覺一致性 */
     .flight-row-main td { border-bottom: none; text-align: center; background-color: #fff; }
     .flight-row-rmk td { border-top: none; background-color: #fff; padding-bottom: 8px;}
+
+    /* 🟢 彈跳視窗 Modal 樣式 */
+    .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.4); z-index: 999; }
+    .modal-box { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background-color: #ece9d8; border: 2px solid #000; padding: 10px; width: 400px; box-shadow: 2px 2px 10px rgba(0,0,0,0.5); }
+    .modal-header { background: linear-gradient(to right, #000080, #1084d0); color: white; padding: 4px; font-weight: bold; display: flex; justify-content: space-between; margin-bottom: 5px; }
+    .modal-close { cursor: pointer; background: #d4d0c8; color: black; border: 1px outset #fff; padding: 0 4px; }
+    .list-container { height: 250px; overflow-y: auto; background-color: white; border: 1px inset #fff; padding: 5px; }
+    .list-item { padding: 6px; cursor: pointer; border-bottom: 1px dashed #ccc; display: flex; align-items: center; }
+    .list-item:hover { background-color: #000080; color: white; }
+    .airline-code { font-weight: bold; color: #900; width: 50px; display: inline-block; margin-right: 10px; }
+    .list-item:hover .airline-code { color: #ffcc00; }
 </style>
 
 <div class="top-header-area">
@@ -57,7 +68,81 @@
     <button onclick="if(typeof loadPage === 'function') loadPage('C-A-B');">放 棄</button>
 </div>
 
+<!-- 🟢 航空公司選擇器 Modal -->
+<div id="airline_modal" class="modal-overlay">
+    <div class="modal-box">
+        <div class="modal-header">
+            <span>選擇航空公司</span>
+            <span class="modal-close" onclick="window.closeAirlinePicker()">X</span>
+        </div>
+        <div class="list-container" id="airline_list"></div>
+    </div>
+</div>
+
 <script>
+    // 🟢 台灣籍與常飛台灣航線之航空公司清單
+    var airlineOptions = [
+        { code: "CI", name: "中華航空 (China Airlines)" },
+        { code: "BR", name: "長榮航空 (EVA Air)" },
+        { code: "JX", name: "星宇航空 (STARLUX Airlines)" },
+        { code: "IT", name: "台灣虎航 (Tigerair Taiwan)" },
+        { code: "AE", name: "華信航空 (Mandarin Airlines)" },
+        { code: "B7", name: "立榮航空 (UNI Air)" },
+        { code: "CX", name: "國泰航空 (Cathay Pacific)" },
+        { code: "UO", name: "香港快運航空 (HK Express)" },
+        { code: "JL", name: "日本航空 (Japan Airlines)" },
+        { code: "NH", name: "全日本空輸 (ANA)" },
+        { code: "MM", name: "樂桃航空 (Peach Aviation)" },
+        { code: "GK", name: "捷星日本航空 (Jetstar Japan)" },
+        { code: "KE", name: "大韓航空 (Korean Air)" },
+        { code: "OZ", name: "韓亞航空 (Asiana Airlines)" },
+        { code: "7C", name: "濟州航空 (Jeju Air)" },
+        { code: "SQ", name: "新加坡航空 (Singapore Airlines)" },
+        { code: "TR", name: "酷航 (Scoot)" },
+        { code: "TG", name: "泰國國際航空 (Thai Airways)" },
+        { code: "VZ", name: "泰越捷航空 (Thai Vietjet Air)" },
+        { code: "VN", name: "越南航空 (Vietnam Airlines)" },
+        { code: "VJ", name: "越捷航空 (VietJet Air)" },
+        { code: "PR", name: "菲律賓航空 (Philippine Airlines)" },
+        { code: "5J", name: "宿霧太平洋航空 (Cebu Pacific)" },
+        { code: "MH", name: "馬來西亞航空 (Malaysia Airlines)" },
+        { code: "D7", name: "全亞洲航空 (AirAsia X)" },
+        { code: "EK", name: "阿聯酋航空 (Emirates)" },
+        { code: "UA", name: "聯合航空 (United Airlines)" },
+        { code: "DL", name: "達美航空 (Delta Air Lines)" }
+    ];
+
+    // 全域變數：記錄當前點擊的是哪一列的航空輸入框
+    var currentAirlineTargetInput = null;
+
+    window.openAirlinePicker = function(btnElement) {
+        // 透過 DOM 尋找被點擊按鈕旁邊的 .f_al 欄位
+        currentAirlineTargetInput = btnElement.parentElement.querySelector('.f_al');
+        
+        var html = '';
+        airlineOptions.forEach(function(al) {
+            var safeCode = al.code.replace(/'/g, "\\'");
+            var clickAction = "window.selectAirline('" + safeCode + "')";
+            html += '<div class="list-item" onclick="' + clickAction + '">' +
+                        '<span class="airline-code">[' + al.code + ']</span>' +
+                        '<span>' + al.name + '</span>' +
+                    '</div>';
+        });
+        document.getElementById('airline_list').innerHTML = html;
+        document.getElementById('airline_modal').style.display = 'block';
+    };
+
+    window.closeAirlinePicker = function() { 
+        document.getElementById('airline_modal').style.display = 'none'; 
+    };
+
+    window.selectAirline = function(code) {
+        if (currentAirlineTargetInput) {
+            currentAirlineTargetInput.value = code;
+        }
+        window.closeAirlinePicker();
+    };
+
     // 產生單筆航班的 HTML 模板 (包含主檔列與備註列)
     window.createFlightRowHTML = function(data = {}) {
         var d = data || {};
@@ -73,7 +158,6 @@
         var cabin = d.cabin_class || 'Y艙';
         var rmk = d.remarks || '';
 
-        // 天數下拉選單生成 (1~15天)
         var dayOptions = '';
         for(var i=1; i<=15; i++) {
             var sel = (i.toString() === day.toString()) ? 'selected' : '';
@@ -84,14 +168,14 @@
             `<option value="${c}" ${c === cabin ? 'selected' : ''}>${c}</option>`
         ).join('');
 
-        // 🟢 產生一組 2 個 <tr>，全部欄位皆可編輯，已移除 placeholder 提示文字
         return `
             <tr class="flight-row-main">
                 <td><select class="input-box f_day">${dayOptions}</select></td>
                 <td><input type="text" class="input-box input-center f_group" style="width:30px;" value="${grp}"></td>
                 <td><input type="number" class="input-box input-center f_cap" style="width:40px;" value="${cap}"></td>
                 <td>
-                    <button class="btn-query">?</button> 
+                    <!-- 🟢 點擊 ? 時觸發航空選擇器，並將 this (按鈕本身) 傳入 -->
+                    <button class="btn-query" type="button" onclick="window.openAirlinePicker(this)">?</button> 
                     <input type="text" class="input-box input-center f_al" style="width:35px; text-transform:uppercase;" value="${al}"> 
                     <input type="text" class="input-box f_no" style="width:45px;" value="${fno}">
                 </td>
@@ -112,13 +196,11 @@
         `;
     };
 
-    // 在表格最下方新增一組空白列
     window.addFlightRow = function() {
         var tbody = document.getElementById('flight_list_body');
         tbody.insertAdjacentHTML('beforeend', window.createFlightRowHTML());
     };
 
-    // 初始化載入資料
     window.initFlights = function() {
         var tCode = window.currentEditTourCode;
         var tName = window.currentEditTourName;
@@ -134,7 +216,6 @@
 
         if (!window.db) return;
 
-        // 建立航班資料庫
         window.db.exec(`
             CREATE TABLE IF NOT EXISTS TourFlights (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -169,7 +250,6 @@
                 });
                 tbody.innerHTML = html;
             } else {
-                // 資料庫無資料時，維持空白只顯示欄名，由使用者自行新增
                 tbody.innerHTML = ''; 
             }
         } catch (e) { 
@@ -178,7 +258,6 @@
         }
     };
 
-    // 儲存航班資料
     window.saveFlights = async function() {
         var tCode = window.currentEditTourCode;
         if (!tCode) return;
@@ -187,7 +266,6 @@
         var mainRows = tbody.querySelectorAll('.flight-row-main');
         var rmkRows = tbody.querySelectorAll('.flight-row-rmk');
         
-        // 先清空該團型的所有航班，再寫入畫面上留存的有效航班
         var sql = `DELETE FROM TourFlights WHERE tour_code = '${tCode}'; \n`;
         var hasData = false;
 
@@ -195,11 +273,9 @@
             var mainTr = mainRows[i];
             var rmkTr = rmkRows[i];
             
-            // 若勾選「刪除」，則跳過不寫入 SQL，達成刪除效果
             var isDeleted = mainTr.querySelector('.f_del').checked;
             if (isDeleted) continue;
 
-            // 抓取欄位值並進行基本的 SQL 防注碼處理
             var day = mainTr.querySelector('.f_day').value;
             var grp = window.escapeSql(mainTr.querySelector('.f_group').value.trim());
             var cap = parseInt(mainTr.querySelector('.f_cap').value) || 0;
@@ -212,7 +288,6 @@
             var cabin = window.escapeSql(mainTr.querySelector('.f_cabin').value);
             var rmk = window.escapeSql(rmkTr.querySelector('.f_rmk').value.trim());
 
-            // 略過完全空白的無效列 (航空公司、班號、起迄皆空)
             if(!al && !fno && !rFrom && !rTo) continue;
 
             hasData = true;
@@ -227,13 +302,11 @@
             \n`;
         }
 
-        // 執行資料庫儲存
         if (window.executeAndSave) {
             try {
                 var isSuccess = await window.executeAndSave(sql);
                 if (isSuccess) {
                     alert("航班資料已成功儲存！");
-                    // 清理畫面並重新載入，讓被刪除的 DOM 完全消失
                     window.initFlights();
                 }
             } catch (e) {
