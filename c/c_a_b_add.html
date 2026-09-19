@@ -22,7 +22,7 @@
     .preview-box { width: 200px; height: 150px; background-color: #fff; border: 1px inset #ccc; margin: 0 auto 10px auto; display: flex; align-items: center; justify-content: center; color: #777; font-size: 12px; overflow: hidden; }
     .preview-box img { max-width: 100%; max-height: 100%; display: none; }
 
-    /* 🟢 Modal 樣式 */
+    /* Modal 樣式 */
     .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.4); z-index: 999; }
     .modal-box { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background-color: #ece9d8; border: 2px solid #000; padding: 10px; width: 350px; box-shadow: 2px 2px 10px rgba(0,0,0,0.5); }
     .modal-header { background: linear-gradient(to right, #000080, #1084d0); color: white; padding: 4px; font-weight: bold; display: flex; justify-content: space-between; margin-bottom: 5px; }
@@ -99,7 +99,6 @@
         
         <table class="form-table" style="border: none; border-top: 1px solid #999; margin-bottom: 0;">
             <tr>
-                <!-- 🟢 調換順序：先選國家，再選地區 -->
                 <th style="width: 80px;">旅遊國家</th>
                 <td>
                     <input type="text" id="tour_country" class="input-box" style="width: 120px;">
@@ -165,7 +164,7 @@
     </div>
 </div>
 
-<!-- 🟢 共用彈跳視窗 (國家/地區) -->
+<!-- 共用彈跳視窗 (國家/地區) -->
 <div id="location_modal" class="modal-overlay">
     <div class="modal-box">
         <div class="modal-header">
@@ -177,7 +176,7 @@
 </div>
 
 <script>
-    // 🟢 台灣常出團國家與地區字典 (支援國內外旅遊)
+    // 台灣常出團國家與地區字典
     window.countryAreaMap = {
         "台灣 (國內旅遊)": ["北部 (基北北桃竹宜)", "中部 (苗中彰投雲)", "南部 (嘉南高屏)", "東部 (花東)", "離島 (澎湖/金門/馬祖)"],
         "日本": ["關東 (東京)", "關西 (大阪/京都)", "北海道", "東北", "北陸/中部 (名古屋)", "四國", "九州", "沖繩"],
@@ -195,9 +194,8 @@
         "中東/非洲": ["杜拜", "土耳其", "埃及", "南非"]
     };
 
-    // 開啟國家挑選器
     window.openCountryPicker = function() {
-        let html = '';
+        var html = '';
         Object.keys(window.countryAreaMap).forEach(country => {
             html += `<div class="list-item" onclick="window.selectCountry('${country}')">${country}</div>`;
         });
@@ -206,29 +204,26 @@
         document.getElementById('location_modal').style.display = 'block';
     };
 
-    // 選擇國家
     window.selectCountry = function(country) {
         document.getElementById('tour_country').value = country;
-        // 更換國家時自動清空地區，避免資料錯亂
         document.getElementById('tour_area').value = ''; 
         window.closeLocationPicker();
     };
 
-    // 開啟地區挑選器
     window.openAreaPicker = function() {
-        let country = document.getElementById('tour_country').value.trim();
+        var country = document.getElementById('tour_country').value.trim();
         if (!country) {
             alert("請先點選『旅遊國家』旁邊的 ? 來設定國家！");
             return;
         }
 
-        let areas = window.countryAreaMap[country];
+        var areas = window.countryAreaMap[country];
         if (!areas || areas.length === 0) {
             alert("此國家無預設的地區清單，請直接於欄位內手動輸入！");
             return;
         }
 
-        let html = '';
+        var html = '';
         areas.forEach(area => {
             html += `<div class="list-item" onclick="window.selectArea('${area}')">${area}</div>`;
         });
@@ -237,7 +232,6 @@
         document.getElementById('location_modal').style.display = 'block';
     };
 
-    // 選擇地區
     window.selectArea = function(area) {
         document.getElementById('tour_area').value = area;
         window.closeLocationPicker();
@@ -247,22 +241,21 @@
         document.getElementById('location_modal').style.display = 'none';
     };
 
-    // 🟢 嚴格判定：過濾掉 'null' 字串
-    let editTargetCode = localStorage.getItem('editTourCode');
-    if (editTargetCode === 'null' || editTargetCode === 'undefined' || editTargetCode === '') {
-        editTargetCode = null;
-    }
-
+    // 🟢 完美封裝：不再讓 let 裸露於全域環境引發 Syntax Error
     window.getEditTargetCode = function() {
-        return editTargetCode;
+        var code = localStorage.getItem('editTourCode');
+        if (code === 'null' || code === 'undefined' || code === '') {
+            return null;
+        }
+        return code;
     };
 
     window.previewImage = function(event) {
-        const file = event.target.files[0];
-        const preview = document.getElementById('image_preview');
-        const text = document.getElementById('preview_text');
+        var file = event.target.files[0];
+        var preview = document.getElementById('image_preview');
+        var text = document.getElementById('preview_text');
         if (file) {
-            const reader = new FileReader();
+            var reader = new FileReader();
             reader.onload = function(e) { preview.src = e.target.result; preview.style.display = 'block'; text.style.display = 'none'; }
             reader.readAsDataURL(file);
         } else {
@@ -271,7 +264,7 @@
     };
 
     window.loadLinesData = function(selectedLine = '') {
-        const sel = document.getElementById('line_name');
+        var sel = document.getElementById('line_name');
         sel.innerHTML = '<option value="">-請選擇-</option>';
         if (!window.db) return;
 
@@ -285,11 +278,11 @@
         `);
 
         try {
-            const res = window.db.exec("SELECT DISTINCT line_name FROM ProductSeries WHERE line_name IS NOT NULL ORDER BY line_name");
+            var res = window.db.exec("SELECT DISTINCT line_name FROM ProductSeries WHERE line_name IS NOT NULL ORDER BY line_name");
             if (res.length > 0) {
                 res[0].values.forEach(row => {
                     if(!row[0]) return;
-                    const isSelected = (row[0] === selectedLine) ? 'selected' : '';
+                    var isSelected = (row[0] === selectedLine) ? 'selected' : '';
                     sel.innerHTML += `<option value="${row[0]}" ${isSelected}>${row[0]}</option>`;
                 });
             }
@@ -297,16 +290,16 @@
     };
 
     window.updateSeriesSelect = function(selectedSeries = '') {
-        const line = document.getElementById('line_name').value;
-        const sel = document.getElementById('series_name');
+        var line = document.getElementById('line_name').value;
+        var sel = document.getElementById('series_name');
         sel.innerHTML = '<option value="">-請先選擇線別-</option>';
         if (line && window.db) {
             try {
-                const res = window.db.exec(`SELECT DISTINCT series_name FROM ProductSeries WHERE line_name = '${line}' AND series_name IS NOT NULL ORDER BY series_name`);
+                var res = window.db.exec(`SELECT DISTINCT series_name FROM ProductSeries WHERE line_name = '${line}' AND series_name IS NOT NULL ORDER BY series_name`);
                 if (res.length > 0) {
                     res[0].values.forEach(row => {
                         if(!row[0]) return;
-                        const isSelected = (row[0] === selectedSeries) ? 'selected' : '';
+                        var isSelected = (row[0] === selectedSeries) ? 'selected' : '';
                         sel.innerHTML += `<option value="${row[0]}" ${isSelected}>${row[0]}</option>`;
                     });
                 }
@@ -331,21 +324,21 @@
             );
         `);
         
-        const currentTarget = window.getEditTargetCode();
+        var currentTarget = window.getEditTargetCode();
         
         if (currentTarget) {
             document.getElementById('form_title').innerText = "【 修改團型基本內容 】";
             document.getElementById('btn_save').innerText = "修 改";
             
-            const codeInput = document.getElementById('tour_code');
+            var codeInput = document.getElementById('tour_code');
             codeInput.readOnly = true;
             codeInput.style.backgroundColor = '#e0e0e0';
 
             try {
-                const res = window.db.exec(`SELECT * FROM BasicTours WHERE tour_code = '${currentTarget}'`);
+                var res = window.db.exec(`SELECT * FROM BasicTours WHERE tour_code = '${currentTarget}'`);
                 if (res.length > 0) {
-                    const data = res[0].values[0];
-                    const cleanStr = (val) => val === null ? '' : val;
+                    var data = res[0].values[0];
+                    var cleanStr = (val) => val === null ? '' : val;
 
                     document.getElementById('tour_code').value = cleanStr(data[0]);
                     document.getElementById('tour_category').value = cleanStr(data[1]);
@@ -380,34 +373,34 @@
     };
 
     window.saveBasicTour = async function() {
-        const currentTarget = window.getEditTargetCode();
+        var currentTarget = window.getEditTargetCode();
         
-        const code = document.getElementById('tour_code').value.trim().toUpperCase();
-        const cat = document.getElementById('tour_category').value;
-        const line = document.getElementById('line_name').value;
-        const series = document.getElementById('series_name').value;
-        const name = document.getElementById('tour_name').value.trim();
-        const f_no = document.getElementById('foreign_tour_no').value.trim();
-        const p_name = document.getElementById('product_name').value.trim();
-        const days = document.getElementById('tour_days').value.trim() || 0;
-        const nights = document.getElementById('tour_nights').value.trim() || 0;
-        const area = document.getElementById('tour_area').value.trim();
-        const country = document.getElementById('tour_country').value.trim();
-        const airport = document.getElementById('departure_airport').value;
-        const dev_f = document.getElementById('dev_features').value.trim();
-        const iti_f = document.getElementById('itinerary_features').value.trim();
-        const spec_a = document.getElementById('special_arrange').value.trim();
-        const sales_f = document.getElementById('sales_features').value.trim();
-        const tkt_d = document.getElementById('ticket_desc').value.trim();
-        const dep_n = document.getElementById('departure_notes').value.trim();
-        const b2b_n = document.getElementById('b2b_notes').value.trim();
-        const inc_i = document.getElementById('included_items').value.trim();
-        const exc_i = document.getElementById('excluded_items').value.trim();
+        var code = document.getElementById('tour_code').value.trim().toUpperCase();
+        var cat = document.getElementById('tour_category').value;
+        var line = document.getElementById('line_name').value;
+        var series = document.getElementById('series_name').value;
+        var name = document.getElementById('tour_name').value.trim();
+        var f_no = document.getElementById('foreign_tour_no').value.trim();
+        var p_name = document.getElementById('product_name').value.trim();
+        var days = document.getElementById('tour_days').value.trim() || 0;
+        var nights = document.getElementById('tour_nights').value.trim() || 0;
+        var area = document.getElementById('tour_area').value.trim();
+        var country = document.getElementById('tour_country').value.trim();
+        var airport = document.getElementById('departure_airport').value;
+        var dev_f = document.getElementById('dev_features').value.trim();
+        var iti_f = document.getElementById('itinerary_features').value.trim();
+        var spec_a = document.getElementById('special_arrange').value.trim();
+        var sales_f = document.getElementById('sales_features').value.trim();
+        var tkt_d = document.getElementById('ticket_desc').value.trim();
+        var dep_n = document.getElementById('departure_notes').value.trim();
+        var b2b_n = document.getElementById('b2b_notes').value.trim();
+        var inc_i = document.getElementById('included_items').value.trim();
+        var exc_i = document.getElementById('excluded_items').value.trim();
 
         if (!code) { alert("錯誤：請填寫團型代碼！"); document.getElementById('tour_code').focus(); return; }
         if (!name) { alert("錯誤：請填寫團型名稱！"); document.getElementById('tour_name').focus(); return; }
 
-        let sql = "";
+        var sql = "";
 
         if (currentTarget) {
             sql = `
@@ -421,7 +414,7 @@
                 WHERE tour_code = '${code}';
             `;
         } else {
-            const checkRes = window.db.exec(`SELECT tour_code FROM BasicTours WHERE tour_code = '${code}'`);
+            var checkRes = window.db.exec(`SELECT tour_code FROM BasicTours WHERE tour_code = '${code}'`);
             if (checkRes.length > 0) {
                 alert("錯誤：團型代碼不能重複！");
                 document.getElementById('tour_code').focus();
@@ -442,7 +435,7 @@
 
         if (window.executeAndSave) {
             try {
-                const isSuccess = await window.executeAndSave(sql);
+                var isSuccess = await window.executeAndSave(sql);
                 if (isSuccess) {
                     alert(`成功：團型資料 [${code}] 已儲存！`);
                     if(typeof loadPage === 'function') loadPage('C-A-B'); 
