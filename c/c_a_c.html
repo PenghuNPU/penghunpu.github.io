@@ -1,0 +1,150 @@
+<style>
+    .page-wrapper { font-family: "MS Sans Serif", "細明體", sans-serif; font-size: 13px; padding: 10px; background-color: #ece9d8; height: 100%; box-sizing: border-box; overflow-y: auto; }
+    .search-panel { border: 1px solid #777; background-color: #ece9d8; margin-bottom: 15px; }
+    .search-title { background-color: #ffcc99; text-align: center; font-weight: bold; padding: 6px; border-bottom: 1px solid #777; letter-spacing: 1px; }
+    .search-row { padding: 5px 10px; border-bottom: 1px dashed #ccc; display: flex; align-items: center; }
+    .search-row:last-child { border-bottom: none; background-color: #d4d0c8; justify-content: flex-end; }
+    .search-label { color: red; font-weight: bold; width: 100px; }
+    .input-box { border: 1px inset #fff; padding: 2px 4px; font-size: 13px; }
+    .btn-search { background-color: #d4d0c8; border: 2px outset #fff; cursor: pointer; padding: 2px 10px; font-weight: bold; margin-left: 10px; }
+    .btn-search:active { border-style: inset; }
+    
+    .data-table { width: 100%; border-collapse: collapse; border: 1px solid #777; background-color: #fff; margin-top: 5px; }
+    .data-table th { background-color: #ffeebb; border: 1px solid #777; padding: 6px; font-weight: normal; color: blue; }
+    .data-table td { border: 1px solid #777; padding: 6px; text-align: center; vertical-align: middle; }
+    .data-table tr:nth-child(even) { background-color: #f9f9f9; }
+    .link-open { color: blue; text-decoration: underline; cursor: pointer; font-weight: bold; }
+    .link-open:hover { color: red; }
+</style>
+
+<div class="page-wrapper">
+    <div style="color: blue; font-weight: bold; margin-bottom: 5px;">➔ 以基本團型開團</div>
+    
+    <div class="search-panel">
+        <div class="search-title">【請利用下列各條件搜尋您想要引用的基本團型資料】</div>
+        <div class="search-row">
+            <span class="search-label">➔ 快速搜尋：</span>
+            <input type="text" id="search_keyword" class="input-box" style="width: 200px;" placeholder="請輸入代碼或名稱關鍵字">
+            <button class="btn-search" onclick="window.doSearch()">🔍 搜 尋</button>
+        </div>
+        <div class="search-row" style="background-color: #e2dfd3;">
+            <span class="search-label">➔ 進階搜尋：</span>
+            <div>
+                類別：<select id="search_cat" class="input-box" style="width:100px;"><option value="">全部</option><option value="一般團">一般團</option><option value="特殊團">特殊團</option></select>
+                &nbsp;&nbsp;線別：<select id="search_line" class="input-box" style="width:120px;"><option value="">--</option></select>
+                &nbsp;&nbsp;地區：<input type="text" id="search_area" class="input-box" style="width:100px;">
+                &nbsp;&nbsp;天數：<input type="text" id="search_days" class="input-box" style="width:40px;">
+            </div>
+        </div>
+        <div class="search-row">
+            <button class="btn-search" onclick="window.doSearch()">🔍 搜 尋</button>
+            <button class="btn-search" onclick="window.clearSearch()">❌ 清 除</button>
+        </div>
+    </div>
+
+    <div style="font-size: 12px; margin-bottom: 5px;">
+        <span style="color: red; font-weight: bold;" id="record_count">共 0 筆</span>
+        <span style="float: right;">頁次：1 / 1 | 第一頁 | 上一頁 | 下一頁 | 最後一頁</span>
+    </div>
+
+    <table class="data-table">
+        <thead>
+            <tr>
+                <th style="width: 12%;">團型代碼</th>
+                <th style="width: 25%;">團型名稱</th>
+                <th style="width: 15%;">線別</th>
+                <th style="width: 15%;">系列名稱</th>
+                <th style="width: 10%;">地區</th>
+                <th style="width: 5%;">天數</th>
+                <th style="width: 18%;">管理</th>
+            </tr>
+        </thead>
+        <tbody id="tour_list_body">
+            <tr><td colspan="7">請設定條件後點擊搜尋</td></tr>
+        </tbody>
+    </table>
+</div>
+
+<script>
+    window.clearSearch = function() {
+        document.getElementById('search_keyword').value = '';
+        document.getElementById('search_cat').value = '';
+        document.getElementById('search_line').value = '';
+        document.getElementById('search_area').value = '';
+        document.getElementById('search_days').value = '';
+        window.doSearch();
+    };
+
+    window.doSearch = function() {
+        if (!window.db) return;
+        var kw = document.getElementById('search_keyword').value.trim().replace(/'/g, "''");
+        var cat = document.getElementById('search_cat').value;
+        var area = document.getElementById('search_area').value.trim().replace(/'/g, "''");
+        var days = document.getElementById('search_days').value.trim();
+
+        var sql = "SELECT tour_code, tour_name, line_name, series_name, tour_area, tour_days, tour_category FROM BasicTours WHERE 1=1 ";
+        if (kw) sql += ` AND (tour_code LIKE '%${kw}%' OR tour_name LIKE '%${kw}%') `;
+        if (cat) sql += ` AND tour_category = '${cat}' `;
+        if (area) sql += ` AND tour_area LIKE '%${area}%' `;
+        if (days) sql += ` AND tour_days = ${days} `;
+        sql += " ORDER BY tour_code ASC";
+
+        try {
+            var res = window.db.exec(sql);
+            var tbody = document.getElementById('tour_list_body');
+            var countSpan = document.getElementById('record_count');
+            
+            if (res.length === 0 || res[0].values.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="7" style="color:red; font-weight:bold;">查無相符資料</td></tr>`;
+                countSpan.innerText = "共 0 筆";
+                return;
+            }
+
+            var rows = res[0].values;
+            countSpan.innerText = `共 ${rows.length} 筆`;
+            var html = '';
+            rows.forEach(r => {
+                var code = r[0]||''; var name = r[1]||''; var line = r[2]||'';
+                var series = r[3]||''; var area = r[4]||''; var day = r[5]||'0'; var category = r[6]||'';
+                var safeName = name.replace(/'/g, "\\'");
+                var safeSeries = series.replace(/'/g, "\\'");
+                var clickAction = `window.enterOpenTour('${code}', '${safeName}', '${category}', '${safeSeries}')`;
+
+                html += `
+                    <tr>
+                        <td>${code}</td>
+                        <td style="text-align:left;">${name}</td>
+                        <td>${line}</td>
+                        <td>${series}</td>
+                        <td>${area}</td>
+                        <td>${day}</td>
+                        <td><span class="link-open" onclick="${clickAction}">✍進入開團作業</span></td>
+                    </tr>
+                `;
+            });
+            tbody.innerHTML = html;
+
+        } catch (e) { console.error(e); }
+    };
+
+    window.enterOpenTour = function(code, name, category, series) {
+        localStorage.setItem('openTourCode', code);
+        localStorage.setItem('openTourName', name);
+        localStorage.setItem('openTourCategory', category);
+        localStorage.setItem('openTourSeries', series);
+        if(typeof loadPage === 'function') loadPage('C-A-C-ADD');
+    };
+
+    // 初始化下拉與資料庫檢查
+    setTimeout(function() {
+        if (!window.db) return;
+        window.db.exec(`
+            CREATE TABLE IF NOT EXISTS BasicTours (
+                tour_code TEXT PRIMARY KEY, tour_category TEXT, line_name TEXT, series_name TEXT,
+                tour_name TEXT, tour_days INTEGER, tour_area TEXT
+            );
+        `);
+        // 自動列出全部
+        window.doSearch();
+    }, 150);
+</script>
