@@ -19,6 +19,9 @@
     .list-table th { background-color: #ffcc99; border: 1px solid #777; padding: 6px; text-align: center; }
     .list-table td { border: 1px solid #777; padding: 6px; text-align: center; }
     .info-box { border: 1px solid #999; background-color: #fff; padding: 15px; width: 80%; margin: 0 auto; box-shadow: 2px 2px 5px rgba(0,0,0,0.1); }
+    
+    .chk-label { margin-right: 15px; cursor: pointer; color: #d84315; }
+    .chk-label input { vertical-align: middle; margin-right: 3px; }
 </style>
 
 <div class="page-wrapper">
@@ -51,9 +54,9 @@
             <tr>
                 <th>出團週期</th>
                 <td style="line-height: 2;">
-                    <label><input type="radio" name="cycle" value="everyday" checked onchange="window.toggleDays(false)"> 天天出團</label><br>
-                    <label><input type="radio" name="cycle" value="custom" onchange="window.toggleDays(true)"> 依下列週期規律性出發：</label><br>
-                    <div id="weekday_options" style="opacity: 0.5; pointer-events: none; margin-left: 20px;">
+                    <label style="cursor: pointer; color: #d84315;"><input type="radio" name="cycle" value="everyday" checked onchange="window.toggleDays(false)"> 天天出團</label><br>
+                    <label style="cursor: pointer; color: #d84315;"><input type="radio" name="cycle" value="custom" onchange="window.toggleDays(true)"> 依下列週期規律性出發：</label><br>
+                    <div id="weekday_options" style="opacity: 0.5; pointer-events: none; margin-left: 20px; color: #d84315;">
                         <label><input type="checkbox" class="wk-chk" value="1"> 每週一</label>&nbsp;
                         <label><input type="checkbox" class="wk-chk" value="2"> 每週二</label>&nbsp;
                         <label><input type="checkbox" class="wk-chk" value="3"> 每週三</label>&nbsp;
@@ -64,11 +67,46 @@
                     </div>
                 </td>
             </tr>
+            
+            <!-- 🟢 根據圖片新增的欄位 -->
+            <tr>
+                <th>銷售對象</th>
+                <td>
+                    <label class="chk-label"><input type="checkbox" class="sales-target" value="直客價" checked> 直客價</label>
+                    <label class="chk-label"><input type="checkbox" class="sales-target" value="同業價"> 同業價</label>
+                    <label class="chk-label"><input type="checkbox" class="sales-target" value="網路會員價"> 網路會員價</label>
+                    <label class="chk-label"><input type="checkbox" class="sales-target" value="價格分級名稱4"> 價格分級名稱4</label>
+                    <label class="chk-label"><input type="checkbox" class="sales-target" value="價格分級名稱5"> 價格分級名稱5</label>
+                </td>
+            </tr>
+            <tr>
+                <th>開放銷售類別</th>
+                <td>
+                    <label class="chk-label"><input type="checkbox" class="sales-cat" value="全程" checked> 全程</label>
+                    <label class="chk-label"><input type="checkbox" class="sales-cat" value="Join Tour"> Join Tour</label>
+                    <label class="chk-label"><input type="checkbox" class="sales-cat" value="Ticket Only"> Ticket Only</label>
+                    <label class="chk-label"><input type="checkbox" class="sales-cat" value="團體自由行"> 團體自由行</label>
+                </td>
+            </tr>
             <tr>
                 <th>個團狀態</th>
                 <td>
-                    <label><input type="radio" name="status" value="開團" checked> 開團</label>
-                    <label><input type="radio" name="status" value="準備"> 準備</label>
+                    <label class="chk-label"><input type="radio" name="status" value="開團" checked> 開團</label>
+                    <label class="chk-label"><input type="radio" name="status" value="準備"> 準備</label>
+                </td>
+            </tr>
+            <tr>
+                <th>網路銷售</th>
+                <td>
+                    <label class="chk-label"><input type="checkbox" id="web_sales" value="1"> 開放</label>
+                </td>
+            </tr>
+            <tr>
+                <th>訂單確認條件</th>
+                <td style="background-color: #ffffcc;">
+                    <label style="font-weight:bold;"><input type="checkbox" id="deposit_required" checked> 需收訂金</label>
+                    <span style="margin-left: 20px; color: #d84315;">每人訂金 NT$ </span>
+                    <input type="number" id="deposit_amount" class="input-box" style="width: 80px;" value="3000">
                 </td>
             </tr>
         </table>
@@ -143,13 +181,21 @@
         // 預設基本團號前綴
         document.getElementById('base_ind_code').value = code.substring(0, 5);
 
-        // 確保個團資料庫存在
+        // 確保個團資料庫存在 (對應您提供的新版 schema)
         if(window.db) {
             window.db.exec(`
                 CREATE TABLE IF NOT EXISTS IndividualTours (
-                    ind_tour_code TEXT PRIMARY KEY, tour_code TEXT NOT NULL, dep_date TEXT NOT NULL,
-                    reg_cutoff_date TEXT, sales_targets TEXT, sales_category TEXT, tour_status TEXT,
-                    web_sales INTEGER DEFAULT 0, deposit_required INTEGER, deposit_amount INTEGER, created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+                    ind_tour_code TEXT PRIMARY KEY,
+                    tour_code TEXT NOT NULL,
+                    dep_date TEXT NOT NULL,
+                    reg_cutoff_date TEXT,
+                    sales_targets TEXT,
+                    sales_category TEXT,
+                    tour_status TEXT,
+                    web_sales INTEGER DEFAULT 0,
+                    deposit_required INTEGER,
+                    deposit_amount INTEGER,
+                    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
                 );
             `);
         }
@@ -177,7 +223,7 @@
         return `${y}${m}${d}`;
     };
 
-    // 🟢 產生預覽清單
+    // 產生預覽清單
     window.generatePreview = function() {
         var baseCode = document.getElementById('base_ind_code').value.trim().toUpperCase();
         var startStr = document.getElementById('start_date').value;
@@ -256,7 +302,20 @@
         if(btnEl) { btnEl.disabled = true; btnEl.innerText = "寫入中..."; }
 
         var parentTourCode = localStorage.getItem('openTourCode');
-        var status = document.querySelector('input[name="status"]:checked').value;
+        
+        // 抓取勾選的銷售條件
+        var salesTargetsArr = [];
+        document.querySelectorAll('.sales-target:checked').forEach(cb => salesTargetsArr.push(cb.value));
+        var salesTargets = salesTargetsArr.join(',');
+
+        var salesCatArr = [];
+        document.querySelectorAll('.sales-cat:checked').forEach(cb => salesCatArr.push(cb.value));
+        var salesCategory = salesCatArr.join(',');
+
+        var tourStatus = document.querySelector('input[name="status"]:checked').value;
+        var webSales = document.getElementById('web_sales').checked ? 1 : 0;
+        var depositReq = document.getElementById('deposit_required').checked ? 1 : 0;
+        var depositAmt = parseInt(document.getElementById('deposit_amount').value) || 0;
         
         var rows = document.querySelectorAll('#preview_tbody tr');
         var sqlList = [];
@@ -274,9 +333,11 @@
             
             var sql = `
                 REPLACE INTO IndividualTours (
-                    ind_tour_code, tour_code, dep_date, reg_cutoff_date, tour_status
+                    ind_tour_code, tour_code, dep_date, reg_cutoff_date, 
+                    sales_targets, sales_category, tour_status, web_sales, deposit_required, deposit_amount
                 ) VALUES (
-                    '${code}', '${parentTourCode}', '${ref.dep_raw}', '${ref.cutoff_raw}', '${status}'
+                    '${code}', '${parentTourCode}', '${ref.dep_raw}', '${ref.cutoff_raw}', 
+                    '${salesTargets}', '${salesCategory}', '${tourStatus}', ${webSales}, ${depositReq}, ${depositAmt}
                 );
             `;
             sqlList.push(sql);
