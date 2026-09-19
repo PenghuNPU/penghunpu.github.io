@@ -8,8 +8,12 @@
     .input-box { border: 1px inset #fff; padding: 3px; font-size: 13px; }
     .textarea-box { border: 1px inset #fff; padding: 4px; font-size: 13px; width: 95%; font-family: "細明體", sans-serif; resize: none; }
     .hint-text { color: #e65100; font-size: 11px; margin-top: 4px; display: inline-block; }
+    
     .btn-query { background-color: #ffaa44 !important; color: #ffffff !important; font-weight: bold; border: 1px outset #fff !important; padding: 1px 6px; font-size: 12px; border-radius: 2px; cursor: pointer; margin: 0 4px; vertical-align: middle; }
     .btn-query:active { border-style: inset !important; }
+    .btn-clear { background-color: #ece9d8; border: 1px outset #fff; padding: 1px 6px; font-size: 11px; cursor: pointer; vertical-align: middle; }
+    .btn-clear:active { border-style: inset; }
+
     .req-icon { display: inline-block; width: 14px; height: 14px; background-color: #ffff00; color: #ff0000; border: 1px solid #808080; font-size: 12px; line-height: 14px; text-align: center; font-weight: bold; margin-left: 4px; vertical-align: middle; cursor: help; }
     .action-row { text-align: center; margin-top: 10px; background-color: #d4d0c8; padding: 10px; border: 1px solid #999; }
     .action-row button { background-color: #ece9d8; border: 2px outset #fff; padding: 4px 25px; font-weight: bold; letter-spacing: 5px; margin: 0 10px; cursor: pointer; }
@@ -17,6 +21,15 @@
     .upload-area { text-align: center; color: #000; font-size: 12px; line-height: 1.6; }
     .preview-box { width: 200px; height: 150px; background-color: #fff; border: 1px inset #ccc; margin: 0 auto 10px auto; display: flex; align-items: center; justify-content: center; color: #777; font-size: 12px; overflow: hidden; }
     .preview-box img { max-width: 100%; max-height: 100%; display: none; }
+
+    /* 🟢 Modal 樣式 */
+    .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.4); z-index: 999; }
+    .modal-box { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background-color: #ece9d8; border: 2px solid #000; padding: 10px; width: 350px; box-shadow: 2px 2px 10px rgba(0,0,0,0.5); }
+    .modal-header { background: linear-gradient(to right, #000080, #1084d0); color: white; padding: 4px; font-weight: bold; display: flex; justify-content: space-between; margin-bottom: 5px; }
+    .modal-close { cursor: pointer; background: #d4d0c8; color: black; border: 1px outset #fff; padding: 0 4px; }
+    .list-container { height: 250px; overflow-y: auto; background-color: white; border: 1px inset #fff; padding: 5px; }
+    .list-item { padding: 6px; cursor: pointer; border-bottom: 1px dashed #ccc; font-size: 13px; }
+    .list-item:hover { background-color: #000080; color: white; }
 </style>
 
 <div class="page-wrapper">
@@ -86,15 +99,18 @@
         
         <table class="form-table" style="border: none; border-top: 1px solid #999; margin-bottom: 0;">
             <tr>
-                <th style="width: 80px;">旅遊地區</th>
-                <td>
-                    <input type="text" id="tour_area" class="input-box" style="width: 150px;"> <button class="btn-query" type="button">?</button>
-                    <br><!--<span class="hint-text">&lt;請從資料庫中選取&gt;</span>-->
-                </td>
+                <!-- 🟢 調換順序：先選國家，再選地區 -->
                 <th style="width: 80px;">旅遊國家</th>
                 <td>
-                    <input type="text" id="tour_country" class="input-box" style="width: 150px;"> <button class="btn-query" type="button">?</button>
-                    <br><!--<span class="hint-text">&lt;請從資料庫中選取&gt;</span>-->
+                    <input type="text" id="tour_country" class="input-box" style="width: 120px;">
+                    <button class="btn-query" type="button" onclick="window.openCountryPicker()">?</button>
+                    <button class="btn-clear" type="button" onclick="document.getElementById('tour_country').value=''; document.getElementById('tour_area').value='';">清</button>
+                </td>
+                <th style="width: 80px;">旅遊地區</th>
+                <td>
+                    <input type="text" id="tour_area" class="input-box" style="width: 120px;">
+                    <button class="btn-query" type="button" onclick="window.openAreaPicker()">?</button>
+                    <button class="btn-clear" type="button" onclick="document.getElementById('tour_area').value=''">清</button>
                 </td>
             </tr>
         </table>
@@ -116,7 +132,6 @@
                 <th>開發特色</th>
                 <td>
                     <textarea id="dev_features" class="textarea-box" rows="3"></textarea> <button class="btn-query" type="button" style="vertical-align: top; margin-top: 5px;">?</button>
-                    <br><!--<span class="hint-text">&lt;請從資料庫中選取或可手動輸入特色，手動輸入時，請以"/"分隔&gt;</span>-->
                 </td>
             </tr>
             <tr><th>行程特色</th><td><textarea id="itinerary_features" class="textarea-box" rows="2"></textarea></td></tr>
@@ -150,14 +165,96 @@
     </div>
 </div>
 
+<!-- 🟢 共用彈跳視窗 (國家/地區) -->
+<div id="location_modal" class="modal-overlay">
+    <div class="modal-box">
+        <div class="modal-header">
+            <span id="modal_title">選擇</span>
+            <span class="modal-close" onclick="window.closeLocationPicker()">X</span>
+        </div>
+        <div class="list-container" id="location_list"></div>
+    </div>
+</div>
+
 <script>
-    // 🟢 關鍵修復：將所有邏輯綁定在 window 上，避免 SPA 重複載入造成 let/const 重複宣告當機！
-    window.getEditTargetCode = function() {
-        let code = localStorage.getItem('editTourCode');
-        if (code === 'null' || code === 'undefined' || code === '') {
-            return null;
+    // 🟢 台灣常出團國家與地區字典 (支援國內外旅遊)
+    window.countryAreaMap = {
+        "台灣 (國內旅遊)": ["北部 (基北北桃竹宜)", "中部 (苗中彰投雲)", "南部 (嘉南高屏)", "東部 (花東)", "離島 (澎湖/金門/馬祖)"],
+        "日本": ["關東 (東京)", "關西 (大阪/京都)", "北海道", "東北", "北陸/中部 (名古屋)", "四國", "九州", "沖繩"],
+        "韓國": ["首爾/京畿道", "釜山/慶尚道", "濟州島"],
+        "中國": ["華北 (北京/天津)", "華東 (上海/江南)", "華南 (廣東/廣西)", "西南 (雲南/四川)", "西北 (新疆/絲路)", "東北", "港澳"],
+        "泰國": ["曼谷/芭達雅", "清邁/泰北", "普吉島/蘇美島"],
+        "越南": ["北越 (河內/下龍灣)", "中越 (峴港/會安)", "南越 (胡志明市)", "富國島"],
+        "印尼": ["峇里島", "雅加達"],
+        "菲律賓": ["馬尼拉", "宿霧", "長灘島", "巴拉望"],
+        "馬來西亞": ["吉隆坡", "沙巴", "檳城"],
+        "新加坡": ["新加坡"],
+        "歐洲": ["西歐 (法/比/荷)", "東歐 (奧/捷/匈)", "南歐 (義/西/葡)", "北歐", "英國/愛爾蘭", "瑞士"],
+        "美洲": ["美國西岸", "美國東岸", "加拿大", "中南美洲"],
+        "紐澳": ["雪梨/東澳", "墨爾本/南澳", "紐西蘭北島", "紐西蘭南島"],
+        "中東/非洲": ["杜拜", "土耳其", "埃及", "南非"]
+    };
+
+    // 開啟國家挑選器
+    window.openCountryPicker = function() {
+        let html = '';
+        Object.keys(window.countryAreaMap).forEach(country => {
+            html += `<div class="list-item" onclick="window.selectCountry('${country}')">${country}</div>`;
+        });
+        document.getElementById('location_list').innerHTML = html;
+        document.getElementById('modal_title').innerText = '選擇旅遊國家';
+        document.getElementById('location_modal').style.display = 'block';
+    };
+
+    // 選擇國家
+    window.selectCountry = function(country) {
+        document.getElementById('tour_country').value = country;
+        // 更換國家時自動清空地區，避免資料錯亂
+        document.getElementById('tour_area').value = ''; 
+        window.closeLocationPicker();
+    };
+
+    // 開啟地區挑選器
+    window.openAreaPicker = function() {
+        let country = document.getElementById('tour_country').value.trim();
+        if (!country) {
+            alert("請先點選『旅遊國家』旁邊的 ? 來設定國家！");
+            return;
         }
-        return code;
+
+        let areas = window.countryAreaMap[country];
+        if (!areas || areas.length === 0) {
+            alert("此國家無預設的地區清單，請直接於欄位內手動輸入！");
+            return;
+        }
+
+        let html = '';
+        areas.forEach(area => {
+            html += `<div class="list-item" onclick="window.selectArea('${area}')">${area}</div>`;
+        });
+        document.getElementById('location_list').innerHTML = html;
+        document.getElementById('modal_title').innerText = `選擇地區 (${country})`;
+        document.getElementById('location_modal').style.display = 'block';
+    };
+
+    // 選擇地區
+    window.selectArea = function(area) {
+        document.getElementById('tour_area').value = area;
+        window.closeLocationPicker();
+    };
+
+    window.closeLocationPicker = function() {
+        document.getElementById('location_modal').style.display = 'none';
+    };
+
+    // 🟢 嚴格判定：過濾掉 'null' 字串
+    let editTargetCode = localStorage.getItem('editTourCode');
+    if (editTargetCode === 'null' || editTargetCode === 'undefined' || editTargetCode === '') {
+        editTargetCode = null;
+    }
+
+    window.getEditTargetCode = function() {
+        return editTargetCode;
     };
 
     window.previewImage = function(event) {
@@ -173,7 +270,6 @@
         }
     };
 
-    // 載入線別資料：若 ProductSeries 表不存在，會在此自動建立，避免報錯
     window.loadLinesData = function(selectedLine = '') {
         const sel = document.getElementById('line_name');
         sel.innerHTML = '<option value="">-請選擇-</option>';
@@ -225,7 +321,6 @@
     window.initTourForm = function() {
         if (!window.db) return;
         
-        // 防呆：確保主表存在
         window.db.exec(`
             CREATE TABLE IF NOT EXISTS BasicTours (
                 tour_code TEXT PRIMARY KEY CHECK(length(tour_code) <= 12), tour_category TEXT, line_name TEXT, series_name TEXT,
@@ -236,10 +331,9 @@
             );
         `);
         
-        const editTargetCode = window.getEditTargetCode();
+        const currentTarget = window.getEditTargetCode();
         
-        if (editTargetCode) {
-            // 進入修改模式
+        if (currentTarget) {
             document.getElementById('form_title').innerText = "【 修改團型基本內容 】";
             document.getElementById('btn_save').innerText = "修 改";
             
@@ -248,7 +342,7 @@
             codeInput.style.backgroundColor = '#e0e0e0';
 
             try {
-                const res = window.db.exec(`SELECT * FROM BasicTours WHERE tour_code = '${editTargetCode}'`);
+                const res = window.db.exec(`SELECT * FROM BasicTours WHERE tour_code = '${currentTarget}'`);
                 if (res.length > 0) {
                     const data = res[0].values[0];
                     const cleanStr = (val) => val === null ? '' : val;
@@ -281,13 +375,12 @@
                 console.error("載入修改資料失敗", e);
             }
         } else {
-            // 進入新增模式
             window.loadLinesData();
         }
     };
 
     window.saveBasicTour = async function() {
-        const editTargetCode = window.getEditTargetCode();
+        const currentTarget = window.getEditTargetCode();
         
         const code = document.getElementById('tour_code').value.trim().toUpperCase();
         const cat = document.getElementById('tour_category').value;
@@ -316,7 +409,7 @@
 
         let sql = "";
 
-        if (editTargetCode) {
+        if (currentTarget) {
             sql = `
                 UPDATE BasicTours SET 
                     tour_category='${window.escapeSql(cat)}', line_name='${window.escapeSql(line)}', series_name='${window.escapeSql(series)}',
@@ -369,6 +462,5 @@
         }
     };
 
-    // 🟢 執行初始化
     window.initTourForm();
 </script>
