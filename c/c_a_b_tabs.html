@@ -9,10 +9,25 @@
     .tab-btn.active { background-color: #ece9d8; border-top: 3px solid #ffaa44; border-left: 1px solid #fff; font-weight: bold; z-index: 2; padding-bottom: 7px; margin-bottom: -1px; }
     .tab-btn:hover:not(.active) { background-color: #e2dfd3; }
     
-    .tab-content-box { border: 1px solid #999; border-top: none; border-right: 2px solid #fff; border-bottom: 2px solid #fff; background-color: #ece9d8; padding: 15px; min-height: 450px; overflow-y: auto; }
+    /* 🟢 關鍵修正：限制這個外框的高度，強制內容過長時產生右側專屬拉Bar */
+    .tab-content-box { 
+        border: 1px solid #999; 
+        border-top: none; 
+        border-right: 2px solid #fff; 
+        border-bottom: 2px solid #fff; 
+        background-color: #ece9d8; 
+        padding: 15px; 
+        
+        /* 鎖定高度，扣除掉上方標題與標籤的高度 */
+        height: calc(100vh - 160px); 
+        min-height: 400px; 
+        
+        /* 內容超過高度時，自動顯示右側捲軸 */
+        overflow-y: auto; 
+    }
 </style>
 
-<div class="content-header">
+<div class="content-header" style="margin-bottom: 10px; font-size: 14px; font-weight: bold;">
     編輯團型基本資料 ▹ 團型代碼：<span id="header_tour_code" style="color: blue; margin-left:5px;"></span>
 </div>
 
@@ -24,6 +39,7 @@
         <div class="tab-btn" onclick="window.switchTab(4, this)">4.各項費用表</div>
     </div>
 
+    <!-- 所有的分頁內容都會被限制在這個有拉 Bar 的框框內 -->
     <div id="sub-tab-content" class="tab-content-box">正在載入分頁內容...</div>
 </div>
 
@@ -36,15 +52,15 @@
         document.getElementById('header_tour_code').innerText = window.currentEditTourCode;
     }
 
+    // 🟢 關鍵修正：將 const 替換為 var，避免 SPA 架構下重複載入腳本引發語法錯誤而當機
     window.switchTab = function(tabIndex, element) {
-        const tabs = document.querySelectorAll('.tabs-header .tab-btn');
+        var tabs = document.querySelectorAll('.tabs-header .tab-btn');
         tabs.forEach(tab => tab.classList.remove('active'));
         if (element) element.classList.add('active');
 
-        // 🟢 關鍵修正：在這裡補上您系統專屬的資料夾路徑
-        // 依照 a_a_a 的邏輯，這裡設定為 c/ 目錄。若您的資料夾名稱不同 (例如 c_a_b/)，請修改下面這一行。
-        const subFilePath = `c/c_a_b_${tabIndex}.html`;
-        const contentBox = document.getElementById('sub-tab-content');
+        // 依照 a_a_a 的邏輯，這裡設定為 c/ 目錄。
+        var subFilePath = `c/c_a_b_${tabIndex}.html`;
+        var contentBox = document.getElementById('sub-tab-content');
 
         fetch(subFilePath)
             .then(response => {
@@ -53,9 +69,9 @@
             })
             .then(html => {
                 contentBox.innerHTML = html;
-                const scripts = contentBox.querySelectorAll('script');
+                var scripts = contentBox.querySelectorAll('script');
                 scripts.forEach(oldScript => {
-                    const newScript = document.createElement('script');
+                    var newScript = document.createElement('script');
                     Array.from(oldScript.attributes).forEach(attr => newScript.setAttribute(attr.name, attr.value));
                     newScript.appendChild(document.createTextNode(oldScript.innerHTML));
                     oldScript.parentNode.replaceChild(newScript, oldScript);
@@ -69,7 +85,7 @@
 
     // 預設載入第一個標籤
     setTimeout(() => {
-        const targetTab = document.querySelector('.tabs-header .tab-btn:nth-child(1)');
+        var targetTab = document.querySelector('.tabs-header .tab-btn:nth-child(1)');
         if (targetTab) window.switchTab(1, targetTab);
     }, 100);
 </script>
